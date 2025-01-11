@@ -5,6 +5,7 @@ from hashlib import md5
 
 import asyncio
 import config
+import bcrypt
 import time
 import jwt
 
@@ -35,16 +36,16 @@ def decode_token(token: str) -> dict | None:
 
     return data
 
-def password_authentication(password: str, bcrypt: str) -> bool:
+def password_authentication(password: str, bcrypt_hash: str) -> bool:
     return md5_authentication(
         md5(password.encode()).hexdigest(),
-        bcrypt
+        bcrypt_hash
     )
 
-def md5_authentication(md5: str, bcrypt: str) -> bool:
+def md5_authentication(md5: str, bcrypt_hash: str) -> bool:
     return bcrypt.checkpw(
         md5.encode(),
-        bcrypt.encode()
+        bcrypt_hash.encode()
     )
 
 async def md5_authentication_async(md5: str, bcrypt: str) -> bool:

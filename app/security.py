@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 from app.common.database import DBUser
+from fastapi import Header
 from hashlib import md5
 
 import asyncio
@@ -59,3 +60,6 @@ async def password_authentication_async(password: str, bcrypt: str) -> bool:
         md5(password.encode()).hexdigest(),
         bcrypt
     )
+
+def require_login(authorization: str = Header(..., alias="Authorization")):
+    return authorization

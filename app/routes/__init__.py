@@ -1,6 +1,6 @@
 
 from fastapi import APIRouter
-from app.models import ServerStats
+from app.models import ServerStatsModel
 
 from . import account
 from . import oauth
@@ -12,9 +12,9 @@ router = APIRouter()
 router.include_router(oauth.router, prefix="/oauth", tags=["oauth"])
 router.include_router(account.router, prefix="/account", tags=["account"])
 
-@router.get('/stats', response_model=ServerStats)
+@router.get('/stats', response_model=ServerStatsModel)
 def server_stats():
-    return ServerStats(
+    return ServerStatsModel(
         uptime=round(time.time() - app.session.startup_time),
         total_scores=int(app.session.redis.get("bancho:totalscores") or 0),
         total_users=int(app.session.redis.get("bancho:totalusers") or 0),

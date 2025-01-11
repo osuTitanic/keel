@@ -5,7 +5,7 @@ from app.models import UserModel
 
 router = APIRouter()
 
-@router.get('/profile')
+@router.get('/profile', response_model=UserModel)
 @requires('authenticated')
 def user_profile(request: Request) -> UserModel:
     return UserModel.model_validate(

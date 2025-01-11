@@ -14,4 +14,5 @@ from .multiplayer import *
 from .packs import *
 from .score import *
 from .search import *
+from .server import *
 from .user import *

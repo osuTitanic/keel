@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List
 
-class Client(BaseModel):
+class ClientModel(BaseModel):
     name: str
     description: str
     category: str

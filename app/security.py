@@ -1,0 +1,62 @@
+
+from __future__ import annotations
+from app.common.database import DBUser
+from functools import cache
+from hashlib import md5
+
+import asyncio
+import config
+import time
+import jwt
+
+def generate_token(user: DBUser) -> str:
+    return jwt.encode(
+        {
+            'id': user.id,
+            'name': user.username,
+            'exp': round(time.time()) + config.FRONTEND_TOKEN_EXPIRY,
+        },
+        config.FRONTEND_SECRET_KEY,
+        algorithm='HS256'
+    )
+
+def decode_token(token: str) -> dict | None:
+    try:
+        data = jwt.decode(
+            token,
+            config.FRONTEND_SECRET_KEY,
+            algorithms=['HS256']
+        )
+    except jwt.PyJWTError:
+        return
+
+    # Check if the token is expired
+    if data['exp'] < round(time.time()):
+        return
+
+    return data
+
+def password_authentication(password: str, bcrypt: str) -> bool:
+    return md5_authentication(
+        md5(password),
+        bcrypt
+    )
+
+def md5_authentication(md5: str, bcrypt: str) -> bool:
+    return bcrypt.checkpw(
+        md5.encode(),
+        bcrypt.encode()
+    )
+
+async def md5_authentication_async(md5: str, bcrypt: str) -> bool:
+    return asyncio.get_event_loop().run_in_executor(
+        None, md5_authentication,
+        md5, bcrypt
+    )
+
+@cache
+async def password_authentication_async(password: str, bcrypt: str) -> bool:
+    return await md5_authentication_async(
+        md5(password),
+        bcrypt
+    )

@@ -22,7 +22,7 @@ class AuthBackend(AuthenticationBackend):
         if not (auth_header := request.headers.get('Authorization')):
             return AuthCredentials([]), UnauthenticatedUser()
 
-        authorization = await self.parse_authorization(auth_header)
+        authorization = self.parse_authorization(auth_header)
 
         validators = {
             'basic': self.basic_authentication,
@@ -74,7 +74,7 @@ class AuthBackend(AuthenticationBackend):
         return user
 
     async def token_authentication(self, token: str) -> DBUser | None:
-        data = security.validate_access_token(token)
+        data = security.validate_token(token)
 
         if not data:
             return None
@@ -90,7 +90,7 @@ class AuthBackend(AuthenticationBackend):
         )
         return [group.name for group in user_groups]
 
-    async def parse_authorization(self, authorization: str) -> dict[str, str]:
+    def parse_authorization(self, authorization: str) -> dict[str, str]:
         if ' ' not in authorization:
             return {'scheme': '', 'data': ''}
 

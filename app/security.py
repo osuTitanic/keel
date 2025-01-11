@@ -9,7 +9,7 @@ import bcrypt
 import time
 import jwt
 
-def generate_access_token(user: DBUser, expiry: int) -> str:
+def generate_token(user: DBUser, expiry: int) -> str:
     return jwt.encode(
         {
             'id': user.id,
@@ -20,7 +20,7 @@ def generate_access_token(user: DBUser, expiry: int) -> str:
         algorithm='HS256'
     )
 
-def validate_access_token(token: str) -> dict | None:
+def validate_token(token: str) -> dict | None:
     try:
         data = jwt.decode(
             token,

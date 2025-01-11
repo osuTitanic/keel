@@ -10,9 +10,33 @@ logging.basicConfig(
     level=logging.DEBUG if config.DEBUG else logging.INFO,
 )
 
+description = """\
+Welcome to the documentation for the Titanic! API.  
+This service lets you access & interact with (almost) everything Titanic! has to offer.
+
+Note that this documentation may contain parts that are incorrect and contain errors.  
+Don't be afraid to report them on our GitHub repository.
+"""
+
 api = FastAPI(
-    title='titanic-api',
-    description='Titanic! API',
-    debug=config.DEBUG
+    title='Titanic! API',
+    description=description,
+    version=config.VERSION,
+    debug=config.DEBUG,
+    contact={
+        "name": "Titanic",
+        "url": "https://osu.titanic.sh",
+        "email": "support@titanic.sh"
+    },
+    servers=[
+        {
+            "url": f"https://api.titanic.sh",
+            "description": "Production server"
+        },
+        {
+            "url": "http://localhost:8000",
+            "description": "Local server"
+        }
+    ]
 )
 api.include_router(BaseRouter)

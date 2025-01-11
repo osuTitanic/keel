@@ -89,7 +89,7 @@ class AuthBackend(AuthenticationBackend):
             groups.fetch_user_groups,
             user_id, True, request.state.db
         )
-        return [group.name for group in user_groups]
+        return [group.short_name for group in user_groups]
 
     def parse_authorization(self, authorization: str) -> dict[str, str]:
         if ' ' not in authorization:

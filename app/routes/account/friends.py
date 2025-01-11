@@ -7,10 +7,11 @@ from fastapi import APIRouter, Request
 from typing import List
 
 router = APIRouter(
-    responses={403: {'model': ErrorResponse}}
+    responses={403: {'model': ErrorResponse}},
+    dependencies=[require_login]
 )
 
-@router.get('/friends', response_model=List[UserModelCompact], dependencies=[require_login])
+@router.get('/friends', response_model=List[UserModelCompact])
 @requires('authenticated')
 def friends(request: Request):
     return [

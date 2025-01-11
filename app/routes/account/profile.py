@@ -10,10 +10,11 @@ from app.common.database import users
 import re
 
 router = APIRouter(
-    responses={403: {'model': ErrorResponse}}
+    responses={403: {'model': ErrorResponse}},
+    dependencies=[require_login]
 )
 
-@router.get('/profile', response_model=UserModel, dependencies=[require_login])
+@router.get('/profile', response_model=UserModel)
 @requires('authenticated')
 def profile(request: Request) -> UserModel:
     return UserModel.model_validate(
@@ -21,7 +22,7 @@ def profile(request: Request) -> UserModel:
         from_attributes=True
     )
 
-@router.post('/profile', response_model=UserModel, dependencies=[require_login])
+@router.post('/profile', response_model=UserModel)
 @requires(['authenticated', 'unrestricted', 'unsilenced', 'activated'])
 def update_profile(
     request: Request,

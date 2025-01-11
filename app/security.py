@@ -1,7 +1,6 @@
 
 from __future__ import annotations
 from app.common.database import DBUser
-from functools import cache
 from hashlib import md5
 
 import asyncio
@@ -54,7 +53,6 @@ async def md5_authentication_async(md5: str, bcrypt: str) -> bool:
         md5, bcrypt
     )
 
-@cache
 async def password_authentication_async(password: str, bcrypt: str) -> bool:
     return await md5_authentication_async(
         md5(password.encode()).hexdigest(),

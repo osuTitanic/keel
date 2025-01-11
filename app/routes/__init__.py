@@ -1,6 +1,8 @@
 
 from fastapi import APIRouter
 from app.models import ServerStats
+
+from . import account
 from . import oauth
 
 import app.session
@@ -8,6 +10,7 @@ import time
 
 router = APIRouter()
 router.include_router(oauth.router, prefix="/oauth", tags=["oauth"])
+router.include_router(account.router, prefix="/account", tags=["account"])
 
 @router.get('/', response_model=ServerStats)
 def server_stats():

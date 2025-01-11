@@ -1,14 +1,19 @@
 
 from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import JSONResponse, Response
+from app.models import TokenResponse, ErrorResponse
 from app.common.database import DBUser, users
-from app.models import TokenResponse
 
 import app.security as security
 import config
 import time
 
-router = APIRouter()
+router = APIRouter(
+    responses={
+        403: {'model': ErrorResponse},
+        401: {'model': ErrorResponse}
+    }
+)
 
 def validate_refresh_token(request: Request) -> DBUser:
     refresh_token = request.cookies.get('refresh_token')

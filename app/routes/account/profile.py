@@ -3,14 +3,16 @@ from fastapi import HTTPException, APIRouter, Request, Form
 from starlette.authentication import requires
 from app.common.constants.regexes import DISCORD_USERNAME, URL
 from app.common.database import users
-from app.models import UserModel
+from app.models import UserModel, ErrorResponse
 import re
 
-router = APIRouter()
+router = APIRouter(
+    responses={403: {'model': ErrorResponse}}
+)
 
 @router.get('/profile', response_model=UserModel)
 @requires('authenticated')
-def user_profile(request: Request) -> UserModel:
+def profile(request: Request) -> UserModel:
     return UserModel.model_validate(
         request.user,
         from_attributes=True

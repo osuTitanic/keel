@@ -3,6 +3,7 @@ from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 from app.models import TokenResponse, ErrorResponse
 from app.common.database import DBUser, users
+from app.security import require_login
 
 import app.security as security
 import config
@@ -12,7 +13,8 @@ router = APIRouter(
     responses={
         403: {'model': ErrorResponse},
         401: {'model': ErrorResponse}
-    }
+    },
+    dependencies=[require_login]
 )
 
 def validate_refresh_token(request: Request) -> DBUser:

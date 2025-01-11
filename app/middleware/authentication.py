@@ -10,6 +10,7 @@ from app.common.database import DBUser
 from app import api
 
 import app.security as security
+import logging
 import asyncio
 import base64
 
@@ -49,7 +50,7 @@ class AuthBackend(AuthenticationBackend):
         loop = asyncio.get_event_loop()
 
         user: DBUser = await loop.run_in_executor(
-            None, users.fetch_by_name_case_insensitive(username), username
+            None, users.fetch_by_name_case_insensitive, username
         )
 
         if not user:
@@ -63,7 +64,7 @@ class AuthBackend(AuthenticationBackend):
             return None
 
         return user
-    
+
     async def token_authentication(self, token: str) -> DBUser | None:
         data = security.decode_token(token)
 
@@ -82,7 +83,10 @@ class AuthBackend(AuthenticationBackend):
         return [group.name for group in user_groups]
 
     async def parse_authorization(self, authorization: str) -> dict[str, str]:
+        if ' ' not in authorization:
+            return {'scheme': '', 'data': ''}
+
         scheme, data = authorization.split(' ', 1)
-        return {'scheme': scheme, 'data': data}
+        return {'scheme': scheme.lower(), 'data': data}
 
 api.add_middleware(AuthenticationMiddleware, backend=AuthBackend())

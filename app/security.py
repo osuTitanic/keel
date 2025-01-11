@@ -9,12 +9,12 @@ import config
 import time
 import jwt
 
-def generate_token(user: DBUser) -> str:
+def generate_token(user: DBUser, expiry: int) -> str:
     return jwt.encode(
         {
             'id': user.id,
-            'name': user.username,
-            'exp': round(time.time()) + config.FRONTEND_TOKEN_EXPIRY,
+            'name': user.name,
+            'exp': expiry,
         },
         config.FRONTEND_SECRET_KEY,
         algorithm='HS256'
@@ -38,7 +38,7 @@ def decode_token(token: str) -> dict | None:
 
 def password_authentication(password: str, bcrypt: str) -> bool:
     return md5_authentication(
-        md5(password),
+        md5(password.encode()).hexdigest(),
         bcrypt
     )
 
@@ -57,6 +57,6 @@ async def md5_authentication_async(md5: str, bcrypt: str) -> bool:
 @cache
 async def password_authentication_async(password: str, bcrypt: str) -> bool:
     return await md5_authentication_async(
-        md5(password),
+        md5(password.encode()).hexdigest(),
         bcrypt
     )

@@ -4,6 +4,9 @@ import os
 
 dotenv.load_dotenv(override=False)
 
+API_HOST = os.environ.get('API_HOST', '0.0.0.0')
+API_PORT = int(os.environ.get('API_PORT', 8000))
+
 POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD')
 POSTGRES_PORT = int(os.environ.get('POSTGRES_PORT', 5432))
 POSTGRES_USER = os.environ.get('POSTGRES_USER')
@@ -23,6 +26,7 @@ FREE_SUPPORTER = eval(os.environ.get('FREE_SUPPORTER', 'True').capitalize())
 ENABLE_SSL = eval(os.environ.get('ENABLE_SSL', 'False').capitalize())
 S3_ENABLED = eval(os.environ.get('ENABLE_S3', 'True').capitalize())
 DEBUG = eval(os.environ.get('DEBUG', 'False').capitalize())
+RELOAD = eval(os.environ.get('RELOAD', str(DEBUG)).capitalize())
 DOMAIN_NAME = os.environ.get('DOMAIN_NAME')
 
 EMAIL_PROVIDER = os.environ.get('EMAIL_PROVIDER')

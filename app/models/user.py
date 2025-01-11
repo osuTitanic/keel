@@ -85,3 +85,22 @@ class UserModel(BaseModel):
     badges: List[BadgeModel]
     stats: List[StatsModel]
     groups: List[GroupEntryModel]
+
+class UserModelCompact(BaseModel):
+    id: int
+    name: str
+    country: str
+    created_at: datetime
+    latest_activity: datetime
+    restricted: bool
+    activated: bool
+    preferred_mode: int
+    playstyle: int
+    userpage: str | None
+    signature: str | None
+    banner: str | None
+    website: str | None
+    discord: str | None
+    twitter: str | None
+    location: str | None
+    interests: str | None

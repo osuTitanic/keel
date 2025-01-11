@@ -17,5 +17,5 @@ def generate_token(request: Request) -> TokenResponse:
     return TokenResponse(
         access_token=token,
         expires_in=expiry,
-        token_type='bearer',
+        token_type='Bearer',
     )

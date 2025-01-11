@@ -15,6 +15,9 @@ import asyncio
 import base64
 
 class AuthBackend(AuthenticationBackend):
+    def __init__(self):
+        self.logger = logging.getLogger('authentication')
+
     async def authenticate(self, request: HTTPConnection):
         if not (auth_header := request.headers.get('Authorization')):
             return AuthCredentials([]), UnauthenticatedUser()
@@ -27,10 +30,15 @@ class AuthBackend(AuthenticationBackend):
         }
 
         if authorization['scheme'] not in validators:
+            self.logger.warning(f'Invalid authorization scheme: {authorization["scheme"]}')
             return AuthCredentials([]), UnauthenticatedUser()
 
-        validator = validators[authorization['scheme']]
-        user: DBUser = await validator(authorization['data'])
+        try:
+            validator = validators[authorization['scheme']]
+            user: DBUser = await validator(authorization['data'])
+        except Exception as e:
+            self.logger.error(f'Authentication failure ({authorization["scheme"]}): {e}')
+            return AuthCredentials([]), UnauthenticatedUser()
 
         if not user:
             return AuthCredentials([]), UnauthenticatedUser()

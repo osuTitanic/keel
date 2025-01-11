@@ -1,7 +1,7 @@
 
 from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import JSONResponse, Response
-from app.models import TokenResponse, ErrorResponse
+from app.models import TokenResponseModel, ErrorResponse
 from app.common.database import DBUser, users
 from app.security import require_login
 
@@ -30,7 +30,7 @@ def validate_refresh_token(request: Request) -> DBUser:
 
     return users.fetch_by_id(data['id'])
 
-@router.post("/token", response_model=TokenResponse)
+@router.post("/token", response_model=TokenResponseModel)
 def generate_token(request: Request) -> Response:
     user: DBUser = request.user
 
@@ -46,7 +46,7 @@ def generate_token(request: Request) -> Response:
     access_token = security.generate_token(user, expiry)
     refresh_token = security.generate_token(user, expiry_refresh)
 
-    token_response = TokenResponse(
+    token_response = TokenResponseModel(
         access_token=access_token,
         refresh_token=refresh_token,
         expires_in=expiry,

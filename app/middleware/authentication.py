@@ -48,6 +48,12 @@ class AuthBackend(AuthenticationBackend):
         if user.activated:
             scopes.append('activated')
 
+        if not user.restricted:
+            scopes.append('unrestricted')
+
+        if not user.silence_end:
+            scopes.append('unsilenced')
+
         for group in await self.fetch_user_groups(user.id, request):
             scopes.append(group.lower())
 

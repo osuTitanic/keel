@@ -104,3 +104,10 @@ class UserModelCompact(BaseModel):
     twitter: str | None
     location: str | None
     interests: str | None
+
+class ProfileUpdateModel(BaseModel):
+    interests: str | None = None
+    location: str | None = None
+    website: str | None = None
+    discord: str | None = None
+    twitter: str | None = None

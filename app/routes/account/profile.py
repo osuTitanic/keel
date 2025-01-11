@@ -1,9 +1,9 @@
 
-from fastapi import HTTPException, APIRouter, Request, Form
+from fastapi import HTTPException, APIRouter, Request, Depends
 from starlette.authentication import requires
 
+from app.models import UserModel, ErrorResponse, ProfileUpdateModel
 from app.common.constants.regexes import DISCORD_USERNAME, URL
-from app.models import UserModel, ErrorResponse
 from app.security import require_login
 from app.common.database import users
 
@@ -26,54 +26,50 @@ def profile(request: Request) -> UserModel:
 @requires(['authenticated', 'unrestricted', 'unsilenced', 'activated'])
 def update_profile(
     request: Request,
-    interests: str = Form(None),
-    location: str = Form(None),
-    website: str = Form(None),
-    discord: str = Form(None),
-    twitter: str = Form(None)
+    update: ProfileUpdateModel = Depends()
 ) -> UserModel:
-    if interests != None and len(interests) > 30:
+    if update.interests != None and len(update.interests) > 30:
         raise HTTPException(
             status_code=400,
-            detail='Please keep your interests short!'
+            detail='Please keep your updates.interests short!'
         )
 
-    if location != None and len(location) > 30:
+    if update.location != None and len(update.location) > 30:
         raise HTTPException(
             status_code=400,
-            detail='Please keep your location short!'
+            detail='Please keep your updates.location short!'
         )
 
-    if twitter != None and len(twitter) > 64:
+    if update.twitter != None and len(update.twitter) > 64:
         raise HTTPException(
             status_code=400,
-            detail='Please type in a valid twitter handle or url!'
+            detail='Please type in a valid updates.twitter handle or url!'
         )
 
-    if website != None and len(website) > 64:
+    if update.website != None and len(update.website) > 64:
         raise HTTPException(
             status_code=400,
-            detail='Please keep your website url short!'
+            detail='Please keep your updates.website url short!'
         )
 
-    if website != None and not URL.match(website):
+    if update.website != None and not URL.match(update.website):
         raise HTTPException(
             status_code=400,
-            detail='Please type in a valid website url!'
+            detail='Please type in a valid updates.website url!'
         )
 
-    if discord != None and not DISCORD_USERNAME.match(discord.removeprefix('@')):
+    if update.discord != None and not DISCORD_USERNAME.match(update.discord):
         raise HTTPException(
             status_code=400,
-            detail='Invalid discord username. Please try again!'
+            detail='Invalid updates.discord username. Please try again!'
         )
 
     updates = {
-        'interests': interests,
-        'location': location,
-        'website': website,
-        'discord': discord.removeprefix('@') if discord else None,
-        'twitter': f'https://twitter.com/{twitter_handle(twitter)}' if twitter else None
+        'interests': update.interests,
+        'location': update.location,
+        'website': update.website,
+        'discord': update.discord.removeprefix('@') if update.discord else None,
+        'twitter': f'https://updates.twitter.com/{update.twitter_handle(update.twitter)}' if update.twitter else None
     }
 
     users.update(

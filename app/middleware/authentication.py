@@ -35,9 +35,9 @@ class AuthBackend(AuthenticationBackend):
 
         try:
             validator = validators[authorization['scheme']]
-            user: DBUser = await validator(authorization['data'])
+            user: DBUser = await validator(authorization['data'], request)
         except Exception as e:
-            self.logger.error(f'Authentication failure ({authorization["scheme"]}): {e}')
+            self.logger.error(f'Authentication failure ({authorization["scheme"]}): {e}', exc_info=True)
             return AuthCredentials([]), UnauthenticatedUser()
 
         if not user:
@@ -48,17 +48,17 @@ class AuthBackend(AuthenticationBackend):
         if user.activated:
             scopes.append('activated')
 
-        for group in await self.fetch_user_groups(user.id):
+        for group in await self.fetch_user_groups(user.id, request):
             scopes.append(group.lower())
 
         return AuthCredentials(scopes), user
     
-    async def basic_authentication(self, data: str) -> DBUser | None:
+    async def basic_authentication(self, data: str, request: HTTPConnection) -> DBUser | None:
         username, password = base64.b64decode(data).decode().split(':', 1)
-        loop = asyncio.get_event_loop()
 
-        user: DBUser = await loop.run_in_executor(
-            None, users.fetch_by_name_case_insensitive, username
+        user: DBUser = await self.run_async(
+            users.fetch_by_name_case_insensitive,
+            username, session=request.state.db
         )
 
         if not user:
@@ -73,20 +73,21 @@ class AuthBackend(AuthenticationBackend):
 
         return user
 
-    async def token_authentication(self, token: str) -> DBUser | None:
+    async def token_authentication(self, token: str, request: HTTPConnection) -> DBUser | None:
         data = security.validate_token(token)
 
         if not data:
             return None
 
-        return await asyncio.get_event_loop().run_in_executor(
-            None, users.fetch_by_id, data['id']
+        return await self.run_async(
+            users.fetch_by_id_no_options,
+            data['id'], request.state.db
         )
 
-    async def fetch_user_groups(self, user_id: int) -> List[str]:
-        user_groups = await asyncio.get_event_loop().run_in_executor(
-            None, groups.fetch_user_groups,
-            user_id, True
+    async def fetch_user_groups(self, user_id: int, request: HTTPConnection) -> List[str]:
+        user_groups = await self.run_async(
+            groups.fetch_user_groups,
+            user_id, True, request.state.db
         )
         return [group.name for group in user_groups]
 
@@ -96,5 +97,10 @@ class AuthBackend(AuthenticationBackend):
 
         scheme, data = authorization.split(' ', 1)
         return {'scheme': scheme.lower(), 'data': data}
+    
+    async def run_async(self, query, *args):
+        return await asyncio.get_event_loop().run_in_executor(
+            None, query, *args
+        )
 
 api.add_middleware(AuthenticationMiddleware, backend=AuthBackend())

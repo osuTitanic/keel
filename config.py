@@ -47,5 +47,8 @@ OFFICER_WEBHOOK_URL = os.environ.get('OFFICER_WEBHOOK_URL')
 EVENT_WEBHOOK_URL = os.environ.get('EVENT_WEBHOOK_URL')
 DATA_PATH = os.path.abspath('.data')
 
+FRONTEND_SECRET_KEY = os.environ.get('FRONTEND_SECRET_KEY', 'somethingrandom')
+FRONTEND_TOKEN_EXPIRY = int(os.environ.get('FRONTEND_TOKEN_EXPIRY', 3600))
+
 OSU_BASEURL = f'http{"s" if ENABLE_SSL else ""}://osu.{DOMAIN_NAME}'
 STATIC_BASEURL = f'http{"s" if ENABLE_SSL else ""}://s.{DOMAIN_NAME}'

@@ -13,7 +13,7 @@ router = APIRouter()
 @requires('authenticated')
 def generate_token(request: Request) -> TokenResponse:
     expiry = round(time.time() + config.FRONTEND_TOKEN_EXPIRY)
-    token = security.generate_token(request.user, expiry)
+    token = security.generate_access_token(request.user, expiry)
     return TokenResponse(
         access_token=token,
         expires_in=expiry,

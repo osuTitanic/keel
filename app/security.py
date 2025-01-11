@@ -1,7 +1,7 @@
 
 from __future__ import annotations
 from app.common.database import DBUser
-from fastapi import Header
+from fastapi import Header, Depends
 from hashlib import md5
 
 import asyncio
@@ -61,5 +61,7 @@ async def password_authentication_async(password: str, bcrypt: str) -> bool:
         bcrypt
     )
 
-def require_login(authorization: str = Header(..., alias="Authorization")):
+def require_login_function(authorization: str = Header(..., alias="Authorization")):
     return authorization
+
+require_login = Depends(require_login_function)

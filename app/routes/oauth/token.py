@@ -64,7 +64,8 @@ def generate_token(request: Request) -> Response:
         max_age=config.FRONTEND_REFRESH_EXPIRY,
         httponly=True,
         secure=config.ENABLE_SSL,
-        samesite='strict'
+        samesite='strict',
+        domain=f".{config.DOMAIN_NAME}"
     )
 
     return response

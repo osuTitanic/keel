@@ -39,6 +39,7 @@ async def ratelimit_middleware(request: Request, call_next: Callable):
         config.API_RATELIMIT_WINDOW, int(current) + 1
     )
 
+    # TODO: Implement different ratelimiting levels based on groups
     return await call_next(request)
 
 if config.API_RATELIMIT_ENABLED:

@@ -53,3 +53,4 @@ FRONTEND_REFRESH_EXPIRY = int(os.environ.get('FRONTEND_REFRESH_EXPIRY', 3600*24*
 
 OSU_BASEURL = f'http{"s" if ENABLE_SSL else ""}://osu.{DOMAIN_NAME}'
 STATIC_BASEURL = f'http{"s" if ENABLE_SSL else ""}://s.{DOMAIN_NAME}'
+VERSION = '1.0.0'

@@ -9,7 +9,7 @@ from app.common.constants.strings import BAD_WORDS
 from app.common.helpers import ip, location
 from app.common import officer, mail
 from app.models import (
-    RegistrationResponseModel,
+    VerificationResponseModel,
     RegistrationRequestModel,
     ValidationResponseModel,
     ValidationRequestModel,
@@ -41,11 +41,11 @@ validation_errors = {
     400: {'model': ErrorResponse, 'description': 'Invalid validation type'}
 }
 
-@router.post('/register', response_model=RegistrationResponseModel, responses=registration_errors)
+@router.post('/register', response_model=VerificationResponseModel, responses=registration_errors)
 def user_registration(
     request: Request,
     registration: RegistrationRequestModel
-) -> RegistrationResponseModel:
+) -> VerificationResponseModel:
     if "authenticated" in request.auth.scopes:
         raise HTTPException(
             status_code=403,
@@ -145,7 +145,7 @@ def user_registration(
     if not config.EMAILS_ENABLED:
         # Verification is disabled
         request.state.logger.info('Registration finished.')
-        return RegistrationResponseModel(
+        return VerificationResponseModel(
             user_id=user.id,
             verification_id=None
         )
@@ -162,7 +162,7 @@ def user_registration(
     mail.send_welcome_email(verification, user)
     request.state.logger.info('Registration finished.')
 
-    return RegistrationResponseModel(
+    return VerificationResponseModel(
         user_id=user.id,
         verification_id=verification.id
     )

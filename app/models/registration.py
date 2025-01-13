@@ -16,7 +16,7 @@ class RegistrationRequestModel(BaseModel):
         if not value:
             raise ValueError('Recaptcha response is required')
 
-class RegistrationResponseModel(BaseModel):
+class VerificationResponseModel(BaseModel):
     user_id: int
     verification_id: int | None
 

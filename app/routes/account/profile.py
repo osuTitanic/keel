@@ -24,7 +24,7 @@ def profile(request: Request) -> UserModel:
 
 @router.post('/profile', response_model=UserModel)
 @requires(['authenticated', 'unrestricted', 'unsilenced', 'activated'])
-def update_profile(
+def profile_update(
     request: Request,
     update: ProfileUpdateModel
 ) -> UserModel:

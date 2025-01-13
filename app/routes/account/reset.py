@@ -11,10 +11,10 @@ import config
 router = APIRouter()
 
 @router.post('/reset', response_model=VerificationResponseModel)
-def password_reset_request(
+def password_reset(
     request: Request,
     reset: PasswordResetRequestModel
-):
+) -> VerificationResponseModel:
     if not config.EMAILS_ENABLED:
         raise HTTPException(503, 'Password resets are not enabled at the moment. Please contact an administrator!')
 

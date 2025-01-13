@@ -1,9 +1,10 @@
 
-from app.models import UserModelCompact, ErrorResponse
-from starlette.authentication import requires
-from app.common.database import relationships
+from app.models import RelationshipResponseModel, UserModelCompact, ErrorResponse
+from app.common.database import relationships, users
 from app.security import require_login
-from fastapi import APIRouter, Request
+
+from fastapi import HTTPException, APIRouter, Request, Form
+from starlette.authentication import requires
 from typing import List
 
 router = APIRouter(
@@ -19,3 +20,47 @@ def friends(request: Request):
         for friend in relationships.fetch_many_by_id(request.user.id, request.state.db)
         if friend.status == 0
     ]
+
+@router.post('/friends', response_model=RelationshipResponseModel)
+@requires('authenticated')
+def add_friend(request: Request, target_id: int = Form(...)):
+    if not (target := users.fetch_by_id(target_id, session=request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail='User not found'
+        )
+
+    if not target.activated:
+        raise HTTPException(
+            status_code=404,
+            detail='User not found'
+        )
+    
+    current_friends = relationships.fetch_target_ids(
+        request.user.id,
+        request.state.db
+    )
+
+    if target.id not in current_friends:
+        # Create relationship
+        relationships.create(
+            request.user.id,
+            target.id,
+            status=0,
+            session=request.state.db
+        )
+
+    request.state.logger.info(
+        f'{request.user.name} added {target.name} to their friends list.'
+    )
+
+    # Check for mutual
+    target_friends = relationships.fetch_target_ids(
+        target.id,
+        request.state.db
+    )
+
+    if request.user.id in target_friends:
+        return RelationshipResponseModel(status='mutual')
+
+    return RelationshipResponseModel(status='friends')

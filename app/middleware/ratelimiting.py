@@ -1,11 +1,13 @@
 
 from __future__ import annotations
-from app.common.helpers import ip
-from app.models import ErrorResponse
 from fastapi.responses import JSONResponse
 from fastapi import Request
 from typing import Callable
 from redis import Redis
+
+from app.models import ErrorResponse
+from app.common.helpers import ip
+from app.common import officer
 
 import asyncio
 import config
@@ -38,6 +40,13 @@ async def ratelimit_middleware(request: Request, call_next: Callable):
         redis.setex, f'ratelimit:{ip_address}',
         config.API_RATELIMIT_WINDOW, int(current) + 1
     )
+
+    if int(current) + 1 >= config.API_RATELIMIT_LIMIT:
+        await run_async(
+            officer.call,
+            f"{ip_address} has exceeded the api ratelimit of "
+            f"{config.API_RATELIMIT_LIMIT} requests / {config.API_RATELIMIT_WINDOW} seconds."
+        )
 
     # TODO: Implement different ratelimiting levels based on groups
     return await call_next(request)

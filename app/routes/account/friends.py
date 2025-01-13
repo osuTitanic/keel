@@ -17,4 +17,5 @@ def friends(request: Request):
     return [
         UserModelCompact.model_validate(friend.target, from_attributes=True)
         for friend in relationships.fetch_many_by_id(request.user.id, request.state.db)
+        if friend.status == 0
     ]

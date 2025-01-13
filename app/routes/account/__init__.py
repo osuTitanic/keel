@@ -1,6 +1,7 @@
 
 from fastapi import APIRouter
 
+from . import notifications
 from . import security
 from . import register
 from . import profile

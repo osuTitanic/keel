@@ -8,12 +8,14 @@ from starlette.authentication import requires
 from typing import List
 
 router = APIRouter(
-    responses={
-        403: {'model': ErrorResponse, 'description': 'Authentication failure'},
-        404: {'model': ErrorResponse, 'description': 'User not found'}
-    },
+    responses={403: {'model': ErrorResponse, 'description': 'Authentication failure'}},
     dependencies=[require_login]
 )
+
+add_responses = {
+    404: {'model': ErrorResponse, 'description': 'User not found'},
+    400: {'model': ErrorResponse, 'description': 'Cannot add yourself as friend'}
+}
 
 @router.get('/friends', response_model=List[UserModelCompact])
 @requires('authenticated')
@@ -24,9 +26,15 @@ def friends(request: Request):
         if friend.status == 0
     ]
 
-@router.post('/friends', response_model=RelationshipResponseModel)
+@router.post('/friends', response_model=RelationshipResponseModel, responses=add_responses)
 @requires('authenticated')
 def add_friend(request: Request, target_id: int = Form(...)):
+    if target_id == request.user.id:
+        raise HTTPException(
+            status_code=400,
+            detail='Cannot add yourself as friend'
+        )
+
     if not (target := users.fetch_by_id(target_id, session=request.state.db)):
         raise HTTPException(
             status_code=404,

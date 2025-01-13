@@ -28,14 +28,14 @@ def friends(request: Request):
 
 @router.post('/friends', response_model=RelationshipResponseModel, responses=add_responses)
 @requires('authenticated')
-def add_friend(request: Request, target_id: int):
-    if target_id == request.user.id:
+def add_friend(request: Request, id: int):
+    if id == request.user.id:
         raise HTTPException(
             status_code=400,
             detail='Cannot add yourself as friend'
         )
 
-    if not (target := users.fetch_by_id(target_id, session=request.state.db)):
+    if not (target := users.fetch_by_id(id, session=request.state.db)):
         raise HTTPException(
             status_code=404,
             detail='User not found'
@@ -46,7 +46,7 @@ def add_friend(request: Request, target_id: int):
             status_code=404,
             detail='User not found'
         )
-    
+
     current_friends = relationships.fetch_target_ids(
         request.user.id,
         request.state.db

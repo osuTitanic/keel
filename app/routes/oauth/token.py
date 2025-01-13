@@ -11,8 +11,8 @@ import time
 
 router = APIRouter(
     responses={
-        403: {'model': ErrorResponse},
-        401: {'model': ErrorResponse}
+        403: {'model': ErrorResponse, 'description': 'Invalid refresh token'},
+        401: {'model': ErrorResponse, 'description': 'Authentication failure'},
     },
     dependencies=[require_login]
 )

@@ -10,7 +10,7 @@ from app.common.database import users
 import re
 
 router = APIRouter(
-    responses={403: {'model': ErrorResponse}},
+    responses={403: {'model': ErrorResponse, 'description': 'Authentication failure'}},
     dependencies=[require_login]
 )
 

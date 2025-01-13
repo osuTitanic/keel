@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request
 from typing import List
 
 router = APIRouter(
-    responses={403: {'model': ErrorResponse}},
+    responses={403: {'model': ErrorResponse, 'description': 'Authentication failure'}},
     dependencies=[require_login]
 )
 

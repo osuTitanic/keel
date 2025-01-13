@@ -3,7 +3,7 @@ from app.models import RelationshipResponseModel, UserModelCompact, ErrorRespons
 from app.common.database import relationships, users
 from app.security import require_login
 
-from fastapi import HTTPException, APIRouter, Request, Form
+from fastapi import HTTPException, APIRouter, Request
 from starlette.authentication import requires
 from typing import List
 
@@ -28,7 +28,7 @@ def friends(request: Request):
 
 @router.post('/friends', response_model=RelationshipResponseModel, responses=add_responses)
 @requires('authenticated')
-def add_friend(request: Request, target_id: int = Form(...)):
+def add_friend(request: Request, target_id: int):
     if target_id == request.user.id:
         raise HTTPException(
             status_code=400,

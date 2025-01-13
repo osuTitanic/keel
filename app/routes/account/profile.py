@@ -1,5 +1,5 @@
 
-from fastapi import HTTPException, APIRouter, Request, Form
+from fastapi import HTTPException, APIRouter, Request
 from starlette.authentication import requires
 
 from app.models import UserModel, ErrorResponse, ProfileUpdateModel
@@ -26,7 +26,7 @@ def profile(request: Request) -> UserModel:
 @requires(['authenticated', 'unrestricted', 'unsilenced', 'activated'])
 def update_profile(
     request: Request,
-    update: ProfileUpdateModel = Form(...)
+    update: ProfileUpdateModel
 ) -> UserModel:
     if update.interests != None and len(update.interests) > 30:
         raise HTTPException(

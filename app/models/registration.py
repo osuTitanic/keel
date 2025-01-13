@@ -26,4 +26,4 @@ class ValidationRequestModel(BaseModel):
 
 class ValidationResponseModel(BaseModel):
     valid: bool
-    message: str | None
+    message: str | None = None

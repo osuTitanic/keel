@@ -4,15 +4,25 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi import Request, HTTPException
 
-from .models import ErrorResponse, ValidationErrorResponse
+from .models import ErrorResponse, ValidationErrorResponse, ValidationErrorModel
 from .server import api
 
 @api.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    response = ValidationErrorResponse(
+        errors=[
+            ValidationErrorModel(
+                loc=error['loc'],
+                msg=error['msg'],
+                type=error['type'],
+                input=str(error.get('input', '')) or None
+            )
+            for error in exc.errors()
+        ]
+    )
+
     return JSONResponse(
-        ValidationErrorResponse(
-            errors=exc.errors()
-        ).model_dump(),
+        response.model_dump(),
         status_code=400
     )
 

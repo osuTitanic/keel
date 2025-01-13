@@ -28,6 +28,37 @@ def update_profile(
     request: Request,
     update: ProfileUpdateModel
 ) -> UserModel:
+    if not validate_update_request(update):
+        raise HTTPException(
+            status_code=400,
+            detail='Invalid update request'
+        )
+
+    if update.twitter:
+        handle = update.twitter_handle(update.twitter)
+        update.twitter = f'https://twitter.com/{handle}'
+
+    if update.discord:
+        update.discord = update.discord.removeprefix('@')
+
+    users.update(
+        request.user.id,
+        {
+            'interests': update.interests,
+            'location': update.location,
+            'website': update.website,
+            'discord': update.discord,
+            'twitter': update.twitter
+        },
+        request.state.db
+    )
+
+    return UserModel.model_validate(
+        users.fetch_by_id(request.user.id, session=request.state.db),
+        from_attributes=True
+    )
+
+def validate_update_request(update: ProfileUpdateModel) -> bool:
     if update.interests != None and len(update.interests) > 30:
         raise HTTPException(
             status_code=400,
@@ -63,28 +94,10 @@ def update_profile(
             status_code=400,
             detail='Invalid updates.discord username. Please try again!'
         )
-
-    updates = {
-        'interests': update.interests,
-        'location': update.location,
-        'website': update.website,
-        'discord': update.discord.removeprefix('@') if update.discord else None,
-        'twitter': f'https://updates.twitter.com/{update.twitter_handle(update.twitter)}' if update.twitter else None
-    }
-
-    users.update(
-        request.user.id,
-        updates,
-        request.state.db
-    )
-
-    return UserModel.model_validate(
-        users.fetch_by_id(request.user.id, session=request.state.db),
-        from_attributes=True
-    )
+    
+    return True
 
 def twitter_handle(url: str) -> str:
-    """Parse twitter handle from url and return it"""
     url_match = re.search(r'https?://(www.)?(twitter|x)\.com/(@\w+|\w+)', url)
 
     if url_match:

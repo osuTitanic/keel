@@ -6,7 +6,7 @@ class RegistrationRequestModel(BaseModel):
     username: str
     password: str
     email: str
-    recaptcha_response: str | None
+    recaptcha_response: str | None = None
 
     @field_validator('recaptcha_response')
     def validate_recaptcha(cls, value: str | None):

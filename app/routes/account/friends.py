@@ -17,6 +17,11 @@ add_responses = {
     400: {'model': ErrorResponse, 'description': 'Cannot add yourself as friend'}
 }
 
+remove_responses = {
+    404: {'model': ErrorResponse, 'description': 'User not found'},
+    400: {'model': ErrorResponse, 'description': 'You are not friends with this user'}
+}
+
 @router.get('/friends', response_model=List[UserModelCompact])
 @requires('authenticated')
 def friends(request: Request):
@@ -65,7 +70,47 @@ def add_friend(request: Request, id: int):
         f'{request.user.name} added {target.name} to their friends list.'
     )
 
-    # Check for mutual
+    target_friends = relationships.fetch_target_ids(
+        target.id,
+        request.state.db
+    )
+
+    if request.user.id in target_friends:
+        return RelationshipResponseModel(status='mutual')
+
+    return RelationshipResponseModel(status='friends')
+
+@router.delete('/friends', response_model=RelationshipResponseModel, responses=remove_responses)
+@requires('authenticated')
+def remove_friend(request: Request, id: int):
+    if not (target := users.fetch_by_id(id, session=request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail='User not found'
+        )
+
+    current_friends = relationships.fetch_target_ids(
+        request.user.id,
+        request.state.db
+    )
+
+    if target.id not in current_friends:
+        raise HTTPException(
+            status_code=400,
+            detail='You are not friends with this user'
+        )
+    
+    relationships.delete(
+        request.user.id,
+        target.id,
+        status=0,
+        session=request.state.db
+    )
+
+    request.state.logger.info(
+        f'{request.user.name} removed {target.name} from their friends list.'
+    )
+
     target_friends = relationships.fetch_target_ids(
         target.id,
         request.state.db

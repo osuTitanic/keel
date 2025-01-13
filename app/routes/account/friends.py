@@ -8,7 +8,10 @@ from starlette.authentication import requires
 from typing import List
 
 router = APIRouter(
-    responses={403: {'model': ErrorResponse, 'description': 'Authentication failure'}},
+    responses={
+        403: {'model': ErrorResponse, 'description': 'Authentication failure'},
+        404: {'model': ErrorResponse, 'description': 'User not found'}
+    },
     dependencies=[require_login]
 )
 

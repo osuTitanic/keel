@@ -9,5 +9,6 @@ async def state_middleware(request: Request, call_next: Callable):
     with app.session.database.managed_session() as session:
         request.state.db = session
         request.state.redis = app.session.redis
+        request.state.logger = app.session.logger
         request.state.storage = app.session.storage
         return await call_next(request)

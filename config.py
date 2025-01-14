@@ -31,6 +31,7 @@ ENABLE_SSL = eval(os.environ.get('ENABLE_SSL', 'False').capitalize())
 S3_ENABLED = eval(os.environ.get('ENABLE_S3', 'True').capitalize())
 DEBUG = eval(os.environ.get('DEBUG', 'False').capitalize())
 RELOAD = eval(os.environ.get('RELOAD', str(DEBUG)).capitalize())
+SCORE_RESPONSE_LIMIT = int(os.environ.get('SCORE_RESPONSE_LIMIT', 50))
 DOMAIN_NAME = os.environ.get('DOMAIN_NAME')
 
 EMAIL_PROVIDER = os.environ.get('EMAIL_PROVIDER', '')

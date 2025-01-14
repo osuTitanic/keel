@@ -20,7 +20,7 @@ def get_beatmap_scores(
     id: int, mode: str,
     offset: int = Query(0, ge=0)
 ) -> List[ScoreModelWithoutBeatmap]:
-    if (mode := GameMode.from_alias(mode.lower())) is None:
+    if (mode_enum := GameMode.from_alias(mode.lower())) is None:
         raise HTTPException(
             status_code=400,
             detail="Invalid game mode"
@@ -39,7 +39,7 @@ def get_beatmap_scores(
         )
 
     top_scores = scores.fetch_range_scores(
-        id, mode.value,
+        id, mode_enum.value,
         offset=offset,
         limit=config.SCORE_RESPONSE_LIMIT,
         session=request.state.db

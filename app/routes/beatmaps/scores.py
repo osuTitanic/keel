@@ -14,18 +14,12 @@ router = APIRouter(
     }
 )
 
-@router.get('/{id}/scores/{mode}', response_model=List[ScoreModelWithoutBeatmap])
+@router.get('/{id}/scores', response_model=List[ScoreModelWithoutBeatmap])
 def get_beatmap_scores(
-    request: Request,
-    id: int, mode: str,
+    request: Request, id: int,
+    mode: str = Query(None),
     offset: int = Query(0, ge=0)
 ) -> List[ScoreModelWithoutBeatmap]:
-    if (mode_enum := GameMode.from_alias(mode.lower())) is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid game mode"
-        )
-
     if not (beatmap := beatmaps.fetch_by_id(id, request.state.db)):
         raise HTTPException(
             status_code=404,
@@ -36,6 +30,15 @@ def get_beatmap_scores(
         raise HTTPException(
             status_code=404,
             detail="The requested beatmap could not be found"
+        )
+
+    # Set to default mode from beatmap if not provided
+    mode = (mode or GameMode(beatmap.mode).alias).lower()
+
+    if (mode_enum := GameMode.from_alias(mode)) is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid game mode"
         )
 
     top_scores = scores.fetch_range_scores(

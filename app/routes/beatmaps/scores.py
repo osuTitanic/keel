@@ -57,14 +57,14 @@ def get_beatmap_scores(
         for score in top_scores
     ]
 
-@router.get('/{id}/scores/users/{user_id}', response_model=ScoreModel, responses=user_responses)
+@router.get('/{beatmap_id}/scores/users/{user_id}', response_model=ScoreModel, responses=user_responses)
 def get_beatmap_user_score(
     request: Request,
-    id: int, user_id: int,
+    beatmap_id: int, user_id: int,
     mode: str | None = Query(None),
     mods: int | None = Query(None, ge=0)
 ) -> ScoreModel:
-    if not (beatmap := beatmaps.fetch_by_id(id, request.state.db)):
+    if not (beatmap := beatmaps.fetch_by_id(beatmap_id, request.state.db)):
         raise HTTPException(
             status_code=404,
             detail="The requested beatmap could not be found"
@@ -86,7 +86,7 @@ def get_beatmap_user_score(
         )
 
     score = scores.fetch_personal_best_score(
-        id, user_id,
+        beatmap_id, user_id,
         mode_enum.value,
         mods=mods,
         session=request.state.db

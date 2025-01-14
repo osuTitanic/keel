@@ -16,11 +16,11 @@ def get_beatmap(request: Request, id: int) -> BeatmapModel:
             status_code=404,
             detail="The requested beatmap could not be found"
         )
-    
+
     if beatmap.status <= -3:
         raise HTTPException(
             status_code=404,
             detail="The requested beatmap could not be found"
         )
-    
+
     return BeatmapModel.model_validate(beatmap, from_attributes=True)

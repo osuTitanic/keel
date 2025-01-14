@@ -1,8 +1,13 @@
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import PlainTextResponse
+from app.models import ErrorResponse
 
-router = APIRouter()
+router = APIRouter(
+    responses={
+        404: {"model": ErrorResponse, "description": "The requested beatmap could not be found"}
+    }
+)
 
 @router.get('/{id}/file')
 def internal_beatmap_file(request: Request, id: int):

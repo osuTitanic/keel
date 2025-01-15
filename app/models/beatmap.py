@@ -3,7 +3,7 @@ from __future__ import annotations
 from pydantic import BaseModel
 from datetime import datetime
 
-class _BeatmapsetModel(BaseModel):
+class BeatmapsetModelWithoutBeatmaps(BaseModel):
     id: int
     title: str | None
     artist: str | None
@@ -44,4 +44,4 @@ class BeatmapModel(BaseModel):
     od: float
     hp: float
     diff: float
-    beatmapset: _BeatmapsetModel
+    beatmapset: BeatmapsetModelWithoutBeatmaps

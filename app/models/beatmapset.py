@@ -5,7 +5,7 @@ from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing import List
 
-class _BeatmapModel(BaseModel):
+class BeatmapModelWithoutSet(BaseModel):
     id: int
     set_id: int
     mode: int
@@ -48,7 +48,7 @@ class BeatmapsetModel(BaseModel):
     genre_id: int
     ratings: list
     favourites: list
-    beatmaps: List[_BeatmapModel]
+    beatmaps: List[BeatmapModelWithoutSet]
 
     @field_validator('ratings')
     def avg_rating(cls, ratings: List[DBRating]) -> float:

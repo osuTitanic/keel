@@ -14,3 +14,11 @@ class KudosuModel(BaseModel):
     post: PostModel
     amount: int
     time: datetime
+
+class KudosuWithoutSetModel(BaseModel):
+    id: int
+    target: UserModel
+    sender: UserModel
+    post: PostModel
+    amount: int
+    time: datetime

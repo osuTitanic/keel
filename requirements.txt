@@ -12,3 +12,4 @@ fastapi==0.115.6
 uvicorn==0.34.0
 bcrypt==4.2.1
 python-multipart==0.0.20
+pillow==11.1.0

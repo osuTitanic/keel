@@ -1,5 +1,6 @@
 
 from __future__ import annotations
+from app.common.constants import BeatmapLanguage, BeatmapGenre
 from app.common.database import DBRating, DBFavourite
 from pydantic import BaseModel, field_validator
 from datetime import datetime
@@ -61,3 +62,10 @@ class BeatmapsetModel(BaseModel):
     @field_validator('favourites')
     def sum_favourites(cls, favourites: List[DBFavourite]) -> int:
         return len(favourites)
+
+class BeatmapUpdateRequestModel(BaseModel):
+    offset: int = 0
+    tags: str = ""
+    language: BeatmapLanguage = BeatmapLanguage.Unspecified
+    genre: BeatmapGenre = BeatmapGenre.Unspecified
+    display_title: str | None = None

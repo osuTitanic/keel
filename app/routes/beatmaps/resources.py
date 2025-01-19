@@ -1,7 +1,9 @@
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import PlainTextResponse
+from app.common.database import beatmaps
 from app.models import ErrorResponse
+from urllib.parse import quote
 
 router = APIRouter(
     responses={
@@ -10,8 +12,14 @@ router = APIRouter(
 )
 
 @router.get('/{id}/file')
-def internal_beatmap_file(request: Request, id: int):
-    osu = request.state.storage.get_beatmap_internal(id)
+def get_beatmap_file(request: Request, id: int):
+    if not (beatmap := beatmaps.fetch_by_id(id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+
+    osu = request.state.storage.get_beatmap(id)
 
     if not osu:
         raise HTTPException(
@@ -21,5 +29,5 @@ def internal_beatmap_file(request: Request, id: int):
 
     return PlainTextResponse(
         content=osu,
-        headers={'Content-Disposition': f'attachment; filename={id}.osu'}
+        headers={'Content-Disposition': f'attachment; filename="{quote(beatmap.filename)}"'}
     )

@@ -5,6 +5,7 @@ from app.models import ServerStatsModel
 from . import beatmapsets
 from . import multiplayer
 from . import benchmarks
+from . import resources
 from . import rankings
 from . import beatmaps
 from . import account
@@ -30,6 +31,7 @@ router.include_router(clients.router, prefix="/clients", tags=["clients"])
 router.include_router(account.router, prefix="/account", tags=["account"])
 router.include_router(beatmaps.router, prefix="/beatmaps", tags=["beatmaps"])
 router.include_router(rankings.router, prefix="/rankings", tags=["rankings"])
+router.include_router(resources.router, prefix="/resources", tags=["resources"])
 router.include_router(benchmarks.router, prefix="/benchmarks", tags=["benchmarks"])
 router.include_router(beatmapsets.router, prefix="/beatmapsets", tags=["beatmapsets"])
 router.include_router(multiplayer.router, prefix="/multiplayer", tags=["multiplayer"])

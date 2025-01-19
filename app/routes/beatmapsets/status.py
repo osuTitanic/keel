@@ -7,7 +7,7 @@ from fastapi import (
     APIRouter,
     Request,
     Query,
-    Form
+    Body
 )
 
 from app.common.webhooks import Embed, Author, Image, Field
@@ -63,7 +63,7 @@ def update_beatmapset_status(
 def update_beatmap_statuses(
     request: Request,
     set_id: int,
-    updates: dict = Form(...)
+    updates: dict = Body(...)
 ) -> BeatmapsetModel:
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(404)

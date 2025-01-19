@@ -1,10 +1,23 @@
 
 from fastapi import HTTPException, Request
+from PIL import Image
 
 import functools
 import inspect
 import asyncio
 import typing
+import io
+
+def resize_image(
+    image: bytes,
+    target_width: int | None = None,
+    target_height: int | None = None
+) -> bytes:
+    image_buffer = io.BytesIO()
+    img = Image.open(io.BytesIO(image))
+    img = img.resize((target_width, target_height))
+    img.save(image_buffer, format='JPEG')
+    return image_buffer.getvalue()
 
 def file_iterator(file: bytes, chunk_size: int = 1024):
     offset = 0

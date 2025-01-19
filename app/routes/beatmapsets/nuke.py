@@ -1,4 +1,95 @@
 
-from fastapi import APIRouter
+
+from __future__ import annotations
+from fastapi import HTTPException, APIRouter, Request
+
+from app.common.database import beatmapsets, topics, posts, beatmaps, modding
+from app.common.webhooks import Embed, Author, Image
+from app.common.database import DBUser, DBBeatmapset
+from app.common.constants import DatabaseStatus
+from app.models import BeatmapsetModel
+from app.common import officer
+from app.utils import requires
+
+import config
+import app
 
 router = APIRouter()
+
+@router.post('/{set_id}/nuke', response_model=BeatmapsetModel)
+@requires('bat')
+def nuke_beatmap(request: Request, set_id: int):
+    if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
+        raise HTTPException(404, 'The requested beatmap could not be found')
+
+    if not beatmapset.topic_id:
+        raise HTTPException(400, 'This beatmap does not have a forum topic')
+
+    if beatmapset.status > 0:
+        raise HTTPException(400, 'This beatmap has been approved and cannot be nuked')
+    
+    if not (topic := topics.fetch_one(beatmapset.topic_id, request.state.db)):
+        raise HTTPException(404, 'The forum topic for this beatmap could not be found')
+    
+    topics.update(
+        topic.id,
+        {
+            'icon_id': 7,
+            'forum_id': 10,
+            'status_text': None
+        },
+        request.state.db
+    )
+
+    posts.update_by_topic(
+        topic.id,
+        {'forum_id': 10},
+        request.state.db
+    )
+
+    beatmapsets.update(
+        set_id,
+        {'status': DatabaseStatus.WIP.value},
+        request.state.db
+    )
+
+    beatmaps.update_by_set_id(
+        set_id,
+        {'status': DatabaseStatus.WIP.value},
+        request.state.db
+    )
+
+    modding.delete_by_set_id(
+        set_id,
+        request.state.db
+    )
+
+    send_nuke_webhook(
+        beatmapset,
+        request.user
+    )
+
+    # TODO: Remove thumbnails, previews and osz files
+    request.state.db.refresh(beatmapset)
+    request.state.logger.info(
+        f'Beatmap "{beatmapset.full_name}" was nuked by {request.user.name}.'
+    )
+
+    return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
+
+def send_nuke_webhook(
+    beatmapset: DBBeatmapset,
+    user: DBUser
+) -> None:
+    embed = Embed(
+        title=f'{beatmapset.artist} - {beatmapset.title}',
+        url=f'http://osu.{config.DOMAIN_NAME}/s/{beatmapset.id}',
+        thumbnail=Image(f'http://osu.{config.DOMAIN_NAME}/mt/{beatmapset.id}'),
+        color=0xff0000
+    )
+    embed.author = Author(
+        name=f'{user.name} nuked a Beatmap',
+        url=f'http://osu.{config.DOMAIN_NAME}/u/{user.id}',
+        icon_url=f'http://osu.{config.DOMAIN_NAME}/a/{user.id}'
+    )
+    officer.event(embeds=[embed])

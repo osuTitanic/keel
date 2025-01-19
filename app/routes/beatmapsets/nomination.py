@@ -67,7 +67,7 @@ def nominate_beatmap(request: Request, set_id: int):
         type='add'
     )
 
-    app.session.logger.info(
+    request.state.logger.info(
         f'Beatmap "{beatmapset.full_name}" was nominated by {request.user.name}.'
     )
 
@@ -116,7 +116,7 @@ def reset_nominations(request: Request, set_id: int):
         type='reset'
     )
 
-    app.session.logger.info(
+    request.state.logger.info(
         f'{request.user.name} removed all nominations from "{beatmapset.full_name}".'
     )
 

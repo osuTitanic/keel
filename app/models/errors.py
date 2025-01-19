@@ -1,17 +1,17 @@
 
 from __future__ import annotations
+from typing import Any, List, Sequence
 from pydantic import BaseModel
-from typing import List, Sequence
 
 class ErrorResponse(BaseModel):
     error: int
     details: str
 
 class ValidationErrorModel(BaseModel):
-    loc: Sequence[str]
-    msg: str
-    type: str
-    input: str | None
+    loc: Sequence[Any]
+    msg: Any
+    type: Any
+    input: Any | None
 
 class ValidationErrorResponse(BaseModel):
     error: int = 400

@@ -1,6 +1,6 @@
 
 from __future__ import annotations
-from fastapi import APIRouter, Request
+from fastapi import HTTPException, APIRouter, Request
 from typing import List
 
 from app.common.database import beatmapsets, nominations, topics, posts
@@ -8,14 +8,69 @@ from app.common.webhooks import Embed, Author, Image
 from app.common.database import DBUser, DBBeatmapset
 from app.models import UserModel, NominationModel
 from app.common import officer
+from app.utils import requires
 
 import config
 import app
 
 router = APIRouter()
 
-@router.get('/{set_id}/nominations', response_model=List[NominationModel])
-def get_nominations(request: Request, set_id: int):
+@router.get("/{set_id}/nominations", response_model=List[NominationModel])
+def beatmap_nominations(request: Request, set_id: int):
+    return [
+        NominationModel.model_validate(nom, from_attributes=True)
+        for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)
+    ]
+
+@router.post("/{set_id}/nominations", response_model=List[NominationModel])
+@requires("bat")
+def nominate_beatmap(request: Request, set_id: int):
+    if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
+        raise HTTPException(404, "The requested beatmap could not be found")
+
+    if beatmapset.status > 0:
+        raise HTTPException(400, "This beatmap is already in approved status")
+
+    if beatmapset.creator_id == request.user.id:
+        raise HTTPException(400, "You cannot nominate your own beatmap")
+
+    if nominations.fetch_one(set_id, request.user.id, request.state.db):
+        raise HTTPException(400, "You have already nominated this beatmap")
+
+    nominations.create(
+        beatmapset.id,
+        request.user.id,
+        request.state.db
+    )
+
+    # Set icon to bubble
+    topics.update(
+        beatmapset.topic_id,
+        {
+            'icon_id': 3,
+            'forum_id': 9,
+            'status_text': 'Waiting for approval...'
+        },
+        request.state.db
+    )
+
+    # Change to "ranked" forum
+    posts.update_by_topic(
+        beatmapset.topic_id,
+        {'forum_id': 9},
+        request.state.db
+    )
+
+    send_nomination_webhook(
+        beatmapset,
+        request.user,
+        type='add'
+    )
+
+    app.session.logger.info(
+        f'Beatmap "{beatmapset.full_name}" was nominated by {request.user.name}.'
+    )
+
     return [
         NominationModel.model_validate(nom, from_attributes=True)
         for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)

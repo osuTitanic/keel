@@ -11,10 +11,10 @@ from . import packs
 from . import nuke
 
 router = APIRouter()
+router.include_router(kudosu.router, tags=["kudosu"])
 router.include_router(beatmapset.router)
 router.include_router(nomination.router)
 router.include_router(resources.router)
-router.include_router(kudosu.router)
 router.include_router(search.router)
 router.include_router(status.router)
 router.include_router(packs.router)

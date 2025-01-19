@@ -76,6 +76,52 @@ def nominate_beatmap(request: Request, set_id: int):
         for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)
     ]
 
+@router.delete("/{set_id}/nominations", response_model=List[NominationModel])
+@requires("bat")
+def reset_nominations(request: Request, set_id: int):
+    if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
+        raise HTTPException(404, "The requested beatmap could not be found")
+    
+    if beatmapset.status > 0:
+        raise HTTPException(400, "This beatmap is already in approved status")
+    
+    if beatmapset.creator_id == request.user.id:
+        raise HTTPException(400, "You cannot reset your own beatmap")
+    
+    nominations.delete_all(
+        set_id,
+        request.state.db
+    )
+
+    # Set icon to popped bubble
+    topics.update(
+        beatmapset.topic_id,
+        {
+            'forum_id': 10,
+            'icon_id': 4,
+            'status_text': 'Waiting for further modding...'
+        },
+        request.state.db
+    )
+
+    posts.update_by_topic(
+        beatmapset.topic_id,
+        {'forum_id': 10},
+        request.state.db
+    )
+
+    send_nomination_webhook(
+        beatmapset,
+        request.user,
+        type='reset'
+    )
+
+    app.session.logger.info(
+        f'{request.user.name} removed all nominations from "{beatmapset.full_name}".'
+    )
+
+    return []
+
 def send_nomination_webhook(
     beatmapset: DBBeatmapset,
     user: DBUser,

@@ -6,6 +6,13 @@ import inspect
 import asyncio
 import typing
 
+def file_iterator(file: bytes, chunk_size: int = 1024):
+    offset = 0
+
+    while offset < len(file):
+        yield file[offset:offset + chunk_size]
+        offset += chunk_size
+
 def resolve_request(func: typing.Callable, *args, **kwargs) -> Request:
     signature = inspect.signature(func)
 

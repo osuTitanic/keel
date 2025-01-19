@@ -1,11 +1,13 @@
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import RequestValidationError, ResponseValidationError
 from fastapi.responses import JSONResponse
 from fastapi import Request, HTTPException
 
 from .models import ErrorResponse, ValidationErrorResponse, ValidationErrorModel
 from .server import api
+
+import config
 
 @api.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
@@ -44,4 +46,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         response.model_dump(),
         status_code=400
+    )
+
+@api.exception_handler(ResponseValidationError)
+async def response_validation_exception_handler(request: Request, exc: ResponseValidationError):
+    if config.DEBUG:
+        raise exc
+
+    return JSONResponse(
+        ErrorResponse(
+            error=500,
+            details="Internal Server Error"
+        ).model_dump(),
+        status_code=500
     )

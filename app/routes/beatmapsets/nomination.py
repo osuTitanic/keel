@@ -6,7 +6,8 @@ from typing import List
 from app.common.database import beatmapsets, nominations, topics, posts
 from app.common.webhooks import Embed, Author, Image
 from app.common.database import DBUser, DBBeatmapset
-from app.models import UserModel, NominationModel
+from app.models import NominationModel
+from app.security import require_login
 from app.common import officer
 from app.utils import requires
 
@@ -22,7 +23,7 @@ def beatmap_nominations(request: Request, set_id: int):
         for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)
     ]
 
-@router.post("/{set_id}/nominations", response_model=List[NominationModel])
+@router.post("/{set_id}/nominations", response_model=List[NominationModel], dependencies=[require_login])
 @requires("bat")
 def nominate_beatmap(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
@@ -76,7 +77,7 @@ def nominate_beatmap(request: Request, set_id: int):
         for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)
     ]
 
-@router.delete("/{set_id}/nominations", response_model=List[NominationModel])
+@router.delete("/{set_id}/nominations", response_model=List[NominationModel], dependencies=[require_login])
 @requires("bat")
 def reset_nominations(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):

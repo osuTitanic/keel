@@ -8,13 +8,14 @@ from app.common.webhooks import Embed, Author, Image
 from app.common.database import DBUser, DBBeatmapset
 from app.common.constants import DatabaseStatus
 from app.models import BeatmapsetModel
+from app.security import require_login
 from app.common import officer
 from app.utils import requires
 
 import config
 import app
 
-router = APIRouter()
+router = APIRouter(dependencies=[require_login])
 
 @router.post('/{set_id}/nuke', response_model=BeatmapsetModel)
 @requires('bat')

@@ -64,7 +64,7 @@ class AuthBackend(AuthenticationBackend):
 
         user: DBUser = await self.run_async(
             users.fetch_by_name_case_insensitive,
-            username, session=request.state.db
+            username, request.state.db
         )
 
         if not user:

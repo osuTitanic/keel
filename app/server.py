@@ -23,6 +23,8 @@ api = FastAPI(
     description=description,
     version=config.VERSION,
     debug=config.DEBUG,
+    redoc_url="/docs",
+    docs_url=None,
     contact={
         "name": "Titanic",
         "url": "https://osu.titanic.sh",

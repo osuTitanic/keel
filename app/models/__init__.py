@@ -12,6 +12,7 @@ from .groups import *
 from .history import *
 from .kudosu import *
 from .multiplayer import *
+from .nominations import *
 from .packs import *
 from .score import *
 from .search import *

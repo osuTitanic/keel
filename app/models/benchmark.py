@@ -28,6 +28,15 @@ class BenchmarkSubmissionRequest(BaseModel):
     client: str
     hardware: BenchmarkHardware
 
+    @property
+    def grade(self) -> str:
+        if self.smoothness >= 100: return 'SS'
+        elif self.smoothness > 95: return 'S'
+        elif self.smoothness > 90: return 'A'
+        elif self.smoothness > 80: return 'B'
+        elif self.smoothness > 70: return 'C'
+        else: return 'D'
+
     @field_validator('framerate')
     def validate_framerate(cls, value):
         if not isinstance(value, int) or value <= 0:

@@ -2,7 +2,7 @@
 from __future__ import annotations
 from fastapi import HTTPException, APIRouter, Request
 
-from app.models import VerificationResponseModel, PasswordResetRequestModel
+from app.models import VerificationResponse, PasswordResetRequest
 from app.common.database import users, verifications
 from app.common import mail
 
@@ -10,11 +10,11 @@ import config
 
 router = APIRouter()
 
-@router.post('/reset', response_model=VerificationResponseModel)
+@router.post('/reset', response_model=VerificationResponse)
 def password_reset(
     request: Request,
-    reset: PasswordResetRequestModel
-) -> VerificationResponseModel:
+    reset: PasswordResetRequest
+) -> VerificationResponse:
     if not config.EMAILS_ENABLED:
         raise HTTPException(503, 'Password resets are not enabled at the moment. Please contact an administrator!')
 
@@ -37,7 +37,7 @@ def password_reset(
         user
     )
 
-    return VerificationResponseModel(
+    return VerificationResponse(
         user_id=user.id,
         verification_id=verification.id
     )

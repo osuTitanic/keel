@@ -63,7 +63,7 @@ class BeatmapsetModel(BaseModel):
     def sum_favourites(cls, favourites: List[DBFavourite]) -> int:
         return len(favourites)
 
-class BeatmapUpdateRequestModel(BaseModel):
+class BeatmapUpdateRequest(BaseModel):
     offset: int = 0
     tags: str = ""
     language: BeatmapLanguage = BeatmapLanguage.Unspecified

@@ -11,7 +11,7 @@ class RelationshipModel(BaseModel):
     target_id: int
     status: int
 
-class RelationshipResponseModel(BaseModel):
+class RelationshipResponse(BaseModel):
     status: str
 
 class AchievementModel(BaseModel):

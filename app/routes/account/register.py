@@ -9,10 +9,10 @@ from app.common.constants.strings import BAD_WORDS
 from app.common.helpers import ip, location
 from app.common import officer, mail
 from app.models import (
-    VerificationResponseModel,
-    RegistrationRequestModel,
-    ValidationResponseModel,
-    ValidationRequestModel,
+    VerificationResponse,
+    RegistrationRequest,
+    ValidationResponse,
+    ValidationRequest,
     ErrorResponse
 )
 
@@ -41,11 +41,11 @@ validation_errors = {
     400: {'model': ErrorResponse, 'description': 'Invalid validation type'}
 }
 
-@router.post('/register', response_model=VerificationResponseModel, responses=registration_errors)
+@router.post('/register', response_model=VerificationResponse, responses=registration_errors)
 def user_registration(
     request: Request,
-    registration: RegistrationRequestModel
-) -> VerificationResponseModel:
+    registration: RegistrationRequest
+) -> VerificationResponse:
     if "authenticated" in request.auth.scopes:
         raise HTTPException(
             status_code=403,
@@ -145,7 +145,7 @@ def user_registration(
     if not config.EMAILS_ENABLED:
         # Verification is disabled
         request.state.logger.info('Registration finished.')
-        return VerificationResponseModel(
+        return VerificationResponse(
             user_id=user.id,
             verification_id=None
         )
@@ -162,16 +162,16 @@ def user_registration(
     mail.send_welcome_email(verification, user)
     request.state.logger.info('Registration finished.')
 
-    return VerificationResponseModel(
+    return VerificationResponse(
         user_id=user.id,
         verification_id=verification.id
     )
 
-@router.get('/register/check', response_model=ValidationResponseModel, responses=validation_errors)
+@router.get('/register/check', response_model=ValidationResponse, responses=validation_errors)
 def input_validation(
     request: Request,
-    validation: ValidationRequestModel
-) -> ValidationResponseModel:
+    validation: ValidationRequest
+) -> ValidationResponse:
     validators = {
         'username': validate_username,
         'email': validate_email,
@@ -185,12 +185,12 @@ def input_validation(
         )
 
     if error := validators[validation.type](validation.value, request.state.db):
-        return ValidationResponseModel(
+        return ValidationResponse(
             valid=False,
             message=error
         )
 
-    return ValidationResponseModel(valid=True)
+    return ValidationResponse(valid=True)
 
 def validate_username(username: str, session: Session) -> str | None:
     username = username.strip()

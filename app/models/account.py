@@ -2,7 +2,7 @@
 from config import RECAPTCHA_SECRET_KEY, RECAPTCHA_SITE_KEY
 from pydantic import BaseModel, field_validator
 
-class RegistrationRequestModel(BaseModel):
+class RegistrationRequest(BaseModel):
     username: str
     password: str
     email: str
@@ -16,17 +16,17 @@ class RegistrationRequestModel(BaseModel):
         if not value:
             raise ValueError('Recaptcha response is required')
 
-class PasswordResetRequestModel(BaseModel):
+class PasswordResetRequest(BaseModel):
     email: str
 
-class VerificationResponseModel(BaseModel):
+class VerificationResponse(BaseModel):
     user_id: int
     verification_id: int | None
 
-class ValidationRequestModel(BaseModel):
+class ValidationRequest(BaseModel):
     type: str
     value: str
 
-class ValidationResponseModel(BaseModel):
+class ValidationResponse(BaseModel):
     valid: bool
     message: str | None = None

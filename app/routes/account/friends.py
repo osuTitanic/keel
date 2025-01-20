@@ -1,5 +1,5 @@
 
-from app.models import RelationshipResponseModel, UserModelCompact, ErrorResponse
+from app.models import RelationshipResponse, UserModelCompact, ErrorResponse
 from app.common.database import relationships, users
 from app.security import require_login
 
@@ -31,7 +31,7 @@ def friends(request: Request):
         if friend.status == 0
     ]
 
-@router.post('/friends', response_model=RelationshipResponseModel, responses=add_responses)
+@router.post('/friends', response_model=RelationshipResponse, responses=add_responses)
 @requires('authenticated')
 def add_friend(request: Request, id: int):
     if id == request.user.id:
@@ -76,11 +76,11 @@ def add_friend(request: Request, id: int):
     )
 
     if request.user.id in target_friends:
-        return RelationshipResponseModel(status='mutual')
+        return RelationshipResponse(status='mutual')
 
-    return RelationshipResponseModel(status='friends')
+    return RelationshipResponse(status='friends')
 
-@router.delete('/friends', response_model=RelationshipResponseModel, responses=remove_responses)
+@router.delete('/friends', response_model=RelationshipResponse, responses=remove_responses)
 @requires('authenticated')
 def remove_friend(request: Request, id: int):
     if not (target := users.fetch_by_id(id, session=request.state.db)):
@@ -117,6 +117,6 @@ def remove_friend(request: Request, id: int):
     )
 
     if request.user.id in target_friends:
-        return RelationshipResponseModel(status='mutual')
+        return RelationshipResponse(status='mutual')
 
-    return RelationshipResponseModel(status='friends')
+    return RelationshipResponse(status='friends')

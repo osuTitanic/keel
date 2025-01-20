@@ -1,6 +1,6 @@
 
 from fastapi import HTTPException, APIRouter, Request, Body
-from app.models import BeatmapUpdateRequestModel, BeatmapsetModel, ErrorResponse
+from app.models import BeatmapUpdateRequest, BeatmapsetModel, ErrorResponse
 from app.common.database import beatmapsets
 from app.security import require_login
 from app.utils import requires
@@ -32,7 +32,7 @@ def get_beatmapset(request: Request, id: int) -> BeatmapsetModel:
 def update_beatmapset_metadata(
     request: Request,
     id: int,
-    update: BeatmapUpdateRequestModel = Body(...)
+    update: BeatmapUpdateRequest = Body(...)
 ) -> BeatmapsetModel:
     if not (beatmapset := beatmapsets.fetch_one(id, request.state.db)):
         raise HTTPException(

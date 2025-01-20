@@ -22,6 +22,35 @@ class BenchmarkModel(BaseModel):
     user: UserModel
 
 class BenchmarkSubmissionRequest(BaseModel):
+    smoothness: float
+    framerate: int
+    raw_score: int
+    client: str
+    hardware: BenchmarkHardware
+
+    @field_validator('framerate')
+    def validate_framerate(cls, value):
+        if not isinstance(value, int) or value <= 0:
+            raise ValueError("Framerate must be a positive integer")
+        if value > 1_000_000:
+            raise ValueError("Framerate is too high")
+        return value
+
+    @field_validator('raw_score')
+    def validate_raw_score(cls, value):
+        if not isinstance(value, int) or value <= 0:
+            raise ValueError("Raw score must be a positive integer")
+        if value > 1_000_000_000:
+            raise ValueError("Raw score is too high")
+        return value
+
+    @field_validator('smoothness')
+    def validate_smoothness(cls, value):
+        if not isinstance(value, float) or value < 0 or value > 100:
+            raise ValueError("Smoothness must be a float between 0 and 100")
+        return value
+
+class BenchmarkHardware(BaseModel):
     renderer: Renderer
     cpu: str
     cores: int
@@ -43,4 +72,3 @@ class BenchmarkSubmissionRequest(BaseModel):
         if not isinstance(value, int) or value < 0:
             raise ValueError("RAM must be a non-negative integer")
         return value
-

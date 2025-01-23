@@ -1,9 +1,8 @@
 
-from __future__ import annotations
 from fastapi import APIRouter, Request, Body
 from datetime import datetime
 
-from app.models import BenchmarkSubmissionRequest, BenchmarkModel
+from app.models import BenchmarkModel, BenchmarkSubmissionRequest
 from app.common.database import benchmarks, users
 from app.utils import requires
 
@@ -11,7 +10,10 @@ router = APIRouter()
 
 @router.post('/', response_model=BenchmarkModel)
 @requires(['authenticated', 'unrestricted', 'unsilenced', 'activated'])
-def post_benchmark_score(request: Request, body: BenchmarkSubmissionRequest = Body(...)):
+def post_benchmark_score(
+    request: Request,
+    body: BenchmarkSubmissionRequest = Body(...)
+) -> BenchmarkModel:
     benchmark = benchmarks.create(
         user_id=request.user.id,
         smoothness=body.smoothness,

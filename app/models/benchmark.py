@@ -21,6 +21,29 @@ class BenchmarkModel(BaseModel):
     hardware: dict | None
     user: UserModel
 
+class BenchmarkHardware(BaseModel):
+    renderer: Renderer
+    cpu: str
+    cores: int
+    threads: int
+    gpu: str
+    ram: int
+    os: str
+    motherboard_manufacturer: str
+    motherboard: str
+
+    @field_validator('cores', 'threads', mode='before')
+    def validate_cores_and_threads(cls, value, field):
+        if not isinstance(value, int) or value <= 0:
+            raise ValueError(f"{field.name} must be a positive integer")
+        return value
+    
+    @field_validator('ram', mode='before')
+    def validate_ram(cls, value):
+        if not isinstance(value, int) or value < 0:
+            raise ValueError("RAM must be a non-negative integer")
+        return value
+
 class BenchmarkSubmissionRequest(BaseModel):
     smoothness: float
     framerate: int
@@ -37,7 +60,7 @@ class BenchmarkSubmissionRequest(BaseModel):
         elif self.smoothness > 70: return 'C'
         else: return 'D'
 
-    @field_validator('framerate')
+    @field_validator('framerate', mode='before')
     def validate_framerate(cls, value):
         if not isinstance(value, int) or value <= 0:
             raise ValueError("Framerate must be a positive integer")
@@ -45,7 +68,7 @@ class BenchmarkSubmissionRequest(BaseModel):
             raise ValueError("Framerate is too high")
         return value
 
-    @field_validator('raw_score')
+    @field_validator('raw_score', mode='before')
     def validate_raw_score(cls, value):
         if not isinstance(value, int) or value <= 0:
             raise ValueError("Raw score must be a positive integer")
@@ -53,31 +76,8 @@ class BenchmarkSubmissionRequest(BaseModel):
             raise ValueError("Raw score is too high")
         return value
 
-    @field_validator('smoothness')
+    @field_validator('smoothness', mode='before')
     def validate_smoothness(cls, value):
         if not isinstance(value, float) or value < 0 or value > 100:
             raise ValueError("Smoothness must be a float between 0 and 100")
-        return value
-
-class BenchmarkHardware(BaseModel):
-    renderer: Renderer
-    cpu: str
-    cores: int
-    threads: int
-    gpu: str
-    ram: int
-    os: str
-    motherboard_manufacturer: str
-    motherboard: str
-
-    @field_validator('cores', 'threads')
-    def validate_cores_and_threads(cls, value, field):
-        if not isinstance(value, int) or value <= 0:
-            raise ValueError(f"{field.name} must be a positive integer")
-        return value
-    
-    @field_validator('ram')
-    def validate_ram(cls, value):
-        if not isinstance(value, int) or value < 0:
-            raise ValueError("RAM must be a non-negative integer")
         return value

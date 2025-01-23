@@ -10,7 +10,7 @@ router = APIRouter()
 
 @router.post('/', response_model=BenchmarkModel)
 @requires(['authenticated', 'unrestricted', 'unsilenced', 'activated'])
-def post_benchmark_score(
+def submit_benchmark_score(
     request: Request,
     body: BenchmarkSubmissionRequest = Body(...)
 ) -> BenchmarkModel:

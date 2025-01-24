@@ -13,7 +13,7 @@ router = APIRouter()
 
 @router.get('/channels/{target}/messages', response_model=List[MessageModel])
 @requires('authenticated')
-def chat_history(
+def channel_message_history(
     request: Request,
     target: str,
     offset: int = Query(0, ge=0),

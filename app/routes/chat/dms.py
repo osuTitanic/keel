@@ -2,11 +2,35 @@
 from fastapi import HTTPException, APIRouter, Request, Query
 from typing import List
 
+from app.models import PrivateMessageSelectionEntry, PrivateMessageModel, UserModel
 from app.common.database import messages, users
-from app.models import PrivateMessageModel
 from app.utils import requires
 
 router = APIRouter()
+
+@router.get('/dms', response_model=List[PrivateMessageSelectionEntry])
+@requires('authenticated')
+def direct_message_selection(request: Request) -> List[PrivateMessageSelectionEntry]:
+    user_list = messages.fetch_dm_entries(
+        request.user.id,
+        request.state.db
+    )
+
+    entries = [
+        PrivateMessageSelectionEntry(
+            user=UserModel.model_validate(
+                user,
+                from_attributes=True
+            ),
+            last_message=PrivateMessageModel.model_validate(
+                messages.fetch_last_dm(user.id, request.user.id, request.state.db),
+                from_attributes=True
+            )
+        )
+        for user in user_list
+    ]
+
+    return sorted(entries, key=lambda x: x.last_message.id, reverse=True)
 
 @router.get('/dms/{target_id}/messages', response_model=List[PrivateMessageModel])
 @requires('authenticated')

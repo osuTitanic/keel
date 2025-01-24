@@ -12,6 +12,28 @@ from app.utils import requires
 
 router = APIRouter(dependencies=[require_login])
 
+@router.get('/channels', response_model=List[ChannelModel])
+@requires('authenticated')
+def channel_selection(
+    request: Request,
+    has_participated: bool = Query(False)
+) -> List[ChannelModel]:
+    if has_participated:
+        return [
+            ChannelModel.model_validate(channel, from_attributes=True)
+            for channel in channels.fetch_channel_entries(request.user.name, request.state.db)
+        ]
+
+    permissions = groups.get_player_permissions(
+        request.user.id,
+        request.state.db
+    )
+
+    return [
+        ChannelModel.model_validate(channel, from_attributes=True)
+        for channel in channels.fetch_by_permissions(permissions, request.state.db)
+    ]
+
 @router.get('/channels/{target}', response_model=ChannelModel)
 @requires('authenticated')
 def get_channel(

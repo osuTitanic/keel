@@ -5,12 +5,34 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.common.database import messages, channels, names, groups, users
+from app.models import MessageModel, ChannelModel
 from app.common.database.objects import DBUser
 from app.security import require_login
-from app.models import MessageModel
 from app.utils import requires
 
 router = APIRouter(dependencies=[require_login])
+
+@router.get('/channels/{target}', response_model=ChannelModel)
+@requires('authenticated')
+def get_channel(
+    request: Request,
+    target: str
+) -> ChannelModel:
+    if not (channel := channels.fetch_one(target, request.state.db)):
+        raise HTTPException(404, 'Channel not found')
+
+    user_permissions = groups.get_player_permissions(
+        request.user.id,
+        request.state.db
+    )
+
+    if user_permissions < channel.read_permissions:
+        raise HTTPException(403, 'Insufficient permissions')
+
+    return ChannelModel.model_validate(
+        channel,
+        from_attributes=True
+    )
 
 @router.get('/channels/{target}/messages', response_model=List[MessageModel])
 @requires('authenticated')

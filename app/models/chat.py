@@ -8,3 +8,10 @@ class MessageModel(BaseModel):
     sender: UserModel | None
     message: str
     time: datetime
+
+class PrivateMessageModel(BaseModel):
+    id: int
+    message: str
+    time: datetime
+    sender_id: int
+    target_id: int

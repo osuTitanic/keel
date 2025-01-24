@@ -15,3 +15,7 @@ class PrivateMessageModel(BaseModel):
     time: datetime
     sender_id: int
     target_id: int
+
+class PrivateMessageSelectionEntry(BaseModel):
+    user: UserModel
+    last_message: PrivateMessageModel

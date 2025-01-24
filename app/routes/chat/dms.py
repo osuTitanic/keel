@@ -39,13 +39,14 @@ def direct_message_history(
     request: Request,
     target_id: int,
     offset: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=50)
 ) -> List[PrivateMessageModel]:
     if not (target := users.fetch_by_id(target_id, session=request.state.db)):
         raise HTTPException(404, 'User not found')
 
     user_messages = messages.fetch_dms(
         request.user.id, target.id,
-        50, offset,
+        limit, offset,
         request.state.db
     )
 

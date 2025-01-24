@@ -3,6 +3,10 @@ from pydantic import BaseModel
 from datetime import datetime
 from .user import UserModel
 
+class ChannelModel(BaseModel):
+    name: str
+    topic: str
+
 class MessageModel(BaseModel):
     id: int
     sender: UserModel | None

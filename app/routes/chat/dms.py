@@ -4,9 +4,10 @@ from typing import List
 
 from app.models import PrivateMessageSelectionEntry, PrivateMessageModel, UserModel
 from app.common.database import messages, users
+from app.security import require_login
 from app.utils import requires
 
-router = APIRouter()
+router = APIRouter(dependencies=[require_login])
 
 @router.get('/dms', response_model=List[PrivateMessageSelectionEntry])
 @requires('authenticated')

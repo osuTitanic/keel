@@ -6,10 +6,11 @@ from typing import List
 
 from app.common.database import messages, channels, names, groups, users
 from app.common.database.objects import DBUser
+from app.security import require_login
 from app.models import MessageModel
 from app.utils import requires
 
-router = APIRouter()
+router = APIRouter(dependencies=[require_login])
 
 @router.get('/channels/{target}/messages', response_model=List[MessageModel])
 @requires('authenticated')

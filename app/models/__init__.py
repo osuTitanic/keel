@@ -5,6 +5,7 @@ from .authentication import *
 from .beatmap import *
 from .beatmapset import *
 from .benchmark import *
+from .chat import *
 from .client import *
 from .errors import *
 from .forums import *

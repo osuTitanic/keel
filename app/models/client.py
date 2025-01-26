@@ -26,7 +26,7 @@ class ClientModel(BaseModel):
     screenshots: List[ClientScreenshotModel]
     created_at: datetime
 
-class ClientReleaseRequest(BaseModel):
+class ClientUploadRequest(BaseModel):
     name: str
     description: str
     category: str

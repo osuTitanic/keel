@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 from .user import UserModel
 
@@ -23,3 +23,14 @@ class PrivateMessageModel(BaseModel):
 class PrivateMessageSelectionEntry(BaseModel):
     user: UserModel
     last_message: PrivateMessageModel
+
+class MessagePostRequest(BaseModel):
+    message: str
+
+    @field_validator('message')
+    def truncate_message(cls, value: str) -> str:
+        if len(value) < 512:
+            return value
+
+        # Truncate message to fit database limits
+        return value[:495] + '... (truncated)'

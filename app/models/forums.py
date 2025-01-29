@@ -63,3 +63,6 @@ class BookmarkModel(BaseModel):
 class SubscriptionModel(BaseModel):
     user: UserModelCompact
     topic: TopicModel
+
+class BBCodeRenderRequest(BaseModel):
+    input: str

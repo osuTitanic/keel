@@ -8,6 +8,27 @@ from app.models import PostModel
 
 router = APIRouter()
 
+@router.get("/{forum_id}/topics/{topic_id}/posts/{post_id}", response_model=PostModel)
+def get_post(
+    request: Request,
+    forum_id: int,
+    topic_id: int,
+    post_id: int
+) -> PostModel:
+    if not (post := posts.fetch_one(post_id, request.state.db)):
+        raise HTTPException(404, "Post not found")
+
+    if post.topic_id != topic_id:
+        return RedirectResponse(f"/forum/{post.forum_id}/topics/{post.topic_id}/posts/{post.id}")
+
+    if post.forum_id != forum_id:
+        return RedirectResponse(f"/forum/{post.forum_id}/topics/{post.topic_id}/posts/{post.id}")
+
+    if post.hidden:
+        post.content = '[ Deleted ]'
+
+    return PostModel.model_validate(post, from_attributes=True)
+
 @router.get("/{forum_id}/topics/{topic_id}/posts", response_model=List[PostModel])
 def get_topic_posts(
     request: Request,

@@ -4,7 +4,9 @@ from fastapi.responses import RedirectResponse
 from typing import List
 
 from app.common.database import topics, posts
+from app.security import require_login
 from app.models import PostModel
+from app.utils import requires
 
 router = APIRouter()
 
@@ -28,6 +30,34 @@ def get_post(
         post.content = '[ Deleted ]'
 
     return PostModel.model_validate(post, from_attributes=True)
+
+@router.delete("/{forum_id}/topics/{topic_id}/posts/{post_id}", dependencies=[require_login])
+@requires(["authenticated", "activated"])
+def delete_post(
+    request: Request,
+    forum_id: int,
+    topic_id: int,
+    post_id: int
+) -> dict:
+    if not (post := posts.fetch_one(post_id, request.state.db)):
+        raise HTTPException(404, "Post not found")
+    
+    if post.hidden:
+        raise HTTPException(404, "Post not found")
+    
+    if post.user_id != request.user.id and not request.user.is_moderator:
+        raise HTTPException(403, "You do not have permission to delete this post")
+    
+    if post.edit_locked:
+        raise HTTPException(403, "This post is locked and cannot be deleted")
+
+    posts.update(
+        post.id,
+        {'deleted': True},
+        session=request.state.db
+    )
+
+    return {}
 
 @router.get("/{forum_id}/topics/{topic_id}/posts", response_model=List[PostModel])
 def get_topic_posts(

@@ -3,8 +3,8 @@ from __future__ import annotations
 from app.common.database import DBUser
 from fastapi import Header, Depends
 from hashlib import md5
+from app import utils
 
-import asyncio
 import config
 import bcrypt
 import time
@@ -32,7 +32,7 @@ def validate_token(token: str) -> dict | None:
         return
 
     # Check if the token is expired
-    if data['exp'] < round(time.time()):
+    if time.time() > data['exp']:
         return
 
     return data
@@ -50,8 +50,8 @@ def md5_authentication(md5: str, bcrypt_hash: str) -> bool:
     )
 
 async def md5_authentication_async(md5: str, bcrypt: str) -> bool:
-    return await asyncio.get_event_loop().run_in_executor(
-        None, md5_authentication,
+    return await utils.run_async(
+        md5_authentication,
         md5, bcrypt
     )
 

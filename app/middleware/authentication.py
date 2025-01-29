@@ -7,11 +7,10 @@ from typing import List
 
 from app.common.database.repositories import users, groups
 from app.common.database import DBUser
-from app import api
+from app import api, utils
 
 import app.security as security
 import logging
-import asyncio
 import base64
 
 class AuthBackend(AuthenticationBackend):
@@ -62,7 +61,7 @@ class AuthBackend(AuthenticationBackend):
     async def basic_authentication(self, data: str, request: HTTPConnection) -> DBUser | None:
         username, password = base64.b64decode(data).decode().split(':', 1)
 
-        user: DBUser = await self.run_async(
+        user: DBUser = await utils.run_async(
             users.fetch_by_name_case_insensitive,
             username, request.state.db
         )
@@ -85,13 +84,13 @@ class AuthBackend(AuthenticationBackend):
         if not data:
             return None
 
-        return await self.run_async(
+        return await utils.run_async(
             users.fetch_by_id_no_options,
             data['id'], request.state.db
         )
 
     async def fetch_user_groups(self, user_id: int, request: HTTPConnection) -> List[str]:
-        user_groups = await self.run_async(
+        user_groups = await utils.run_async(
             groups.fetch_user_groups,
             user_id, True, request.state.db
         )
@@ -103,10 +102,5 @@ class AuthBackend(AuthenticationBackend):
 
         scheme, data = authorization.split(' ', 1)
         return {'scheme': scheme.lower(), 'data': data}
-    
-    async def run_async(self, query, *args):
-        return await asyncio.get_event_loop().run_in_executor(
-            None, query, *args
-        )
 
 api.add_middleware(AuthenticationMiddleware, backend=AuthBackend())

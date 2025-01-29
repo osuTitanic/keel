@@ -38,9 +38,9 @@ def generate_token(request: Request) -> Response:
         # Try to authenticate user through refresh token
         user = validate_refresh_token(request)
 
-    current_time = time.time()
-    expiry = round(current_time) + config.FRONTEND_TOKEN_EXPIRY
-    expiry_refresh = round(current_time) + config.FRONTEND_REFRESH_EXPIRY
+    current_time = round(time.time())
+    expiry = current_time + config.FRONTEND_TOKEN_EXPIRY
+    expiry_refresh = current_time + config.FRONTEND_REFRESH_EXPIRY
 
     # Generate new access & refresh tokens
     access_token = security.generate_token(user, expiry)

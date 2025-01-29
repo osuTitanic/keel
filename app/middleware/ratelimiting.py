@@ -8,15 +8,10 @@ from redis import Redis
 from app.models import ErrorResponse
 from app.common.helpers import ip
 from app.common import officer
+from app import utils
 
-import asyncio
 import config
 import app
-
-async def run_async(func: Callable, *args):
-    return await asyncio.get_event_loop().run_in_executor(
-        None, func, *args
-    )
 
 def error_response(status_code: int, detail: str):
     return JSONResponse(
@@ -29,20 +24,20 @@ async def ratelimit_middleware(request: Request, call_next: Callable):
     redis: Redis = request.state.redis
 
     # Get current request count
-    current = await run_async(redis.get, f'ratelimit:{ip_address}') or b'0'
+    current = await utils.run_async(redis.get, f'ratelimit:{ip_address}') or b'0'
 
     # Check for rate limit
     if int(current) > config.API_RATELIMIT_LIMIT:
         return error_response(429, 'Rate limit exceeded')
 
     # Set the new request count with expiry
-    await run_async(
+    await utils.run_async(
         redis.setex, f'ratelimit:{ip_address}',
         config.API_RATELIMIT_WINDOW, int(current) + 1
     )
 
     if int(current) + 1 >= config.API_RATELIMIT_LIMIT:
-        await run_async(
+        await utils.run_async(
             officer.call,
             f"{ip_address} has exceeded the api ratelimit of "
             f"{config.API_RATELIMIT_LIMIT} requests / {config.API_RATELIMIT_WINDOW} seconds."

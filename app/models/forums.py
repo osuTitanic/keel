@@ -37,7 +37,7 @@ class TopicModel(BaseModel):
     created_at: datetime
     last_post_at: datetime
     locked_at: datetime | None
-    creator: UserModel
+    creator: UserModelCompact
     icon: IconModel | None
 
 class SubforumModel(BaseModel):

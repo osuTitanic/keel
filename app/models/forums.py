@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List
 
-from .user import UserModel
+from .user import UserModelCompact, UserModel
 
 class IconModel(BaseModel):
     id: int
@@ -57,9 +57,9 @@ class ForumModel(BaseModel):
     parent: SubforumModel | None
 
 class BookmarkModel(BaseModel):
-    user: UserModel
+    user: UserModelCompact
     topic: TopicModel
 
 class SubscriptionModel(BaseModel):
-    user: UserModel
+    user: UserModelCompact
     topic: TopicModel

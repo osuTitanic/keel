@@ -3,13 +3,13 @@ from pydantic import BaseModel
 from datetime import datetime
 
 from .beatmapset import BeatmapsetModel
+from .user import UserModelCompact
 from .forums import PostModel
-from .user import UserModel
 
 class KudosuModel(BaseModel):
     id: int
-    target: UserModel
-    sender: UserModel
+    target: UserModelCompact
+    sender: UserModelCompact
     beatmapset: BeatmapsetModel
     post: PostModel
     amount: int
@@ -17,8 +17,8 @@ class KudosuModel(BaseModel):
 
 class KudosuWithoutSetModel(BaseModel):
     id: int
-    target: UserModel
-    sender: UserModel
+    target: UserModelCompact
+    sender: UserModelCompact
     post: PostModel
     amount: int
     time: datetime

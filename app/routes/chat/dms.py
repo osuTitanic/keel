@@ -2,7 +2,7 @@
 from fastapi import HTTPException, APIRouter, Request, Query
 from typing import List
 
-from app.models import PrivateMessageSelectionEntry, PrivateMessageModel, UserModel
+from app.models import PrivateMessageSelectionEntry, PrivateMessageModel, UserModelCompact
 from app.common.database import messages, users
 from app.security import require_login
 from app.utils import requires
@@ -19,7 +19,7 @@ def direct_message_selection(request: Request) -> List[PrivateMessageSelectionEn
 
     entries = [
         PrivateMessageSelectionEntry(
-            user=UserModel.model_validate(
+            user=UserModelCompact.model_validate(
                 user,
                 from_attributes=True
             ),

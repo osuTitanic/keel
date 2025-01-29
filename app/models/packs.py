@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List
 
-from .user import UserModel
+from .user import UserModelCompact
 from .beatmapset import BeatmapsetModel
 
 class BeatmapPackEntryModel(BaseModel):
@@ -18,7 +18,7 @@ class BeatmapPackModel(BaseModel):
     category: str
     description: str
     download_link: str
-    creator: UserModel
+    creator: UserModelCompact
     created_at: datetime
     updated_at: datetime
 
@@ -28,7 +28,7 @@ class BeatmapPackWithEntriesModel(BaseModel):
     category: str
     description: str
     download_link: str
-    creator: UserModel
+    creator: UserModelCompact
     created_at: datetime
     updated_at: datetime
     entries: List[BeatmapPackEntryModel]

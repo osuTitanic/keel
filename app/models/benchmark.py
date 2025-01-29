@@ -4,7 +4,7 @@ from pydantic import BaseModel, field_validator
 from datetime import datetime
 from enum import Enum
 
-from .user import UserModel
+from .user import UserModelCompact
 
 class Renderer(str, Enum):
     opengl = 'OpenGL'
@@ -19,7 +19,7 @@ class BenchmarkModel(BaseModel):
     created_at: datetime
     client: str
     hardware: dict | None
-    user: UserModel
+    user: UserModelCompact
 
 class BenchmarkHardware(BaseModel):
     renderer: Renderer

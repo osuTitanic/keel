@@ -1,7 +1,7 @@
 
 from pydantic import BaseModel, field_validator
 from datetime import datetime
-from .user import UserModel
+from .user import UserModelCompact
 
 class ChannelModel(BaseModel):
     name: str
@@ -9,7 +9,7 @@ class ChannelModel(BaseModel):
 
 class MessageModel(BaseModel):
     id: int
-    sender: UserModel | None
+    sender: UserModelCompact | None
     message: str
     time: datetime
 
@@ -21,7 +21,7 @@ class PrivateMessageModel(BaseModel):
     target_id: int
 
 class PrivateMessageSelectionEntry(BaseModel):
-    user: UserModel
+    user: UserModelCompact
     last_message: PrivateMessageModel
 
 class MessagePostRequest(BaseModel):

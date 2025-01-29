@@ -107,17 +107,6 @@ def resolve_message_users(messages: List[MessageModel], request: Request) -> Lis
             sender_cache[message.sender] = None
             continue
 
-        # Preload relationships for user model
-        load_relationships(
-            'relationships',
-            'achievements',
-            'groups',
-            'badges',
-            'names',
-            'stats',
-            model=sender
-        )
-
         sender_cache[message.sender] = sender
         message.sender = sender
 
@@ -130,7 +119,3 @@ def resolve_user(username: str, session: Session) -> DBUser | None:
 
     if name_change := names.fetch_by_name_extended(username, session):
         return name_change.user
-
-def load_relationships(*relationships, model):
-    for relationship in relationships:
-        getattr(model, relationship)

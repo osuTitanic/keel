@@ -66,3 +66,6 @@ class SubscriptionModel(BaseModel):
 
 class BBCodeRenderRequest(BaseModel):
     input: str
+
+class SubscriptionRequest(BaseModel):
+    topic_id: int

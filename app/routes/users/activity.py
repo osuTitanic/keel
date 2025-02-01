@@ -27,7 +27,7 @@ def get_user_activity_by_preferred_mode(
         )
 
     return RedirectResponse(
-        f"/profile/{user_id}/activity/{GameMode(user.preferred_mode).alias}",
+        f"/users/{user_id}/activity/{GameMode(user.preferred_mode).alias}",
         status_code=302
     )
 

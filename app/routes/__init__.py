@@ -9,11 +9,11 @@ from . import resources
 from . import rankings
 from . import beatmaps
 from . import account
-from . import profile
 from . import clients
 from . import groups
 from . import scores
 from . import forum
+from . import users
 from . import oauth
 from . import chat
 
@@ -24,9 +24,9 @@ router = APIRouter()
 router.include_router(chat.router, prefix="/chat", tags=["chat"])
 router.include_router(forum.router, prefix="/forum", tags=["forum"])
 router.include_router(oauth.router, prefix="/oauth", tags=["oauth"])
+router.include_router(users.router, prefix="/users", tags=["users"])
 router.include_router(groups.router, prefix="/groups", tags=["groups"])
 router.include_router(scores.router, prefix="/scores", tags=["scores"])
-router.include_router(profile.router, prefix="/profile", tags=["profile"])
 router.include_router(clients.router, prefix="/clients", tags=["clients"])
 router.include_router(account.router, prefix="/account", tags=["account"])
 router.include_router(beatmaps.router, prefix="/beatmaps", tags=["beatmaps"])

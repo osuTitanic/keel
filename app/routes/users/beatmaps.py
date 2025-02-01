@@ -61,7 +61,7 @@ def get_user_beatmap(request: Request, user_id: int, beatmap_id: int) -> Beatmap
 
     if beatmapset.creator_id != user.id:
         return RedirectResponse(
-            f'/profile/{beatmapset.creator_id}/beatmaps/{beatmapset.id}',
+            f'/users/{beatmapset.creator_id}/beatmaps/{beatmapset.id}',
             status_code=308
         )
 

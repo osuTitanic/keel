@@ -1,5 +1,7 @@
 
 from fastapi import HTTPException, APIRouter, Request, Body
+from typing import List
+
 from app.models import SubscriptionModel, SubscriptionRequest
 from app.common.database import users, topics
 from app.security import require_login
@@ -7,7 +9,7 @@ from app.utils import requires
 
 router = APIRouter(dependencies=[require_login])
 
-@router.get("/subscriptions")
+@router.get("/subscriptions", response_model=List[SubscriptionModel])
 @requires("authenticated")
 def get_subscriptions(request: Request):
     subscriptions = users.fetch_subscriptions(

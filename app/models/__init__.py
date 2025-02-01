@@ -15,6 +15,7 @@ from .kudosu import *
 from .multiplayer import *
 from .nominations import *
 from .packs import *
+from .rankings import *
 from .score import *
 from .search import *
 from .server import *

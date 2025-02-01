@@ -1,8 +1,15 @@
 
+from app.common.database.repositories import wrapper
+from app.common.database import stats, histories
+from app.common.database.objects import DBUser
+from app.common.cache import leaderboards
+
 from fastapi import HTTPException, Request
 from typing import Callable, Generator
+from sqlalchemy.orm import Session
 from PIL import Image
 
+import app.session
 import functools
 import inspect
 import asyncio
@@ -38,6 +45,42 @@ def resize_image(
     img = img.resize((target_width, target_height))
     img.save(image_buffer, format='JPEG')
     return image_buffer.getvalue()
+
+def on_sync_ranks_fail(e: Exception) -> None:
+    app.session.logger.error(
+        f'Failed to update user rank: {e}',
+        exc_info=e
+    )
+
+@wrapper.exception_wrapper(on_sync_ranks_fail)
+def sync_ranks(user: DBUser, session: Session) -> None:
+    for user_stats in user.stats:
+        if user_stats.playcount <= 0:
+            continue
+
+        global_rank = leaderboards.global_rank(
+            user.id,
+            user_stats.mode
+        )
+
+        if user_stats.rank == global_rank:
+            continue
+
+        # Database rank desynced from redis
+        stats.update(
+            user.id,
+            user_stats.mode,
+            {'rank': global_rank},
+            session=session
+        )
+        user_stats.rank = global_rank
+
+        # Update rank history
+        histories.update_rank(
+            user_stats,
+            user.country,
+            session=session
+        )
 
 def requires(
     scopes: str | typing.Sequence[str],

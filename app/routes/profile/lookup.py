@@ -16,6 +16,12 @@ def user_lookup(request: Request, input: str) -> UserModel:
             detail='The requested user was not found'
         )
 
+    if not user.activated:
+        raise HTTPException(
+            status_code=404,
+            detail='The requested user was not found'
+        )
+
     return UserModel.model_validate(user, from_attributes=True)
 
 def resolve_user_profile(input: str, session: Session) -> DBUser | None:

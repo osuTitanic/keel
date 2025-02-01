@@ -9,6 +9,7 @@ from . import beatmaps
 from . import friends
 from . import profile
 from . import history
+from . import lookup
 from . import pinned
 from . import recent
 from . import status
@@ -25,6 +26,7 @@ router.include_router(beatmaps.router)
 router.include_router(friends.router)
 router.include_router(profile.router)
 router.include_router(history.router)
+router.include_router(lookup.router)
 router.include_router(pinned.router)
 router.include_router(recent.router)
 router.include_router(status.router)

@@ -6,7 +6,7 @@ from enum import Enum
 
 from .user import UserModel
 
-class ModeType(str, Enum):
+class ModeAlias(str, Enum):
     Osu = 'osu'
     Taiko = 'taiko'
     CatchTheBeat = 'fruits'

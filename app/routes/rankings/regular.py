@@ -8,7 +8,7 @@ from app.models import (
     RankingStatsModel,
     UserModel,
     OrderType,
-    ModeType
+    ModeAlias
 )
 
 from fastapi import Request, APIRouter, Query
@@ -21,7 +21,7 @@ router = APIRouter()
 def get_rankings(
     request: Request,
     order: OrderType,
-    mode: ModeType,
+    mode: ModeAlias,
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=50),
     country: str | None = Query(None)

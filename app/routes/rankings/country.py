@@ -4,7 +4,7 @@ from app.common.cache import leaderboards
 from app.models import (
     CountryEntryModel,
     CountryStatsModel,
-    ModeType
+    ModeAlias
 )
 
 from fastapi import Request, APIRouter
@@ -13,7 +13,7 @@ from typing import List
 router = APIRouter()
 
 @router.get('/country/{mode}')
-def get_country_rankings(request: Request, mode: ModeType) -> List[CountryEntryModel]:
+def get_country_rankings(request: Request, mode: ModeAlias) -> List[CountryEntryModel]:
     return [
         CountryEntryModel(
             index=index + 1,

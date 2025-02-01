@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from datetime import datetime
 from typing import List
 
-from app.common.database import users, beatmapsets, beatmaps, topics, posts
+from app.common.database import users, beatmapsets, beatmaps, topics, posts, nominations
 from app.common.constants import DatabaseStatus
 from app.models import BeatmapsetModel
 from app.utils import requires
@@ -95,7 +95,7 @@ def revive_beatmapset(
             detail="You are not authorized to perform this action"
         )
 
-    if beatmapset.status != DatabaseStatus.Graveyard:
+    if beatmapset.status not in (DatabaseStatus.Graveyard, DatabaseStatus.Inactive):
         raise HTTPException(
             status_code=400,
             detail="The requested beatmapset is not in the graveyard"
@@ -122,16 +122,90 @@ def revive_beatmapset(
     topics.update(
         beatmapset.topic_id,
         {
-            'forum_id': 10,
+            'status_text': 'Needs modding',
             'icon_id': None,
-            'status_text': 'Needs modding'
+            'hidden': False,
+            'forum_id': 10
         },
         request.state.db
     )
 
     posts.update_by_topic(
         beatmapset.topic_id,
-        {'forum_id': 10},
+        {
+            'hidden': False,
+            'forum_id': 10
+        },
+        request.state.db
+    )
+
+    request.state.db.refresh(beatmapset)
+    return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
+
+@router.delete('/{user_id}/beatmapsets/{beatmap_id}', response_model=BeatmapsetModel)
+@requires(['authenticated', 'activated'])
+def delete_beatmapset(
+    request: Request,
+    user_id: int,
+    beatmap_id: int
+) -> BeatmapsetModel:
+    if user_id != request.user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
+    if not (beatmapset := beatmapsets.fetch_one(beatmap_id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmapset could not be found"
+        )
+    
+    if beatmapset.creator_id != request.user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
+    if beatmapset.status > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="The requested beatmapset cannot be deleted"
+        )
+
+    has_nomination = nominations.fetch_by_beatmapset(
+        beatmapset.id,
+        request.state.db
+    )
+
+    if has_nomination:
+        raise HTTPException(
+            status_code=400,
+            detail="The requested beatmapset was nominated, and cannot be deleted"
+        )
+
+    # Beatmap will be deleted on next bss upload
+    beatmapsets.update(
+        beatmapset.id,
+        {'status': DatabaseStatus.Inactive.value},
+        request.state.db
+    )
+
+    beatmaps.update_by_set_id(
+        beatmapset.id,
+        {'status': DatabaseStatus.Inactive.value},
+        request.state.db
+    )
+
+    topics.update(
+        beatmapset.topic_id,
+        {'hidden': True},
+        request.state.db
+    )
+
+    posts.update_by_topic(
+        beatmapset.topic_id,
+        {'hidden': True},
         request.state.db
     )
 

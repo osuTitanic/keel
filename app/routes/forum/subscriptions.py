@@ -37,7 +37,7 @@ def get_subscription(request: Request, topic_id: int):
     if topic.hidden:
         raise HTTPException(404, "Topic not found")
 
-    subscription = users.fetch_subscription(
+    subscription = topics.fetch_subscriber(
         topic_id,
         request.user.id,
         request.state.db

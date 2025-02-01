@@ -69,3 +69,6 @@ class BBCodeRenderRequest(BaseModel):
 
 class SubscriptionRequest(BaseModel):
     topic_id: int
+
+class BookmarkRequest(BaseModel):
+    topic_id: int

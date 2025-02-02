@@ -5,7 +5,7 @@ from . import achievements
 from . import favourites
 from . import playstyle
 from . import activity
-from . import beatmaps
+from . import beatmapsets
 from . import friends
 from . import profile
 from . import history
@@ -19,10 +19,10 @@ from . import top
 
 router = APIRouter()
 router.include_router(achievements.router)
+router.include_router(beatmapsets.router)
 router.include_router(favourites.router)
 router.include_router(playstyle.router)
 router.include_router(activity.router)
-router.include_router(beatmaps.router)
 router.include_router(friends.router)
 router.include_router(profile.router)
 router.include_router(history.router)

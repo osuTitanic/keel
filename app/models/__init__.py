@@ -8,6 +8,7 @@ from .benchmark import *
 from .chat import *
 from .client import *
 from .errors import *
+from .favourite import *
 from .forums import *
 from .groups import *
 from .history import *

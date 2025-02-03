@@ -10,3 +10,6 @@ class FavouriteModel(BaseModel):
     user: UserModelCompact
     beatmapset: BeatmapsetModel
     created_at: datetime
+
+class FavouriteCreateRequest(BaseModel):
+    set_id: int

@@ -1,8 +1,8 @@
 
-from app.models import FavouriteModel, UserModelCompact, BeatmapsetModel
-from app.common.database import favourites, users
+from app.models import FavouriteModel, UserModelCompact, BeatmapsetModel, FavouriteCreateRequest
+from app.common.database import favourites, users, beatmapsets
 
-from fastapi import HTTPException, APIRouter, Request
+from fastapi import HTTPException, APIRouter, Request, Body
 from typing import List
 
 router = APIRouter()
@@ -28,3 +28,51 @@ def get_favourites(request: Request, user_id: int) -> List[FavouriteModel]:
         )
         for favourite in user_favourites
     ]
+
+@router.post("/{user_id}/favourites", response_model=FavouriteModel)
+def add_favourite(
+    request: Request,
+    user_id: int,
+    data: FavouriteCreateRequest = Body(...)
+) -> FavouriteModel:
+    if not (user := users.fetch_by_id(user_id, session=request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested user could not be found"
+        )
+    
+    if not (beatmapset := beatmapsets.fetch_one(data.set_id, session=request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmapset could not be found"
+        )
+
+    already_exists = favourites.fetch_one(
+        request.user.id,
+        beatmapset.id,
+        request.state.db
+    )
+
+    if already_exists:
+        raise HTTPException(
+            status_code=400,
+            detail="You have already favourited this beatmapset"
+        )
+
+    favourite = favourites.create(
+        request.user.id,
+        beatmapset.id,
+        request.state.db
+    )
+
+    if not favourite:
+        raise HTTPException(
+            status_code=500,
+            detail="An error occurred while trying to add the favourite"
+        )
+    
+    return FavouriteModel(
+        user=UserModelCompact.model_validate(user, from_attributes=True),
+        beatmapset=BeatmapsetModel.model_validate(beatmapset, from_attributes=True),
+        created_at=favourite.created_at
+    )

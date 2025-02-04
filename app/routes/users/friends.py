@@ -13,6 +13,12 @@ def get_friends(request: Request, user_id: int) -> List[UserModelCompact]:
             status_code=404,
             detail="The requested user could not be found"
         )
+    
+    if not user.activated:
+        raise HTTPException(
+            status_code=404,
+            detail='The requested user was not found'
+        )
 
     return [
         UserModelCompact.model_validate(friend.target, from_attributes=True)

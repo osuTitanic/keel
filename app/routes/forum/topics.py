@@ -16,10 +16,10 @@ def get_forum_topics(
     limit: int = Query(25, le=50)
 ) -> List[TopicModel]:
     if not (forum := forums.fetch_by_id(forum_id, request.state.db)):
-        raise HTTPException(404, "Forum not found")
+        raise HTTPException(404, "The requested forum was not found")
     
     if forum.hidden:
-        raise HTTPException(404, "Forum not found")
+        raise HTTPException(404, "The requested forum was not found")
 
     forum_topics = topics.fetch_recent_many(
         forum.id,
@@ -40,7 +40,7 @@ def get_topic(
     topic_id: int
 ) -> TopicModel:
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
-        raise HTTPException(404, "Topic not found")
+        raise HTTPException(404, "The requested topic was not found")
 
     if topic.forum_id != forum_id:
         return RedirectResponse(f"/forum/{topic.forum_id}/topics/{topic.id}")

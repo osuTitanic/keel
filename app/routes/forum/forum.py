@@ -15,9 +15,9 @@ def get_main_forums(request: Request):
 @router.get("/{forum_id}", response_model=ForumModel)
 def get_forum(request: Request, forum_id: int):
     if not (forum := forums.fetch_by_id(forum_id, request.state.db)):
-        raise HTTPException(404, "Forum not found")
+        raise HTTPException(404, "The requested forum was not found")
     
     if forum.hidden:
-        raise HTTPException(404, "Forum not found")
+        raise HTTPException(404, "The requested forum was not found")
 
     return ForumModel.model_validate(forum, from_attributes=True)

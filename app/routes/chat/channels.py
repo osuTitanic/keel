@@ -41,7 +41,7 @@ def get_channel(
     target: str
 ) -> ChannelModel:
     if not (channel := channels.fetch_one(target, request.state.db)):
-        raise HTTPException(404, 'Channel not found')
+        raise HTTPException(404, 'The requested channel was not found')
 
     user_permissions = groups.get_player_permissions(
         request.user.id,
@@ -65,7 +65,7 @@ def channel_message_history(
     limit: int = Query(50, ge=1, le=50)
 ) -> List[MessageModel]:
     if not (channel := channels.fetch_one(target, request.state.db)):
-        raise HTTPException(404, 'Channel not found')
+        raise HTTPException(404, 'The requested channel was not found')
 
     user_permissions = groups.get_player_permissions(
         request.user.id,

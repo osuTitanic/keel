@@ -18,7 +18,7 @@ def get_post(
     post_id: int
 ) -> PostModel:
     if not (post := posts.fetch_one(post_id, request.state.db)):
-        raise HTTPException(404, "Post not found")
+        raise HTTPException(404, "The requested post was not found")
 
     if post.topic_id != topic_id:
         return RedirectResponse(f"/forum/{post.forum_id}/topics/{post.topic_id}/posts/{post.id}")
@@ -40,10 +40,10 @@ def delete_post(
     post_id: int
 ) -> dict:
     if not (post := posts.fetch_one(post_id, request.state.db)):
-        raise HTTPException(404, "Post not found")
+        raise HTTPException(404, "The requested post was not found")
     
     if post.hidden:
-        raise HTTPException(404, "Post not found")
+        raise HTTPException(404, "The requested post was not found")
     
     if post.user_id != request.user.id and not request.user.is_moderator:
         raise HTTPException(403, "You do not have permission to delete this post")
@@ -68,7 +68,7 @@ def get_topic_posts(
     limit: int = Query(25, le=50)
 ) -> List[PostModel]:
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
-        raise HTTPException(404, "Topic not found")
+        raise HTTPException(404, "The requested topic was not found")
 
     if topic.forum_id != forum_id:
         return RedirectResponse(f"/forum/{topic.forum_id}/topics/{topic.id}/posts")

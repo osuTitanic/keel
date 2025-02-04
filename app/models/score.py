@@ -89,6 +89,6 @@ class ScoreRecordsModel(BaseModel):
     ctb_relax: ScoreModel
     mania: ScoreModel
 
-class ScoreLeaderResponse(BaseModel):
+class ScoreCollectionResponse(BaseModel):
     total: int
     scores: List[ScoreModelWithoutUser]

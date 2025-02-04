@@ -1,18 +1,18 @@
 
 from fastapi import HTTPException, APIRouter, Request, Query
-from app.models import ScoreModelWithoutUser, ScoreLeaderResponse, ModeAlias
+from app.models import ScoreModelWithoutUser, ScoreCollectionResponse, ModeAlias
 from app.common.database import scores, users
 
 router = APIRouter()
 
-@router.get("/{user_id}/first/{mode}", response_model=ScoreLeaderResponse)
+@router.get("/{user_id}/first/{mode}", response_model=ScoreCollectionResponse)
 def leader_scores(
     request: Request,
     user_id: int,
     mode: ModeAlias,
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=50)
-) -> ScoreLeaderResponse:
+) -> ScoreCollectionResponse:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
             status_code=404,
@@ -39,7 +39,7 @@ def leader_scores(
         request.state.db
     )
 
-    return ScoreLeaderResponse(
+    return ScoreCollectionResponse(
         total=first_count,
         scores=[
             ScoreModelWithoutUser.model_validate(score, from_attributes=True)
@@ -47,13 +47,13 @@ def leader_scores(
         ]
     )
 
-@router.get("/{user_id}/first", response_model=ScoreLeaderResponse)
+@router.get("/{user_id}/first", response_model=ScoreCollectionResponse)
 def leader_scores_by_preferred_mode(
     request: Request,
     user_id: int,
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=50)
-) -> ScoreLeaderResponse:
+) -> ScoreCollectionResponse:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
             status_code=404,
@@ -80,7 +80,7 @@ def leader_scores_by_preferred_mode(
         request.state.db
     )
 
-    return ScoreLeaderResponse(
+    return ScoreCollectionResponse(
         total=first_count,
         scores=[
             ScoreModelWithoutUser.model_validate(score, from_attributes=True)

@@ -1,4 +1,5 @@
 
+from app.common.constants import ClientStatus, GameMode, Mods
 from datetime import datetime
 from pydantic import BaseModel
 from typing import List
@@ -113,3 +114,28 @@ class ProfileUpdateModel(BaseModel):
     website: str | None = None
     discord: str | None = None
     twitter: str | None = None
+
+class StatusStatsModel(BaseModel):
+    rscore: int
+    tscore: int
+    accuracy: float
+    playcount: int
+    rank: int
+    pp: float
+
+class RankingModel(BaseModel):
+    global_rank: int
+    ppv1_rank: int
+    score_rank: int
+    total_score_rank: int
+
+class StatusModel(BaseModel):
+    action: ClientStatus
+    version: int | None
+    mode: GameMode
+    mods: Mods
+    beatmap_id: int
+    beatmap_checksum: str
+    beatmap_text: str
+    rankings: RankingModel
+    stats: StatusStatsModel

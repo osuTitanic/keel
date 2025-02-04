@@ -37,19 +37,19 @@ def add_friend(request: Request, id: int):
     if id == request.user.id:
         raise HTTPException(
             status_code=400,
-            detail='Cannot add yourself as friend'
+            detail='You cannot add yourself as friend'
         )
 
     if not (target := users.fetch_by_id(id, session=request.state.db)):
         raise HTTPException(
             status_code=404,
-            detail='User not found'
+            detail='The requested user was not found'
         )
 
     if not target.activated:
         raise HTTPException(
             status_code=404,
-            detail='User not found'
+            detail='The requested user was not found'
         )
 
     current_friends = relationships.fetch_target_ids(
@@ -86,7 +86,7 @@ def remove_friend(request: Request, id: int):
     if not (target := users.fetch_by_id(id, session=request.state.db)):
         raise HTTPException(
             status_code=404,
-            detail='User not found'
+            detail='The requested user was not found'
         )
 
     current_friends = relationships.fetch_target_ids(

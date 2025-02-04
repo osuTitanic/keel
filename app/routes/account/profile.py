@@ -62,37 +62,37 @@ def validate_update_request(update: ProfileUpdateModel) -> bool:
     if update.interests != None and len(update.interests) > 30:
         raise HTTPException(
             status_code=400,
-            detail='Please keep your updates.interests short!'
+            detail='Please keep your interests short!'
         )
 
     if update.location != None and len(update.location) > 30:
         raise HTTPException(
             status_code=400,
-            detail='Please keep your updates.location short!'
+            detail='Please keep your location short!'
         )
 
     if update.twitter != None and len(update.twitter) > 64:
         raise HTTPException(
             status_code=400,
-            detail='Please type in a valid updates.twitter handle or url!'
+            detail='Please type in a valid twitter handle or url!'
         )
 
     if update.website != None and len(update.website) > 64:
         raise HTTPException(
             status_code=400,
-            detail='Please keep your updates.website url short!'
+            detail='Please keep your website url short!'
         )
 
     if update.website != None and not URL.match(update.website):
         raise HTTPException(
             status_code=400,
-            detail='Please type in a valid updates.website url!'
+            detail='Please type in a valid website url!'
         )
 
     if update.discord != None and not DISCORD_USERNAME.match(update.discord):
         raise HTTPException(
             status_code=400,
-            detail='Invalid updates.discord username. Please try again!'
+            detail='Invalid discord username. Please try again!'
         )
     
     return True

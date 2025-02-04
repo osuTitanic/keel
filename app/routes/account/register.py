@@ -178,12 +178,6 @@ def input_validation(
         'password': validate_password
     }
 
-    if validation.type not in validators:
-        raise HTTPException(
-            status_code=400,
-            detail='Invalid validation type'
-        )
-
     if error := validators[validation.type](validation.value, request.state.db):
         return ValidationResponse(
             valid=False,

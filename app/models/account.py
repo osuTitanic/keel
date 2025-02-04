@@ -16,17 +16,22 @@ class RegistrationRequest(BaseModel):
         if not value:
             raise ValueError('Recaptcha response is required')
 
-class PasswordResetRequest(BaseModel):
-    email: str
-
 class VerificationResponse(BaseModel):
     user_id: int
     verification_id: int | None
+
+class ValidationResponse(BaseModel):
+    valid: bool
+    message: str | None = None
+
+class PasswordResetRequest(BaseModel):
+    email: str
 
 class ValidationRequest(BaseModel):
     type: str
     value: str
 
-class ValidationResponse(BaseModel):
-    valid: bool
-    message: str | None = None
+    @field_validator('type')
+    def validate_type(cls, value: str):
+        if value not in ('username', 'email', 'password'):
+            raise ValueError('Invalid validation type')

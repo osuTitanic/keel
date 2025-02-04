@@ -1,6 +1,7 @@
 
 from pydantic import BaseModel
 from datetime import datetime
+from typing import List
 
 from .beatmap import BeatmapModel
 from .user import UserModel
@@ -54,6 +55,30 @@ class ScoreModelWithoutBeatmap(BaseModel):
     pinned: bool
     user: UserModel
 
+class ScoreModelWithoutUser(BaseModel):
+    id: int
+    user_id: int
+    submitted_at: datetime
+    mode: int
+    status_pp: int
+    status_score: int
+    client_version: int
+    pp: float
+    acc: float
+    total_score: int
+    max_combo: int
+    mods: int
+    perfect: bool
+    n300: int
+    n100: int
+    n50: int
+    nMiss: int
+    nGeki: int
+    nKatu: int
+    grade: str
+    pinned: bool
+    beatmap: BeatmapModel
+
 class ScoreRecordsModel(BaseModel):
     osu_vanilla: ScoreModel
     osu_relax: ScoreModel
@@ -63,3 +88,7 @@ class ScoreRecordsModel(BaseModel):
     ctb_vanilla: ScoreModel
     ctb_relax: ScoreModel
     mania: ScoreModel
+
+class ScoreLeaderResponse(BaseModel):
+    total: int
+    scores: List[ScoreModelWithoutUser]

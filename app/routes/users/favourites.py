@@ -1,6 +1,7 @@
 
 from app.models import FavouriteModel, UserModelCompact, BeatmapsetModel, FavouriteCreateRequest
 from app.common.database import favourites, users, beatmapsets
+from app.utils import requires
 
 from fastapi import HTTPException, APIRouter, Request, Body
 from typing import List
@@ -50,11 +51,18 @@ def get_favourite(request: Request, user_id: int, set_id: int) -> FavouriteModel
     )
 
 @router.post("/{user_id}/favourites", response_model=FavouriteModel)
+@requires('authenticated')
 def add_favourite(
     request: Request,
     user_id: int,
     data: FavouriteCreateRequest = Body(...)
 ) -> FavouriteModel:
+    if request.user.id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
             status_code=404,
@@ -98,7 +106,14 @@ def add_favourite(
     )
 
 @router.delete("/{user_id}/favourites/{set_id}", response_model=FavouriteModel)
+@requires('authenticated')
 def remove_favourite(request: Request, user_id: int, set_id: int):
+    if request.user.id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
             status_code=404,

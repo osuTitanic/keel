@@ -92,3 +92,6 @@ class ScoreRecordsModel(BaseModel):
 class ScoreCollectionResponse(BaseModel):
     total: int
     scores: List[ScoreModelWithoutUser]
+
+class ScorePinRequest(BaseModel):
+    score_id: int

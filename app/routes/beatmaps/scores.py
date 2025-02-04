@@ -37,7 +37,8 @@ def get_beatmap_scores(
         )
 
     # Set to default mode from beatmap if not provided
-    mode = (mode or GameMode(beatmap.mode).alias).lower()
+    default_mode = GameMode(beatmap.mode).alias
+    mode = (mode or default_mode).lower()
 
     if (mode_enum := GameMode.from_alias(mode)) is None:
         raise HTTPException(
@@ -77,7 +78,8 @@ def get_beatmap_user_score(
         )
 
     # Set to default mode from beatmap if not provided
-    mode = (mode or GameMode(beatmap.mode).alias).lower()
+    default_mode = GameMode(beatmap.mode).alias
+    mode = (mode or default_mode).lower()
 
     if (mode_enum := GameMode.from_alias(mode)) is None:
         raise HTTPException(

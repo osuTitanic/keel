@@ -1,5 +1,4 @@
 
-from __future__ import annotations
 from starlette.authentication import AuthenticationBackend, AuthCredentials, UnauthenticatedUser
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection

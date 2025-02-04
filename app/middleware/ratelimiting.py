@@ -1,5 +1,4 @@
 
-from __future__ import annotations
 from fastapi.responses import JSONResponse
 from fastapi import Request
 from typing import Callable

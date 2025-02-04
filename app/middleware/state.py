@@ -1,5 +1,4 @@
 
-from __future__ import annotations
 from fastapi import Request
 from typing import Callable
 import app

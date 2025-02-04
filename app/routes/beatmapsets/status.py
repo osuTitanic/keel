@@ -1,5 +1,4 @@
 
-from __future__ import annotations
 from sqlalchemy.orm import Session
 from datetime import datetime
 from fastapi import (

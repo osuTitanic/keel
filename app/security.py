@@ -1,5 +1,4 @@
 
-from __future__ import annotations
 from app.common.database import DBUser
 from fastapi import Header, Depends
 from hashlib import md5

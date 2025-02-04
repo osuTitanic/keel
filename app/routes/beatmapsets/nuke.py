@@ -1,6 +1,5 @@
 
 
-from __future__ import annotations
 from fastapi import HTTPException, APIRouter, Request
 
 from app.common.database import beatmapsets, topics, posts, beatmaps, modding

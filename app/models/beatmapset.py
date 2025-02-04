@@ -1,5 +1,4 @@
 
-from __future__ import annotations
 from app.common.constants import BeatmapLanguage, BeatmapGenre
 from app.common.database import DBRating, DBFavourite
 from pydantic import BaseModel, field_validator

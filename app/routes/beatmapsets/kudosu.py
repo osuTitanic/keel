@@ -1,5 +1,4 @@
 
-from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Request
 from datetime import timedelta
 from typing import List

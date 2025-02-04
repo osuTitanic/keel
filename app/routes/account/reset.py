@@ -1,5 +1,4 @@
 
-from __future__ import annotations
 from fastapi import HTTPException, APIRouter, Request
 
 from app.models import VerificationResponse, PasswordResetRequest

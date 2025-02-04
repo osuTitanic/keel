@@ -44,3 +44,7 @@ class BeatmapModel(BaseModel):
     hp: float
     diff: float
     beatmapset: BeatmapsetModelWithoutBeatmaps
+
+class BeatmapPlaysModel(BaseModel):
+    beatmap: BeatmapModel
+    count: int

@@ -7,7 +7,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get("/{user_id}/activity")
+@router.get("/{user_id}/activity", response_model=List[ActivityModel])
 def get_user_activity_by_preferred_mode(
     request: Request,
     user_id: int

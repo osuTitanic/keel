@@ -8,7 +8,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get("/{user_id}/favourites")
+@router.get("/{user_id}/favourites", response_model=List[FavouriteModel])
 def get_favourites(request: Request, user_id: int) -> List[FavouriteModel]:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
@@ -36,7 +36,7 @@ def get_favourites(request: Request, user_id: int) -> List[FavouriteModel]:
         for favourite in user_favourites
     ]
 
-@router.get("/{user_id}/favourites/{set_id}")
+@router.get("/{user_id}/favourites/{set_id}", response_model=FavouriteModel)
 def get_favourite(request: Request, user_id: int, set_id: int) -> FavouriteModel:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(

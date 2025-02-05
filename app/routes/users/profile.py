@@ -5,7 +5,7 @@ from app.models import UserModel
 
 router = APIRouter()
 
-@router.get("/{user_id}")
+@router.get("/{user_id}", response_model=UserModel)
 def get_user_profile(request: Request, user_id: int) -> UserModel:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(

@@ -6,7 +6,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get("/{user_id}/recent")
+@router.get("/{user_id}/recent", response_model=List[ScoreModel])
 def get_recent_scores(
     request: Request,
     user_id: int,
@@ -31,7 +31,7 @@ def get_recent_scores(
         for score in recent_scores
     ]
 
-@router.get("/{user_id}/recent/{mode}")
+@router.get("/{user_id}/recent/{mode}", response_model=List[ScoreModel])
 def get_recent_scores_by_mode(
     request: Request,
     user_id: int,

@@ -1,4 +1,5 @@
 
+from app.models import ErrorResponse
 from fastapi import APIRouter
 
 from . import achievements
@@ -17,7 +18,7 @@ from . import first
 from . import plays
 from . import top
 
-router = APIRouter()
+router = APIRouter(responses={404: {"model": ErrorResponse, "description": "Not found"}})
 router.include_router(achievements.router)
 router.include_router(beatmapsets.router)
 router.include_router(favourites.router)

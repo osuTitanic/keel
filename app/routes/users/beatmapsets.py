@@ -5,11 +5,15 @@ from datetime import datetime
 from typing import List
 
 from app.common.database import users, beatmapsets, beatmaps, topics, posts, nominations
+from app.models import BeatmapsetModel, ErrorResponse
 from app.common.constants import DatabaseStatus
-from app.models import BeatmapsetModel
 from app.utils import requires
 
 router = APIRouter()
+action_responses = {
+    403: {"model": ErrorResponse, "description": "Unauthorized action"},
+    400: {"model": ErrorResponse, "description": "Bad request"}
+}
 
 @router.get("/{user_id}/beatmapsets", response_model=List[BeatmapsetModel])
 def get_user_beatmapsets(request: Request, user_id: int) -> List[BeatmapsetModel]:
@@ -70,7 +74,7 @@ def get_user_beatmapset(request: Request, user_id: int, beatmap_id: int) -> Beat
 
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
-@router.post("/{user_id}/beatmapsets/{beatmap_id}/revive")
+@router.post("/{user_id}/beatmapsets/{beatmap_id}/revive", response_model=BeatmapsetModel, responses=action_responses)
 @requires(["authenticated", "activated"])
 def revive_beatmapset(
     request: Request,
@@ -142,7 +146,7 @@ def revive_beatmapset(
     request.state.db.refresh(beatmapset)
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
-@router.delete("/{user_id}/beatmapsets/{beatmap_id}", response_model=BeatmapsetModel)
+@router.delete("/{user_id}/beatmapsets/{beatmap_id}", response_model=BeatmapsetModel, responses=action_responses)
 @requires(["authenticated", "activated"])
 def delete_beatmapset(
     request: Request,

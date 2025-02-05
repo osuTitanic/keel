@@ -6,7 +6,7 @@ from app.common.constants import Playstyle
 
 router = APIRouter()
 
-@router.get("/{user_id}/playstyle")
+@router.get("/{user_id}/playstyle", response_model=PlaystyleResponseModel)
 def get_user_playstyle(request: Request, user_id: int) -> PlaystyleResponseModel:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
@@ -22,7 +22,7 @@ def get_user_playstyle(request: Request, user_id: int) -> PlaystyleResponseModel
 
     return PlaystyleResponseModel(playstyle=user.playstyle)
 
-@router.post("/{user_id}/playstyle")
+@router.post("/{user_id}/playstyle", response_model=PlaystyleResponseModel)
 def add_playstyle(
     request: Request,
     user_id: int,
@@ -52,7 +52,7 @@ def add_playstyle(
 
     return PlaystyleResponseModel(playstyle=new_playstyle.value)
 
-@router.delete("/{user_id}/playstyle")
+@router.delete("/{user_id}/playstyle", response_model=PlaystyleResponseModel)
 def remove_playstyle(
     request: Request,
     user_id: int,

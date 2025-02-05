@@ -1,6 +1,6 @@
 
-from fastapi import APIRouter, Request
 from app.models import ServerStatsModel
+from fastapi import APIRouter, Request
 
 from . import beatmapsets
 from . import multiplayer
@@ -20,7 +20,7 @@ from . import chat
 import app.session
 import time
 
-router = APIRouter()
+router = APIRouter(responses={500: {"description": "Internal Server Error"}})
 router.include_router(chat.router, prefix="/chat", tags=["chat"])
 router.include_router(forum.router, prefix="/forum", tags=["forum"])
 router.include_router(oauth.router, prefix="/oauth", tags=["oauth"])

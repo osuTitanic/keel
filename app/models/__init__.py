@@ -15,6 +15,7 @@ from .history import *
 from .kudosu import *
 from .multiplayer import *
 from .nominations import *
+from .notifications import *
 from .packs import *
 from .playstyle import *
 from .rankings import *

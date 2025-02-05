@@ -9,6 +9,7 @@ from . import friends
 from . import reset
 
 router = APIRouter()
+router.include_router(notifications.router)
 router.include_router(security.router)
 router.include_router(register.router)
 router.include_router(profile.router)

@@ -10,9 +10,9 @@ from fastapi import (
 )
 
 from app.common.webhooks import Embed, Author, Image, Field
+from app.models import BeatmapsetModel, ErrorResponse
 from app.common.database import DBBeatmapset, DBUser
 from app.common.constants import DatabaseStatus
-from app.models import BeatmapsetModel
 from app.security import require_login
 from app.common import officer
 from app.utils import requires
@@ -27,7 +27,14 @@ from app.common.database import (
 
 import config
 
-router = APIRouter(dependencies=[require_login])
+router = APIRouter(
+    dependencies=[require_login],
+    responses={
+        401: {"model": ErrorResponse, "description": "Authentication failure"},
+        404: {"model": ErrorResponse, "description": "Beatmapset not found"},
+        400: {"model": ErrorResponse, "description": "Invalid request"}
+    }
+)
 
 @router.patch("/{set_id}/status", response_model=BeatmapsetModel)
 @requires("bat")

@@ -3,7 +3,12 @@ from fastapi import HTTPException, APIRouter, Request, Query
 from fastapi.responses import StreamingResponse, Response
 from app.common.database import beatmapsets
 
-router = APIRouter()
+router = APIRouter(
+    responses={
+        404: {"description": "Resource not found"},
+        451: {"description": "Unavailable for legal reasons"}
+    }
+)
 
 @router.get('/{id}/osz')
 def get_osz(request: Request, id: int, no_video: bool = Query(False)) -> StreamingResponse:

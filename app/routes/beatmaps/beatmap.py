@@ -5,7 +5,7 @@ from app.common.database import beatmaps
 
 router = APIRouter(
     responses={
-        404: {"model": ErrorResponse, "description": "The requested beatmap could not be found"}
+        404: {"model": ErrorResponse, "description": "Beatmap not found"}
     }
 )
 

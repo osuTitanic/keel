@@ -3,9 +3,9 @@ from fastapi import HTTPException, APIRouter, Request
 from typing import List
 
 from app.common.database import beatmapsets, nominations, topics, posts
+from app.models import NominationModel, ErrorResponse
 from app.common.webhooks import Embed, Author, Image
 from app.common.database import DBUser, DBBeatmapset
-from app.models import NominationModel
 from app.security import require_login
 from app.common import officer
 from app.utils import requires
@@ -15,6 +15,12 @@ import app
 
 router = APIRouter()
 
+responses = {
+    401: {'model': ErrorResponse, 'description': 'Authentication failure'},
+    404: {'model': ErrorResponse, 'description': 'Beatmapset not found'},
+    400: {'model': ErrorResponse, 'description': 'Invalid request'}
+}
+
 @router.get("/{set_id}/nominations", response_model=List[NominationModel])
 def beatmap_nominations(request: Request, set_id: int):
     return [
@@ -22,11 +28,11 @@ def beatmap_nominations(request: Request, set_id: int):
         for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)
     ]
 
-@router.post("/{set_id}/nominations", response_model=List[NominationModel], dependencies=[require_login])
+@router.post("/{set_id}/nominations", response_model=List[NominationModel], dependencies=[require_login], responses=responses)
 @requires("bat")
 def nominate_beatmap(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
-        raise HTTPException(404, "The requested beatmap could not be found")
+        raise HTTPException(404, "The requested beatmapset could not be found")
 
     if beatmapset.status > 0:
         raise HTTPException(400, "This beatmap is already in approved status")
@@ -76,7 +82,7 @@ def nominate_beatmap(request: Request, set_id: int):
         for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)
     ]
 
-@router.delete("/{set_id}/nominations", response_model=List[NominationModel], dependencies=[require_login])
+@router.delete("/{set_id}/nominations", response_model=List[NominationModel], dependencies=[require_login], responses=responses)
 @requires("bat")
 def reset_nominations(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):

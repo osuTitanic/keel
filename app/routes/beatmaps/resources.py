@@ -7,7 +7,7 @@ from urllib.parse import quote
 
 router = APIRouter(
     responses={
-        404: {"model": ErrorResponse, "description": "The requested beatmap could not be found"}
+        404: {"model": ErrorResponse, "description": "Beatmap not found"}
     }
 )
 

@@ -11,8 +11,8 @@ from app.utils import requires
 
 router = APIRouter(
     responses={
-        404: {"model": ErrorResponse, "description": "The requested beatmap could not be found"},
-        404: {"model": ErrorResponse, "description": "The requested post could not be found"},
+        404: {"model": ErrorResponse, "description": "Beatmap not found"},
+        404: {"model": ErrorResponse, "description": "Post not found"},
     }
 )
 

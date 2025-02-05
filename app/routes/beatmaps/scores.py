@@ -9,7 +9,7 @@ import config
 
 router = APIRouter(
     responses={
-        404: {"model": ErrorResponse, "description": "The requested beatmap could not be found"},
+        404: {"model": ErrorResponse, "description": "Beatmap not found"},
         400: {"model": ErrorResponse, "description": "Invalid game mode"}
     }
 )

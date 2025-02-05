@@ -3,10 +3,10 @@
 from fastapi import HTTPException, APIRouter, Request
 
 from app.common.database import beatmapsets, topics, posts, beatmaps, modding
+from app.models import BeatmapsetModel, ErrorResponse
 from app.common.webhooks import Embed, Author, Image
 from app.common.database import DBUser, DBBeatmapset
 from app.common.constants import DatabaseStatus
-from app.models import BeatmapsetModel
 from app.security import require_login
 from app.common import officer
 from app.utils import requires
@@ -14,13 +14,20 @@ from app.utils import requires
 import config
 import app
 
-router = APIRouter(dependencies=[require_login])
+router = APIRouter(
+    dependencies=[require_login],
+    responses={
+        404: {'model': ErrorResponse, 'description': 'Beatmapset or topic not found'},
+        401: {'model': ErrorResponse, 'description': 'Authentication failure'},
+        400: {'model': ErrorResponse, 'description': 'Invalid request'}
+    }
+)
 
 @router.post('/{set_id}/nuke', response_model=BeatmapsetModel)
 @requires('bat')
 def nuke_beatmap(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
-        raise HTTPException(404, 'The requested beatmap could not be found')
+        raise HTTPException(404, 'The requested beatmapset could not be found')
 
     if not beatmapset.topic_id:
         raise HTTPException(400, 'This beatmap does not have a forum topic')

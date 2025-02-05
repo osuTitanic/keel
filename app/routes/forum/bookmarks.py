@@ -7,12 +7,8 @@ from app.common.database import users, topics
 from app.security import require_login
 from app.utils import requires
 
-router = APIRouter(
-    dependencies=[require_login],
-    responses={
-        404: {"description": "Bookmark/Topic not found", "model": ErrorResponse}
-    }
-)
+router = APIRouter(dependencies=[require_login])
+responses = {404: {"description": "Bookmark/Topic not found", "model": ErrorResponse}}
 
 @router.get("/bookmarks", response_model=List[BookmarkModel])
 @requires("authenticated")

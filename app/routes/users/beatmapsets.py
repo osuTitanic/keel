@@ -12,7 +12,7 @@ from app.utils import requires
 router = APIRouter()
 
 @router.get('/{user_id}/beatmapsets', response_model=List[BeatmapsetModel])
-def get_user_beatmaps(request: Request, user_id: int) -> List[BeatmapsetModel]:
+def get_user_beatmapsets(request: Request, user_id: int) -> List[BeatmapsetModel]:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
             status_code=404,
@@ -36,7 +36,7 @@ def get_user_beatmaps(request: Request, user_id: int) -> List[BeatmapsetModel]:
     ]
 
 @router.get('/{user_id}/beatmapsets/{beatmap_id}', response_model=BeatmapsetModel)
-def get_user_beatmap(request: Request, user_id: int, beatmap_id: int) -> BeatmapsetModel:
+def get_user_beatmapset(request: Request, user_id: int, beatmap_id: int) -> BeatmapsetModel:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
             status_code=404,

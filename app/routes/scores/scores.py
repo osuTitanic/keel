@@ -1,9 +1,11 @@
 
 from fastapi import HTTPException, APIRouter, Request
+from app.models import ScoreModel, ErrorResponse
 from app.common.database import scores
-from app.models import ScoreModel
 
-router = APIRouter()
+router = APIRouter(
+    responses={404: {"model": ErrorResponse, "description": "Score not found"}}
+)
 
 @router.get('/{score_id}', response_model=ScoreModel)
 def get_score(request: Request, score_id: int):

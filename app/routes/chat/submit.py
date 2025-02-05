@@ -4,14 +4,21 @@ from fastapi import HTTPException, APIRouter, Request, Body
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
-from app.models import MessagePostRequest, PrivateMessageModel, MessageModel
+from app.models import MessagePostRequest, PrivateMessageModel, MessageModel, ErrorResponse
 from app.common.database import channels, groups, messages, users
 from app.common.constants.strings import BAD_WORDS
 from app.common.database.objects import DBUser
 from app.security import require_login
 from app.utils import requires
 
-router = APIRouter(dependencies=[require_login])
+router = APIRouter(
+    dependencies=[require_login],
+    responses={
+        404: {"model": ErrorResponse, "description": "Channel not found"},
+        403: {"model": ErrorResponse, "description": "Insufficient permissions"},
+        400: {"model": ErrorResponse, "description": "Invalid request data"}
+    }
+)
 
 @router.post('/channels/{target}/messages', response_model=MessageModel)
 @requires(['authenticated', 'activated', 'unsilenced', 'unrestricted'])

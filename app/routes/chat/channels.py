@@ -5,12 +5,16 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.common.database import messages, channels, names, groups, users
-from app.models import MessageModel, ChannelModel
+from app.models import MessageModel, ChannelModel, ErrorResponse
 from app.common.database.objects import DBUser
 from app.security import require_login
 from app.utils import requires
 
 router = APIRouter(dependencies=[require_login])
+responses = {
+    404: {"model": ErrorResponse, "description": "Channel not found"},
+    403: {"model": ErrorResponse, "description": "Insufficient permissions"}
+}
 
 @router.get('/channels', response_model=List[ChannelModel])
 @requires('authenticated')
@@ -34,7 +38,7 @@ def channel_selection(
         for channel in channels.fetch_by_permissions(permissions, request.state.db)
     ]
 
-@router.get('/channels/{target}', response_model=ChannelModel)
+@router.get('/channels/{target}', response_model=ChannelModel, responses=responses)
 @requires('authenticated')
 def get_channel(
     request: Request,
@@ -56,7 +60,7 @@ def get_channel(
         from_attributes=True
     )
 
-@router.get('/channels/{target}/messages', response_model=List[MessageModel])
+@router.get('/channels/{target}/messages', response_model=List[MessageModel], responses=responses)
 @requires('authenticated')
 def channel_message_history(
     request: Request,

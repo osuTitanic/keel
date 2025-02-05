@@ -2,12 +2,13 @@
 from fastapi import HTTPException, APIRouter, Request, Query
 from typing import List
 
-from app.models import PrivateMessageSelectionEntry, PrivateMessageModel, UserModelCompact
+from app.models import PrivateMessageSelectionEntry, PrivateMessageModel, UserModelCompact, ErrorResponse
 from app.common.database import messages, users
 from app.security import require_login
 from app.utils import requires
 
 router = APIRouter(dependencies=[require_login])
+responses = {404: {'model': ErrorResponse, 'description': "User not found"}}
 
 @router.get('/dms', response_model=List[PrivateMessageSelectionEntry])
 @requires('authenticated')
@@ -33,7 +34,7 @@ def direct_message_selection(request: Request) -> List[PrivateMessageSelectionEn
 
     return sorted(entries, key=lambda x: x.last_message.id, reverse=True)
 
-@router.get('/dms/{target_id}/messages', response_model=List[PrivateMessageModel])
+@router.get('/dms/{target_id}/messages', response_model=List[PrivateMessageModel], responses=responses)
 @requires('authenticated')
 def direct_message_history(
     request: Request,

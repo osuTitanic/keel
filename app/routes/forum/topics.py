@@ -3,10 +3,12 @@ from fastapi import HTTPException, APIRouter, Request, Query
 from fastapi.responses import RedirectResponse
 from typing import List
 
+from app.models import TopicModel, ErrorResponse
 from app.common.database import forums, topics
-from app.models import TopicModel
 
-router = APIRouter()
+router = APIRouter(
+    responses={404: {"description": "The requested forum/topic was not found", "model": ErrorResponse}}
+)
 
 @router.get("/{forum_id}/topics", response_model=List[TopicModel])
 def get_forum_topics(

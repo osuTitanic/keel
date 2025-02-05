@@ -2,12 +2,17 @@
 from fastapi import HTTPException, APIRouter, Request, Body
 from typing import List
 
-from app.models import BookmarkModel, BookmarkRequest
+from app.models import BookmarkModel, BookmarkRequest, ErrorResponse
 from app.common.database import users, topics
 from app.security import require_login
 from app.utils import requires
 
-router = APIRouter(dependencies=[require_login])
+router = APIRouter(
+    dependencies=[require_login],
+    responses={
+        404: {"description": "Bookmark/Topic not found", "model": ErrorResponse}
+    }
+)
 
 @router.get("/bookmarks", response_model=List[BookmarkModel])
 @requires("authenticated")
@@ -28,7 +33,7 @@ def get_bookmarks(request: Request):
         for bookmark in bookmarks
     ]
 
-@router.get("/bookmarks/{topic_id}")
+@router.get("/bookmarks/{topic_id}", response_model=BookmarkModel, responses=responses)
 @requires("authenticated")
 def get_bookmark(request: Request, topic_id: int):
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
@@ -48,7 +53,7 @@ def get_bookmark(request: Request, topic_id: int):
 
     return BookmarkModel.model_validate(bookmark, from_attributes=True)
 
-@router.post("/bookmarks", response_model=BookmarkModel)
+@router.post("/bookmarks", response_model=BookmarkModel, responses=responses)
 @requires("authenticated")
 def create_bookmark(request: Request, data: BookmarkRequest = Body(...)):
     if not (topic := topics.fetch_one(data.topic_id, request.state.db)):
@@ -65,7 +70,7 @@ def create_bookmark(request: Request, data: BookmarkRequest = Body(...)):
 
     return BookmarkModel.model_validate(bookmark, from_attributes=True)
 
-@router.delete("/bookmarks/{topic_id}")
+@router.delete("/bookmarks/{topic_id}", responses=responses)
 @requires("authenticated")
 def delete_bookmark(request: Request, topic_id: int) -> dict:
     if not (topic := topics.fetch_one(topic_id, request.state.db)):

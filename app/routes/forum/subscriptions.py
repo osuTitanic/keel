@@ -2,12 +2,17 @@
 from fastapi import HTTPException, APIRouter, Request, Body
 from typing import List
 
-from app.models import SubscriptionModel, SubscriptionRequest
+from app.models import SubscriptionModel, SubscriptionRequest, ErrorResponse
 from app.common.database import users, topics
 from app.security import require_login
 from app.utils import requires
 
-router = APIRouter(dependencies=[require_login])
+router = APIRouter(
+    dependencies=[require_login],
+    responses={
+        404: {"description": "Subscription/Topic not found", "model": ErrorResponse}
+    }
+)
 
 @router.get("/subscriptions", response_model=List[SubscriptionModel])
 @requires("authenticated")

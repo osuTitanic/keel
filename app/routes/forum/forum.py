@@ -1,9 +1,11 @@
 
 from fastapi import HTTPException, APIRouter, Request
+from app.models import ForumModel, ErrorResponse
 from app.common.database import forums
-from app.models import ForumModel
 
-router = APIRouter()
+router = APIRouter(
+    responses={404: {"description": "The requested forum was not found", "model": ErrorResponse}}
+)
 
 @router.get("/", response_model=list[ForumModel])
 def get_main_forums(request: Request):

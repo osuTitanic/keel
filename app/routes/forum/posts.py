@@ -3,12 +3,18 @@ from fastapi import HTTPException, APIRouter, Request, Query
 from fastapi.responses import RedirectResponse
 from typing import List
 
+from app.models import PostModel, ErrorResponse
 from app.common.database import topics, posts
 from app.security import require_login
-from app.models import PostModel
 from app.utils import requires
 
-router = APIRouter()
+router = APIRouter(
+    responses={
+        403: {"description": "Insufficient permissions", "model": ErrorResponse},
+        404: {"description": "Post not found", "model": ErrorResponse},
+        301: {"description": "Redirect to the correct category"}
+    }
+)
 
 @router.get("/{forum_id}/topics/{topic_id}/posts/{post_id}", response_model=PostModel)
 def get_post(

@@ -1,12 +1,19 @@
 
 from fastapi import HTTPException, APIRouter, Request, Query
 from fastapi.responses import StreamingResponse
+from app.security import require_login
+from app.utils import requires
 from zipfile import ZipFile
 from io import BytesIO
 
-router = APIRouter()
+
+router = APIRouter(
+    responses={403: {'description': 'Authentication failure'}},
+    dependencies=[require_login]
+)
 
 @router.get('/osz/{filename}')
+@requires("authenticated")
 def get_internal_osz(
     request: Request,
     filename: str,

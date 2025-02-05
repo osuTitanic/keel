@@ -2,15 +2,19 @@
 from fastapi import HTTPException, APIRouter, Request, Query
 from fastapi.responses import StreamingResponse, Response
 from app.common.database import beatmapsets
+from app.security import require_login
+from app.utils import requires
 
 router = APIRouter(
     responses={
+        451: {"description": "Unavailable for legal reasons"},
+        403: {'description': 'Authentication failure'},
         404: {"description": "Resource not found"},
-        451: {"description": "Unavailable for legal reasons"}
     }
 )
 
-@router.get('/{id}/osz')
+@router.get('/{id}/osz', dependencies=[require_login])
+@requires("authenticated")
 def get_osz(request: Request, id: int, no_video: bool = Query(False)) -> StreamingResponse:
     if not (beatmapset := beatmapsets.fetch_one(id, request.state.db)):
         raise HTTPException(status_code=404)

@@ -17,19 +17,6 @@ router = APIRouter(
     dependencies=[require_login]
 )
 
-def validate_refresh_token(request: Request) -> DBUser:
-    refresh_token = request.cookies.get('refresh_token')
-
-    if not refresh_token:
-        raise HTTPException(status_code=401, detail='No refresh token provided')
-
-    data = security.validate_token(refresh_token)
-
-    if not data:
-        raise HTTPException(status_code=401, detail='Invalid refresh token')
-
-    return users.fetch_by_id(data['id'])
-
 @router.post("/login", response_model=TokenResponse)
 def generate_authentication_token(request: Request) -> Response:
     """Request an access token to access authenticated routes, and have higher rate limits.
@@ -45,7 +32,7 @@ def generate_authentication_token(request: Request) -> Response:
 
     if "authenticated" not in request.auth.scopes:
         # Try to authenticate user through refresh token
-        user = validate_refresh_token(request)
+        user = validate_browser_session(request)
 
     current_time = round(time.time())
     expiry = current_time + config.FRONTEND_TOKEN_EXPIRY
@@ -68,6 +55,16 @@ def generate_authentication_token(request: Request) -> Response:
     )
 
     response.set_cookie(
+        key='access_token',
+        value=access_token,
+        max_age=config.FRONTEND_TOKEN_EXPIRY,
+        httponly=True,
+        secure=config.ENABLE_SSL,
+        samesite='strict',
+        domain=f".{config.DOMAIN_NAME}"
+    )
+
+    response.set_cookie(
         key='refresh_token',
         value=refresh_token,
         max_age=config.FRONTEND_REFRESH_EXPIRY,
@@ -78,3 +75,44 @@ def generate_authentication_token(request: Request) -> Response:
     )
 
     return response
+
+def validate_browser_session(request: Request) -> DBUser:
+    """Validate the user's session through the browser's cookies."""
+    data = (
+        validate_access_token(request) or
+        validate_refresh_token(request)
+    )
+
+    if not data:
+        raise HTTPException(
+            status_code=401,
+            detail='Authentication failure'
+        )
+
+    return users.fetch_by_id(data['id'])
+
+def validate_access_token(request: Request) -> DBUser:
+    access_token = request.cookies.get('access_token')
+
+    if not access_token:
+        return
+
+    data = security.validate_token(access_token)
+
+    if not data:
+        raise HTTPException(status_code=401, detail='Invalid access token')
+    
+    return data
+
+def validate_refresh_token(request: Request) -> DBUser:
+    refresh_token = request.cookies.get('refresh_token')
+
+    if not refresh_token:
+        return
+
+    data = security.validate_token(refresh_token)
+
+    if not data:
+        raise HTTPException(status_code=401, detail='Invalid refresh token')
+    
+    return data

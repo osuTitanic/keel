@@ -1,13 +1,18 @@
 
 from fastapi import HTTPException, APIRouter, Request
 
-from app.models import VerificationResponse, PasswordResetRequest
+from app.models import VerificationResponse, PasswordResetRequest, ErrorResponse
 from app.common.database import users, verifications
 from app.common import mail
 
 import config
 
-router = APIRouter()
+router = APIRouter(
+    responses={
+        503: {'description': 'Password resets are disabled', 'model': ErrorResponse},
+        404: {'description': 'User not found', 'model': ErrorResponse}
+    }
+)
 
 @router.post('/reset', response_model=VerificationResponse)
 def password_reset(

@@ -3,10 +3,12 @@ from fastapi import HTTPException, APIRouter, Request, Query
 from datetime import datetime
 from typing import List
 
+from app.models import MatchEventModel, ErrorResponse
 from app.common.database import matches, events
-from app.models import MatchEventModel
 
-router = APIRouter()
+router = APIRouter(
+    responses={404: {"description": "Match not found", "model": ErrorResponse}}
+)
 
 @router.get('/{id}/events', response_model=List[MatchEventModel])
 def get_match_events(

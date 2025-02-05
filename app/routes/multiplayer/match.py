@@ -1,9 +1,11 @@
 
 from fastapi import HTTPException, APIRouter, Request
+from app.models import MatchModel, ErrorResponse
 from app.common.database import matches
-from app.models import MatchModel
 
-router = APIRouter()
+router = APIRouter(
+    responses={404: {"description": "Match not found", "model": ErrorResponse}}
+)
 
 @router.get('/{id}', response_model=MatchModel)
 def get_match(request: Request, id: int) -> MatchModel:

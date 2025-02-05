@@ -37,10 +37,10 @@ def get_subscriptions(request: Request):
 @requires("authenticated")
 def get_subscription(request: Request, topic_id: int):
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     if topic.hidden:
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     subscription = topics.fetch_subscriber(
         topic_id,
@@ -49,7 +49,7 @@ def get_subscription(request: Request, topic_id: int):
     )
 
     if not subscription:
-        raise HTTPException(404, "The requested subscription was not found")
+        raise HTTPException(404, "The requested subscription could not be found")
 
     return SubscriptionModel.model_validate(subscription, from_attributes=True)
 
@@ -57,10 +57,10 @@ def get_subscription(request: Request, topic_id: int):
 @requires("authenticated")
 def create_subscription(request: Request, data: SubscriptionRequest = Body(...)):
     if not (topic := topics.fetch_one(data.topic_id, request.state.db)):
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     if topic.hidden:
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     subscription = topics.add_subscriber(
         topic.id,
@@ -74,10 +74,10 @@ def create_subscription(request: Request, data: SubscriptionRequest = Body(...))
 @requires("authenticated")
 def delete_subscription(request: Request, topic_id: int) -> dict:
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     if topic.hidden:
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     rows = topics.delete_subscriber(
         topic.id,
@@ -86,6 +86,6 @@ def delete_subscription(request: Request, topic_id: int) -> dict:
     )
 
     if not rows:
-        raise HTTPException(404, "The requested subscription was not found")
+        raise HTTPException(404, "The requested subscription could not be found")
     
     return {}

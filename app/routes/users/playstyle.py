@@ -17,7 +17,7 @@ def get_user_playstyle(request: Request, user_id: int) -> PlaystyleResponseModel
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail='The requested user was not found'
+            detail='The requested user could not be found'
         )
 
     return PlaystyleResponseModel(playstyle=user.playstyle)

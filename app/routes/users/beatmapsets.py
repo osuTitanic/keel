@@ -22,7 +22,7 @@ def get_user_beatmapsets(request: Request, user_id: int) -> List[BeatmapsetModel
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail='The requested user was not found'
+            detail='The requested user could not be found'
         )
     
     user_beatmaps = beatmapsets.fetch_by_creator(
@@ -46,7 +46,7 @@ def get_user_beatmapset(request: Request, user_id: int, beatmap_id: int) -> Beat
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail='The requested user was not found'
+            detail='The requested user could not be found'
         )
 
     if not (beatmapset := beatmapsets.fetch_one(beatmap_id, request.state.db)):

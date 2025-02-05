@@ -47,7 +47,7 @@ def update_beatmapset_status(
         raise HTTPException(400, detail="Invalid status value")
 
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
-        raise HTTPException(404, detail="The requested beatmapset was not found")
+        raise HTTPException(404, detail="The requested beatmapset could not be found")
     
     if beatmapset.status == status:
         return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)

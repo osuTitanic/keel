@@ -24,7 +24,7 @@ def get_rank_history(
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail='The requested user was not found'
+            detail='The requested user could not be found'
         )
 
     rank_history = histories.fetch_rank_history(

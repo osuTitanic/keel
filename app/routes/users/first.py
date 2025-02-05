@@ -22,7 +22,7 @@ def leader_scores(
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail="The requested user was not found"
+            detail="The requested user could not be found"
         )
 
     first_scores = scores.fetch_leader_scores(
@@ -63,7 +63,7 @@ def leader_scores_by_preferred_mode(
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail="The requested user was not found"
+            detail="The requested user could not be found"
         )
 
     first_scores = scores.fetch_leader_scores(

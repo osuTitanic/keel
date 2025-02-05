@@ -21,7 +21,7 @@ def get_user_activity_by_preferred_mode(
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail='The requested user was not found'
+            detail='The requested user could not be found'
         )
 
     user_activity = activities.fetch_recent(
@@ -73,7 +73,7 @@ def get_user_activity(
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail='The requested user was not found'
+            detail='The requested user could not be found'
         )
 
     user_activity = activities.fetch_recent(

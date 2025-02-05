@@ -33,10 +33,10 @@ def get_bookmarks(request: Request):
 @requires("authenticated")
 def get_bookmark(request: Request, topic_id: int):
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     if topic.hidden:
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     bookmark = topics.fetch_bookmark(
         topic_id,
@@ -45,7 +45,7 @@ def get_bookmark(request: Request, topic_id: int):
     )
 
     if not bookmark:
-        raise HTTPException(404, "The requested bookmark was not found")
+        raise HTTPException(404, "The requested bookmark could not be found")
 
     return BookmarkModel.model_validate(bookmark, from_attributes=True)
 
@@ -53,10 +53,10 @@ def get_bookmark(request: Request, topic_id: int):
 @requires("authenticated")
 def create_bookmark(request: Request, data: BookmarkRequest = Body(...)):
     if not (topic := topics.fetch_one(data.topic_id, request.state.db)):
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     if topic.hidden:
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     bookmark = topics.add_bookmark(
         topic.id,
@@ -70,10 +70,10 @@ def create_bookmark(request: Request, data: BookmarkRequest = Body(...)):
 @requires("authenticated")
 def delete_bookmark(request: Request, topic_id: int) -> dict:
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     if topic.hidden:
-        raise HTTPException(404, "The requested topic was not found")
+        raise HTTPException(404, "The requested topic could not be found")
 
     rows = topics.delete_bookmark(
         topic.id,
@@ -82,6 +82,6 @@ def delete_bookmark(request: Request, topic_id: int) -> dict:
     )
 
     if not rows:
-        raise HTTPException(404, "The requested bookmark was not found")
+        raise HTTPException(404, "The requested bookmark could not be found")
     
     return {}

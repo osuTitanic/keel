@@ -19,7 +19,7 @@ def get_favourites(request: Request, user_id: int) -> List[FavouriteModel]:
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail='The requested user was not found'
+            detail='The requested user could not be found'
         )
 
     user_favourites = favourites.fetch_many(
@@ -47,7 +47,7 @@ def get_favourite(request: Request, user_id: int, set_id: int) -> FavouriteModel
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail='The requested user was not found'
+            detail='The requested user could not be found'
         )
 
     if not (favourite := favourites.fetch_one(user.id, set_id, request.state.db)):

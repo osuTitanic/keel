@@ -13,13 +13,13 @@ def user_lookup(request: Request, input: str) -> UserModel:
     if not (user := resolve_user_profile(input, request.state.db)):
         raise HTTPException(
             status_code=404,
-            detail='The requested user was not found'
+            detail='The requested user could not be found'
         )
 
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail='The requested user was not found'
+            detail='The requested user could not be found'
         )
 
     return UserModel.model_validate(user, from_attributes=True)

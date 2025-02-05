@@ -28,7 +28,7 @@ def post_message(
     data: MessagePostRequest = Body(...)
 ) -> MessageModel:
     if not (channel := channels.fetch_one(target, request.state.db)):
-        raise HTTPException(404, 'The requested channel was not found')
+        raise HTTPException(404, 'The requested channel could not be found')
 
     user_permissions = groups.get_player_permissions(
         request.user.id,
@@ -82,7 +82,7 @@ def post_private_message(
     data: MessagePostRequest = Body(...)
 ) -> PrivateMessageModel:
     if not (target := users.fetch_by_id(target_id, session=request.state.db)):
-        raise HTTPException(404, 'Target user was not found')
+        raise HTTPException(404, 'Target user could not be found')
 
     if is_user_silenced(target):
         raise HTTPException(400, 'Target is silenced')

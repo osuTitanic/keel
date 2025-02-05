@@ -23,7 +23,7 @@ def get_most_played(
     if not user.activated:
         raise HTTPException(
             status_code=404,
-            detail="The requested user was not found"
+            detail="The requested user could not be found"
         )
 
     most_played = plays.fetch_most_played_by_user(

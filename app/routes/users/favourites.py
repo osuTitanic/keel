@@ -1,12 +1,17 @@
 
-from app.models import FavouriteModel, UserModelCompact, BeatmapsetModel, FavouriteCreateRequest
+from app.models import ErrorResponse, FavouriteModel, UserModelCompact, BeatmapsetModel, FavouriteCreateRequest
 from app.common.database import favourites, users, beatmapsets
 from app.utils import requires
 
 from fastapi import HTTPException, APIRouter, Request, Body
 from typing import List
 
-router = APIRouter()
+router = APIRouter(
+    responses={
+        403: {"model": ErrorResponse, "description": "Unauthorized action"},
+        400: {"model": ErrorResponse, "description": "Bad request"}
+    }
+)
 
 @router.get("/{user_id}/favourites", response_model=List[FavouriteModel])
 def get_favourites(request: Request, user_id: int) -> List[FavouriteModel]:
@@ -134,7 +139,7 @@ def remove_favourite(request: Request, user_id: int, set_id: int):
 
     if not (favourite := favourites.fetch_one(user.id, set_id, request.state.db)):
         raise HTTPException(
-            status_code=404,
+            status_code=400,
             detail="You have not favourited this beatmapset"
         )
 

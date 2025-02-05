@@ -1,10 +1,12 @@
 
 from fastapi import HTTPException, APIRouter, Request, Body
-from app.models import PlaystyleRequestModel, PlaystyleResponseModel
+from app.models import ErrorResponse, PlaystyleRequestModel, PlaystyleResponseModel
 from app.common.database.repositories import users
 from app.common.constants import Playstyle
 
-router = APIRouter()
+router = APIRouter(
+    responses={403: {"model": ErrorResponse, "description": "Unauthorized action"}}
+)
 
 @router.get("/{user_id}/playstyle", response_model=PlaystyleResponseModel)
 def get_user_playstyle(request: Request, user_id: int) -> PlaystyleResponseModel:

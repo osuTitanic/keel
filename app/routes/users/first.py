@@ -18,7 +18,7 @@ def leader_scores(
             status_code=404,
             detail="The requested user could not be found"
         )
-    
+
     if not user.activated:
         raise HTTPException(
             status_code=404,

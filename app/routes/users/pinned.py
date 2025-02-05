@@ -6,10 +6,16 @@ from app.models import (
     ScoreCollectionResponse,
     ScoreModelWithoutUser,
     ScorePinRequest,
+    ErrorResponse,
     ModeAlias
 )
 
-router = APIRouter()
+router = APIRouter(
+    responses={
+        403: {"model": ErrorResponse, "description": "Unauthorized action"},
+        400: {"model": ErrorResponse, "description": "Bad request"}
+    }
+)
 
 @router.get("/{user_id}/pinned/{mode}", response_model=ScoreCollectionResponse)
 def get_pinned_scores(

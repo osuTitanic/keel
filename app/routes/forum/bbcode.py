@@ -5,7 +5,7 @@ from app import bbcode
 
 router = APIRouter()
 
-@router.post('/bbcode')
+@router.post("/bbcode")
 def render_bbcode(request: Request, data: BBCodeRenderRequest = Body(...)):
     return Response(
         bbcode.render_html(data.input),

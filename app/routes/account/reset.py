@@ -14,7 +14,7 @@ router = APIRouter(
     }
 )
 
-@router.post('/reset', response_model=VerificationResponse)
+@router.post("/reset", response_model=VerificationResponse)
 def password_reset(
     request: Request,
     reset: PasswordResetRequest

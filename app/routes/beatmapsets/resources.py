@@ -13,7 +13,7 @@ router = APIRouter(
     }
 )
 
-@router.get('/{id}/osz', dependencies=[require_login])
+@router.get("/{id}/osz", dependencies=[require_login])
 @requires("authenticated")
 def get_osz(request: Request, id: int, no_video: bool = Query(False)) -> StreamingResponse:
     if not (beatmapset := beatmapsets.fetch_one(id, request.state.db)):
@@ -34,7 +34,7 @@ def get_osz(request: Request, id: int, no_video: bool = Query(False)) -> Streami
         }
     )
 
-@router.get('/{id}/background', response_class=Response)
+@router.get("/{id}/background", response_class=Response)
 def get_background_large(request: Request, id: int) -> Response:
     if not (file := request.state.storage.get_background(f'{id}l')):
         raise HTTPException(404)
@@ -44,7 +44,7 @@ def get_background_large(request: Request, id: int) -> Response:
         media_type='image/jpeg'
     )
 
-@router.get('/{id}/background/small', response_class=Response)
+@router.get("/{id}/background/small", response_class=Response)
 def get_background_small(request: Request, id: int) -> Response:
     if not (file := request.state.storage.get_background(f'{id}')):
         raise HTTPException(404)
@@ -54,7 +54,7 @@ def get_background_small(request: Request, id: int) -> Response:
         media_type='image/jpeg'
     )
 
-@router.get('/{id}/audio', response_class=Response)
+@router.get("/{id}/audio", response_class=Response)
 def get_audio_preview(request: Request, id: int) -> Response:
     if not (file := request.state.storage.get_mp3(id)):
         raise HTTPException(404)

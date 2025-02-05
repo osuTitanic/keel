@@ -22,8 +22,8 @@ remove_responses = {
     400: {'model': ErrorResponse, 'description': 'You are not friends with this user'}
 }
 
-@router.get('/friends', response_model=List[UserModelCompact])
-@requires('authenticated')
+@router.get("/friends", response_model=List[UserModelCompact])
+@requires("authenticated")
 def friends(request: Request):
     """Get a list of friends for the authenticated user"""
     return [
@@ -32,8 +32,8 @@ def friends(request: Request):
         if friend.status == 0
     ]
 
-@router.post('/friends', response_model=RelationshipResponse, responses=add_responses)
-@requires('authenticated')
+@router.post("/friends", response_model=RelationshipResponse, responses=add_responses)
+@requires("authenticated")
 def add_friend(request: Request, id: int):
     """Add a user to the authenticated user's friends list"""
     if id == request.user.id:
@@ -82,8 +82,8 @@ def add_friend(request: Request, id: int):
 
     return RelationshipResponse(status='friends')
 
-@router.delete('/friends', response_model=RelationshipResponse, responses=remove_responses)
-@requires('authenticated')
+@router.delete("/friends", response_model=RelationshipResponse, responses=remove_responses)
+@requires("authenticated")
 def remove_friend(request: Request, id: int):
     """Remove a user from the authenticated user's friends list"""
     if not (target := users.fetch_by_id(id, session=request.state.db)):

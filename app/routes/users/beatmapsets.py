@@ -11,7 +11,7 @@ from app.utils import requires
 
 router = APIRouter()
 
-@router.get('/{user_id}/beatmapsets', response_model=List[BeatmapsetModel])
+@router.get("/{user_id}/beatmapsets", response_model=List[BeatmapsetModel])
 def get_user_beatmapsets(request: Request, user_id: int) -> List[BeatmapsetModel]:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
@@ -35,7 +35,7 @@ def get_user_beatmapsets(request: Request, user_id: int) -> List[BeatmapsetModel
         for beatmapset in user_beatmaps
     ]
 
-@router.get('/{user_id}/beatmapsets/{beatmap_id}', response_model=BeatmapsetModel)
+@router.get("/{user_id}/beatmapsets/{beatmap_id}", response_model=BeatmapsetModel)
 def get_user_beatmapset(request: Request, user_id: int, beatmap_id: int) -> BeatmapsetModel:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
@@ -70,8 +70,8 @@ def get_user_beatmapset(request: Request, user_id: int, beatmap_id: int) -> Beat
 
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
-@router.post('/{user_id}/beatmapsets/{beatmap_id}/revive')
-@requires(['authenticated', 'activated'])
+@router.post("/{user_id}/beatmapsets/{beatmap_id}/revive")
+@requires(["authenticated", "activated"])
 def revive_beatmapset(
     request: Request,
     user_id: int,
@@ -142,8 +142,8 @@ def revive_beatmapset(
     request.state.db.refresh(beatmapset)
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
-@router.delete('/{user_id}/beatmapsets/{beatmap_id}', response_model=BeatmapsetModel)
-@requires(['authenticated', 'activated'])
+@router.delete("/{user_id}/beatmapsets/{beatmap_id}", response_model=BeatmapsetModel)
+@requires(["authenticated", "activated"])
 def delete_beatmapset(
     request: Request,
     user_id: int,

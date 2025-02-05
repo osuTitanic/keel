@@ -6,7 +6,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.post('/search', response_model=List[BeatmapsetModel])
+@router.post("/search", response_model=List[BeatmapsetModel])
 def search_beatmapsets(request: Request, query: SearchRequest):
     user_id = (
         request.user.id

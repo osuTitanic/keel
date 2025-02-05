@@ -12,7 +12,7 @@ router = APIRouter(
     dependencies=[require_login]
 )
 
-@router.get('/osz/{filename}')
+@router.get("/osz/{filename}")
 @requires("authenticated")
 def get_internal_osz(
     request: Request,

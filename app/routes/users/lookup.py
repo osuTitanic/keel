@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 router = APIRouter()
 
-@router.get('/lookup/{input}', response_model=UserModel)
+@router.get("/lookup/{input}", response_model=UserModel)
 def user_lookup(request: Request, input: str) -> UserModel:
     if not (user := resolve_user_profile(input, request.state.db)):
         raise HTTPException(

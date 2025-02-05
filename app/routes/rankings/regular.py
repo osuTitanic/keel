@@ -17,7 +17,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get('/{order}/{mode}', response_model=List[RankingEntryModel])
+@router.get("/{order}/{mode}", response_model=List[RankingEntryModel])
 def get_rankings(
     request: Request,
     order: OrderType,

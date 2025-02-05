@@ -7,7 +7,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get('/{user_id}/achievements', response_model=List[AchievementModel])
+@router.get("/{user_id}/achievements", response_model=List[AchievementModel])
 def get_user_achievements(request: Request, user_id: int) -> List[AchievementModel]:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(

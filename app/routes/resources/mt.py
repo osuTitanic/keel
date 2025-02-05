@@ -7,7 +7,7 @@ from app import utils
 
 router = APIRouter()
 
-@router.get('/mt/{filename}')
+@router.get("/mt/{filename}")
 def get_internal_background_large(request: Request, filename: str):
     if not (file := request.state.storage.get_background_internal(filename)):
         raise HTTPException(
@@ -20,7 +20,7 @@ def get_internal_background_large(request: Request, filename: str):
         media_type="image/jpeg"
     )
 
-@router.get('/mt/{filename}/small')
+@router.get("/mt/{filename}/small")
 def get_internal_background_small(request: Request, filename: str):
     if file := request.state.storage.get_from_cache(f'mt:{filename}'):
         return StreamingResponse(

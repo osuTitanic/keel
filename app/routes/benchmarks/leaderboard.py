@@ -6,7 +6,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get('/', response_model=List[BenchmarkModel])
+@router.get("/", response_model=List[BenchmarkModel])
 def get_benchmark_leaderboard(
     request: Request,
     page: int = Query(1, ge=0),

@@ -6,7 +6,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get('/{user_id}/friends', response_model=List[UserModelCompact])
+@router.get("/{user_id}/friends", response_model=List[UserModelCompact])
 def get_friends(request: Request, user_id: int) -> List[UserModelCompact]:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(

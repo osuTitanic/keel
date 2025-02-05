@@ -63,7 +63,7 @@ def get_favourite(request: Request, user_id: int, set_id: int) -> FavouriteModel
     )
 
 @router.post("/{user_id}/favourites", response_model=FavouriteModel)
-@requires('authenticated')
+@requires("authenticated")
 def add_favourite(
     request: Request,
     user_id: int,
@@ -118,7 +118,7 @@ def add_favourite(
     )
 
 @router.delete("/{user_id}/favourites/{set_id}", response_model=FavouriteModel)
-@requires('authenticated')
+@requires("authenticated")
 def remove_favourite(request: Request, user_id: int, set_id: int):
     if request.user.id != user_id:
         raise HTTPException(

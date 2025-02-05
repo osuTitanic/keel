@@ -36,7 +36,7 @@ router.include_router(beatmapsets.router, prefix="/beatmapsets", tags=["beatmaps
 router.include_router(multiplayer.router, prefix="/multiplayer", tags=["multiplayer"])
 router.include_router(resources.router, prefix="/resources", tags=["internal resources"])
 
-@router.get('/stats', response_model=ServerStatsModel)
+@router.get("/stats", response_model=ServerStatsModel)
 def server_stats(request: Request):
     return ServerStatsModel(
         uptime=round(time.time() - app.session.startup_time),

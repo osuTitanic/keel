@@ -11,7 +11,7 @@ from app.models import (
 
 router = APIRouter()
 
-@router.get('/{user_id}/pinned/{mode}', response_model=ScoreCollectionResponse)
+@router.get("/{user_id}/pinned/{mode}", response_model=ScoreCollectionResponse)
 def get_pinned_scores(
     request: Request,
     mode: ModeAlias,
@@ -53,7 +53,7 @@ def get_pinned_scores(
         ]
     )
 
-@router.get('/{user_id}/pinned', response_model=ScoreCollectionResponse)
+@router.get("/{user_id}/pinned", response_model=ScoreCollectionResponse)
 def get_pinned_scores_by_preferred_mode(
     request: Request,
     user_id: int,
@@ -94,8 +94,8 @@ def get_pinned_scores_by_preferred_mode(
         ]
     )
 
-@router.post('/{user_id}/pinned', response_model=ScoreModelWithoutUser)
-@requires('authenticated')
+@router.post("/{user_id}/pinned", response_model=ScoreModelWithoutUser)
+@requires("authenticated")
 def pin_score(
     request: Request,
     user_id: int,
@@ -139,8 +139,8 @@ def pin_score(
 
     return ScoreModelWithoutUser.model_validate(score, from_attributes=True)
 
-@router.delete('/{user_id}/pinned', response_model=ScoreModelWithoutUser)
-@requires('authenticated')
+@router.delete("/{user_id}/pinned", response_model=ScoreModelWithoutUser)
+@requires("authenticated")
 def unpin_score(
     request: Request,
     user_id: int,

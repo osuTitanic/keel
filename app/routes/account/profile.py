@@ -14,8 +14,8 @@ router = APIRouter(
     dependencies=[require_login]
 )
 
-@router.get('/profile', response_model=UserModel)
-@requires('authenticated')
+@router.get("/profile", response_model=UserModel)
+@requires("authenticated")
 def profile(request: Request) -> UserModel:
     """Get the authenticated user's profile"""
     return UserModel.model_validate(
@@ -23,8 +23,8 @@ def profile(request: Request) -> UserModel:
         from_attributes=True
     )
 
-@router.post('/profile', response_model=UserModel)
-@requires(['authenticated', 'unrestricted', 'unsilenced', 'activated'])
+@router.post("/profile", response_model=UserModel)
+@requires(["authenticated", "unrestricted", "unsilenced", "activated"])
 def profile_update(
     request: Request,
     update: ProfileUpdateModel

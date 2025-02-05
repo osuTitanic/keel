@@ -16,8 +16,8 @@ responses = {
     403: {"model": ErrorResponse, "description": "Insufficient permissions"}
 }
 
-@router.get('/channels', response_model=List[ChannelModel])
-@requires('authenticated')
+@router.get("/channels", response_model=List[ChannelModel])
+@requires("authenticated")
 def channel_selection(
     request: Request,
     has_participated: bool = Query(False)
@@ -38,8 +38,8 @@ def channel_selection(
         for channel in channels.fetch_by_permissions(permissions, request.state.db)
     ]
 
-@router.get('/channels/{target}', response_model=ChannelModel, responses=responses)
-@requires('authenticated')
+@router.get("/channels/{target}", response_model=ChannelModel, responses=responses)
+@requires("authenticated")
 def get_channel(
     request: Request,
     target: str
@@ -60,8 +60,8 @@ def get_channel(
         from_attributes=True
     )
 
-@router.get('/channels/{target}/messages', response_model=List[MessageModel], responses=responses)
-@requires('authenticated')
+@router.get("/channels/{target}/messages", response_model=List[MessageModel], responses=responses)
+@requires("authenticated")
 def channel_message_history(
     request: Request,
     target: str,

@@ -10,7 +10,7 @@ router = APIRouter(
     responses={404: {"description": "Match not found", "model": ErrorResponse}}
 )
 
-@router.get('/{id}/events', response_model=List[MatchEventModel])
+@router.get("/{id}/events", response_model=List[MatchEventModel])
 def get_match_events(
     request: Request,
     id: int,

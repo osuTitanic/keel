@@ -4,7 +4,7 @@ from fastapi.responses import PlainTextResponse
 
 router = APIRouter()
 
-@router.get('/osu/{filename}')
+@router.get("/osu/{filename}")
 def get_internal_beatmap(request: Request, filename: str):
     if not (file := request.state.storage.get_beatmap_internal(filename)):
         raise HTTPException(

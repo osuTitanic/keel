@@ -7,7 +7,7 @@ from app.models import BeatmapPlaysModel
 
 router = APIRouter()
 
-@router.get('/{user_id}/plays')
+@router.get("/{user_id}/plays")
 def get_most_played(
     request: Request,
     user_id: int,

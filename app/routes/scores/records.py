@@ -9,7 +9,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get('/records/performance', response_model=ScoreRecordsModel)
+@router.get("/records/performance", response_model=ScoreRecordsModel)
 def get_performance_records(request: Request):
     standard = (
         top_score_pp(mode=0, mods=0, exclude=[Mods.Relax, Mods.Autopilot], session=request.state.db),
@@ -44,7 +44,7 @@ def get_performance_records(request: Request):
         mania=ScoreModel.model_validate(mania, from_attributes=True)
     )
 
-@router.get('/records/score', response_model=ScoreRecordsModel)
+@router.get("/records/score", response_model=ScoreRecordsModel)
 def get_score_records(request: Request):
     standard = (
         top_score_rscore(mode=0, mods=0, exclude=[Mods.Relax, Mods.Autopilot], session=request.state.db),

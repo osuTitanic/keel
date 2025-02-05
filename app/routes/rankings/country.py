@@ -12,7 +12,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get('/country/{mode}')
+@router.get("/country/{mode}")
 def get_country_rankings(request: Request, mode: ModeAlias) -> List[CountryEntryModel]:
     return [
         CountryEntryModel(

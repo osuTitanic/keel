@@ -40,7 +40,7 @@ validation_errors = {
     400: {'model': ErrorResponse, 'description': 'Invalid validation type'}
 }
 
-@router.post('/register', response_model=VerificationResponse, responses=registration_errors)
+@router.post("/register", response_model=VerificationResponse, responses=registration_errors)
 def user_registration(
     request: Request,
     registration: RegistrationRequest
@@ -167,7 +167,7 @@ def user_registration(
         verification_id=verification.id
     )
 
-@router.get('/register/check', response_model=ValidationResponse, responses=validation_errors)
+@router.get("/register/check", response_model=ValidationResponse, responses=validation_errors)
 def user_registration_validation(
     request: Request,
     validation: ValidationRequest

@@ -11,7 +11,7 @@ router = APIRouter(
     }
 )
 
-@router.get('/{id}/file')
+@router.get("/{id}/file")
 def get_beatmap_file(request: Request, id: int):
     if not (beatmap := beatmaps.fetch_by_id(id, request.state.db)):
         raise HTTPException(

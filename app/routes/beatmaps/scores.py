@@ -18,7 +18,7 @@ user_responses = {
     404: {"model": ErrorResponse, "description": "User not found"},
 }
 
-@router.get('/{id}/scores', response_model=List[ScoreModelWithoutBeatmap])
+@router.get("/{id}/scores", response_model=List[ScoreModelWithoutBeatmap])
 def get_beatmap_scores(
     request: Request, id: int,
     mode: str = Query(None),
@@ -58,7 +58,7 @@ def get_beatmap_scores(
         for score in top_scores
     ]
 
-@router.get('/{beatmap_id}/scores/users/{user_id}', response_model=ScoreModel, responses=user_responses)
+@router.get("/{beatmap_id}/scores/users/{user_id}", response_model=ScoreModel, responses=user_responses)
 def get_beatmap_user_score(
     request: Request,
     beatmap_id: int, user_id: int,

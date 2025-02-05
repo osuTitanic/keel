@@ -9,7 +9,7 @@ router = APIRouter(
     dependencies=[require_login]
 )
 
-@router.get('/osz2/{filename}')
+@router.get("/osz2/{filename}")
 @requires("authenticated")
 def get_internal_osz2(request: Request, filename: str):
     if not (file := request.state.storage.get_osz2_iterable(filename)):

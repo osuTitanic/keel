@@ -32,7 +32,7 @@ def generate_authentication_token(request: Request) -> Response:
 
     if "authenticated" not in request.auth.scopes:
         # Try to authenticate user through refresh token
-        user = validate_browser_session(request)
+        user = validate_refresh_token(request)
 
     current_time = round(time.time())
     expiry = current_time + config.FRONTEND_TOKEN_EXPIRY
@@ -58,7 +58,7 @@ def generate_authentication_token(request: Request) -> Response:
         key='access_token',
         value=access_token,
         max_age=config.FRONTEND_TOKEN_EXPIRY,
-        httponly=True,
+        httponly=False,
         secure=config.ENABLE_SSL,
         samesite='strict',
         domain=f".{config.DOMAIN_NAME}"
@@ -76,43 +76,16 @@ def generate_authentication_token(request: Request) -> Response:
 
     return response
 
-def validate_browser_session(request: Request) -> DBUser:
-    """Validate the user's session through the browser's cookies."""
-    data = (
-        validate_access_token(request) or
-        validate_refresh_token(request)
-    )
-
-    if not data:
-        raise HTTPException(
-            status_code=401,
-            detail='Authentication failure'
-        )
-
-    return users.fetch_by_id(data['id'])
-
-def validate_access_token(request: Request) -> DBUser:
-    access_token = request.cookies.get('access_token')
-
-    if not access_token:
-        return
-
-    data = security.validate_token(access_token)
-
-    if not data:
-        raise HTTPException(status_code=401, detail='Invalid access token')
-    
-    return data
-
 def validate_refresh_token(request: Request) -> DBUser:
+    """Authenticate the user through the refresh token cookie"""
     refresh_token = request.cookies.get('refresh_token')
 
     if not refresh_token:
-        return
+        raise HTTPException(status_code=403, detail='No refresh token provided')
 
     data = security.validate_token(refresh_token)
 
     if not data:
         raise HTTPException(status_code=401, detail='Invalid refresh token')
-    
-    return data
+
+    return users.fetch_by_id(data['id'])

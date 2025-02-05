@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 user_responses = {
-    404: {"model": ErrorResponse, "description": "The requested user score could not be found"},
+    404: {"model": ErrorResponse, "description": "User not found"},
 }
 
 @router.get('/{id}/scores', response_model=List[ScoreModelWithoutBeatmap])

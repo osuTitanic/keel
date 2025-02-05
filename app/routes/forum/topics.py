@@ -7,7 +7,7 @@ from app.models import TopicModel, ErrorResponse
 from app.common.database import forums, topics
 
 router = APIRouter(
-    responses={404: {"description": "The requested forum/topic was not found", "model": ErrorResponse}}
+    responses={404: {"description": "Forum/Topic not found", "model": ErrorResponse}}
 )
 
 @router.get("/{forum_id}/topics", response_model=List[TopicModel])

@@ -4,7 +4,7 @@ from app.models import ForumModel, ErrorResponse
 from app.common.database import forums
 
 router = APIRouter(
-    responses={404: {"description": "The requested forum was not found", "model": ErrorResponse}}
+    responses={404: {"description": "Forum not found", "model": ErrorResponse}}
 )
 
 @router.get("/", response_model=list[ForumModel])

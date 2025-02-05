@@ -6,7 +6,7 @@ from fastapi import HTTPException, APIRouter, Request
 from typing import List
 
 router = APIRouter()
-responses = {404: {"description": "The requested group could not be found", "model": ErrorResponse}}
+responses = {404: {"description": "Group not found", "model": ErrorResponse}}
 
 @router.get('/', response_model=List[GroupModel])
 def get_groups(request: Request) -> List[GroupModel]:

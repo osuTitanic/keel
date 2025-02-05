@@ -10,7 +10,7 @@ from . import mt
 
 router = APIRouter(
     responses={
-        404: {"model": ErrorResponse, "description": "The requested resource was not found."}
+        404: {"model": ErrorResponse, "description": "Resource not found"}
     }
 )
 

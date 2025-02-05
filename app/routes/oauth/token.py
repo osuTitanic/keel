@@ -30,8 +30,17 @@ def validate_refresh_token(request: Request) -> DBUser:
 
     return users.fetch_by_id(data['id'])
 
-@router.post("/token", response_model=TokenResponse)
-def generate_token(request: Request) -> Response:
+@router.post("/login", response_model=TokenResponse)
+def generate_authentication_token(request: Request) -> Response:
+    """Request an access token to access authenticated routes, and have higher rate limits.
+
+    You are able to authenticate using a `Basic` authenticaton header, or a `Bearer` token.
+    To use the refresh token, you just have to pass it as a cookie in the request, which will
+    then take priority over the `Authorization` header.
+
+    Currently, this is the only authentication method available. A full OAuth2 implementation
+    is planned for the future.
+    """
     user: DBUser = request.user
 
     if "authenticated" not in request.auth.scopes:

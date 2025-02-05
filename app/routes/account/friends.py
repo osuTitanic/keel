@@ -25,6 +25,7 @@ remove_responses = {
 @router.get('/friends', response_model=List[UserModelCompact])
 @requires('authenticated')
 def friends(request: Request):
+    """Get a list of friends for the authenticated user"""
     return [
         UserModelCompact.model_validate(friend.target, from_attributes=True)
         for friend in relationships.fetch_many_by_id(request.user.id, request.state.db)
@@ -34,6 +35,7 @@ def friends(request: Request):
 @router.post('/friends', response_model=RelationshipResponse, responses=add_responses)
 @requires('authenticated')
 def add_friend(request: Request, id: int):
+    """Add a user to the authenticated user's friends list"""
     if id == request.user.id:
         raise HTTPException(
             status_code=400,
@@ -83,6 +85,7 @@ def add_friend(request: Request, id: int):
 @router.delete('/friends', response_model=RelationshipResponse, responses=remove_responses)
 @requires('authenticated')
 def remove_friend(request: Request, id: int):
+    """Remove a user from the authenticated user's friends list"""
     if not (target := users.fetch_by_id(id, session=request.state.db)):
         raise HTTPException(
             status_code=404,

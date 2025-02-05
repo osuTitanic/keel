@@ -17,6 +17,7 @@ router = APIRouter(
 @router.get('/profile', response_model=UserModel)
 @requires('authenticated')
 def profile(request: Request) -> UserModel:
+    """Get the authenticated user's profile"""
     return UserModel.model_validate(
         request.user,
         from_attributes=True
@@ -28,6 +29,7 @@ def profile_update(
     request: Request,
     update: ProfileUpdateModel
 ) -> UserModel:
+    """Update the authenticated user's public profile"""
     if not validate_update_request(update):
         raise HTTPException(
             status_code=400,

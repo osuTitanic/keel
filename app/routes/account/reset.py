@@ -14,6 +14,7 @@ def password_reset(
     request: Request,
     reset: PasswordResetRequest
 ) -> VerificationResponse:
+    """Request a password reset for a user account"""
     if not config.EMAILS_ENABLED:
         raise HTTPException(503, 'Password resets are not enabled at the moment. Please contact an administrator!')
 

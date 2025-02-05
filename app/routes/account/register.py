@@ -45,6 +45,7 @@ def user_registration(
     request: Request,
     registration: RegistrationRequest
 ) -> VerificationResponse:
+    """Register a new user account"""
     if "authenticated" in request.auth.scopes:
         raise HTTPException(
             status_code=403,
@@ -167,10 +168,11 @@ def user_registration(
     )
 
 @router.get('/register/check', response_model=ValidationResponse, responses=validation_errors)
-def input_validation(
+def user_registration_validation(
     request: Request,
     validation: ValidationRequest
 ) -> ValidationResponse:
+    """Validate a username, email, or password for the registration"""
     validators = {
         'username': validate_username,
         'email': validate_email,

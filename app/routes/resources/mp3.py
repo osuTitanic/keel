@@ -1,7 +1,7 @@
 
 from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import StreamingResponse
-from app.utils import file_iterator
+from io import BytesIO
 
 router = APIRouter()
 
@@ -14,6 +14,6 @@ def get_internal_mp3(request: Request, filename: str):
         )
 
     return StreamingResponse(
-        file_iterator(file),
+        BytesIO(file),
         media_type="audio/mpeg"
     )

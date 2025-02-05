@@ -1,8 +1,9 @@
 
-from app.utils import file_iterator, resize_image
 from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import StreamingResponse
 from datetime import timedelta
+from io import BytesIO
+from app import utils
 
 router = APIRouter()
 
@@ -15,7 +16,7 @@ def get_internal_background_large(request: Request, filename: str):
         )
 
     return StreamingResponse(
-        file_iterator(file),
+        BytesIO(file),
         media_type="image/jpeg"
     )
 
@@ -23,7 +24,7 @@ def get_internal_background_large(request: Request, filename: str):
 def get_internal_background_small(request: Request, filename: str):
     if file := request.state.storage.get_from_cache(f'mt:{filename}'):
         return StreamingResponse(
-            file_iterator(file),
+            BytesIO(file),
             media_type="image/jpeg"
         )
 
@@ -34,16 +35,16 @@ def get_internal_background_small(request: Request, filename: str):
         )
 
     # Resize image into 80x60
-    file = resize_image(file, 80, 60)
+    file_iterator = utils.resize_image(file, 80, 60)
 
     # Save in cache
     request.state.storage.save_to_cache(
         name=f'mt:{filename}',
-        content=file,
+        content=file_iterator.getvalue(),
         expiry=timedelta(hours=6)
     )
 
     return StreamingResponse(
-        file_iterator(file),
+        file_iterator,
         media_type="image/jpeg"
     )

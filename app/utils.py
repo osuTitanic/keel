@@ -21,13 +21,6 @@ async def run_async(func: Callable, *args):
         None, func, *args
     )
 
-def file_iterator(file: bytes, chunk_size: int = 1024) -> Generator[bytes, None, None]:
-    offset = 0
-
-    while offset < len(file):
-        yield file[offset:offset + chunk_size]
-        offset += chunk_size
-
 def resolve_request(func: typing.Callable, *args, **kwargs) -> Request:
     signature = inspect.signature(func)
 
@@ -39,12 +32,13 @@ def resize_image(
     image: bytes,
     target_width: int | None = None,
     target_height: int | None = None
-) -> bytes:
+) -> io.BytesIO:
     image_buffer = io.BytesIO()
     img = Image.open(io.BytesIO(image))
     img = img.resize((target_width, target_height))
     img.save(image_buffer, format='JPEG')
-    return image_buffer.getvalue()
+    image_buffer.seek(0)
+    return image_buffer
 
 def on_sync_ranks_fail(e: Exception) -> None:
     app.session.logger.error(

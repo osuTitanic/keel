@@ -32,13 +32,16 @@ api = FastAPI(
     },
     servers=[
         {
-            "url": f"https://api.titanic.sh",
+            "url": f"https://api.{config.DOMAIN_NAME}",
             "description": "Production server"
-        },
-        {
-            "url": "http://localhost:8000",
-            "description": "Local server"
         }
     ]
 )
 api.include_router(BaseRouter)
+
+if config.DEBUG:
+    # Add development server
+    api.servers.append({
+        "url": f"http://localhost:{config.API_PORT}",
+        "description": "Local server"
+    })

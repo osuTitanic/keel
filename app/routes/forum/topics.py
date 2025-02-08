@@ -43,6 +43,9 @@ def get_topic(
 ) -> TopicModel:
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
         raise HTTPException(404, "The requested topic could not be found")
+    
+    if topic.hidden:
+        raise HTTPException(404, "The requested topic could not be found")
 
     if topic.forum_id != forum_id:
         return RedirectResponse(f"/forum/{topic.forum_id}/topics/{topic.id}")

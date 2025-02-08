@@ -8,7 +8,7 @@ RUN apt install postgresql git curl ffmpeg libavcodec-extra -y
 RUN curl -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-WORKDIR /deck
+WORKDIR /keel
 
 # Install gunicorn for deployment
 RUN pip install gunicorn

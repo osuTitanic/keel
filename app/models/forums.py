@@ -1,9 +1,14 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing import List
+from enum import Enum
 
 from .user import UserModelCompact, UserModel
+
+class TopicType(str, Enum):
+    Announcement = 'announcement'
+    Pinned = 'pinned'
 
 class IconModel(BaseModel):
     id: int
@@ -62,6 +67,27 @@ class BookmarkModel(BaseModel):
 class SubscriptionModel(BaseModel):
     user: UserModelCompact
     topic: TopicModel
+
+class TopicCreateRequest(BaseModel):
+    title: str
+    content: str
+    notify: bool
+    icon: int | None = None
+    type: TopicType | None = None
+
+    @field_validator('title')
+    def title_length(cls, value):
+        if not value:
+            raise ValueError('Title cannot be empty')
+        
+        return value
+    
+    @field_validator('content')
+    def content_length(cls, value):
+        if not value:
+            raise ValueError('Content cannot be empty')
+        
+        return value
 
 class BBCodeRenderRequest(BaseModel):
     input: str

@@ -117,6 +117,10 @@ def create_post(
     topic_id: int,
     data: PostCreateRequest = Body(...)
 ) -> PostModel:
+    """
+    Create a post in a specified topic.  
+    If you are a moderator, you can use the `icon` parameter to change the topic icon.
+    """
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
         raise HTTPException(404, "The requested topic could not be found")
     
@@ -198,6 +202,10 @@ def edit_post(
     post_id: int,
     data: PostUpdateRequest = Body(...)
 ) -> PostModel:
+    """
+    Edit a post in a specified topic.  
+    If you are a moderator, you can use the `lock` parameter to lock the post.
+    """
     if not (post := posts.fetch_one(post_id, request.state.db)):
         raise HTTPException(404, "The requested post could not be found")
 
@@ -220,7 +228,7 @@ def edit_post(
         'content': data.content
     }
 
-    if data.lock:
+    if data.lock and request.user.is_moderator:
         updates['edit_locked'] = True
 
     if post.user_id == request.user.id:

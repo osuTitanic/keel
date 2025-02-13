@@ -11,7 +11,7 @@ router = APIRouter(
     }
 )
 
-@router.get("/{id}/file")
+@router.get("/{id}/file", response_class=PlainTextResponse)
 def get_beatmap_file(request: Request, id: int):
     if not (beatmap := beatmaps.fetch_by_id(id, request.state.db)):
         raise HTTPException(
@@ -19,9 +19,7 @@ def get_beatmap_file(request: Request, id: int):
             detail="The requested beatmap could not be found"
         )
 
-    osu = request.state.storage.get_beatmap(id)
-
-    if not osu:
+    if not (osu := request.state.storage.get_beatmap(id)):
         raise HTTPException(
             status_code=404,
             detail="The requested beatmap could not be found"

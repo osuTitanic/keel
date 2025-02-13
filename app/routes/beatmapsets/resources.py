@@ -13,7 +13,7 @@ router = APIRouter(
     }
 )
 
-@router.get("/{id}/osz", dependencies=[require_login])
+@router.get("/{id}/osz", dependencies=[require_login], response_class=StreamingResponse)
 @requires("authenticated")
 def get_osz(request: Request, id: int, no_video: bool = Query(False)) -> StreamingResponse:
     if not (beatmapset := beatmapsets.fetch_one(id, request.state.db)):

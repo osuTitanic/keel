@@ -67,6 +67,10 @@ def create_topic(
     forum_id: int,
     data: TopicCreateRequest = Body(...)
 ) -> TopicModel:
+    """
+    Create a new topic in the specified forum.  
+    Please note that the `icon` and `type` fields are only available to moderators!
+    """
     if not (forum := forums.fetch_by_id(forum_id, request.state.db)):
         raise HTTPException(404, "The requested forum could not be found")
     

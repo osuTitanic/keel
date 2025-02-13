@@ -33,7 +33,7 @@ def get_subscriptions(request: Request):
         for subscription in subscriptions
     ]
 
-@router.get("/subscriptions/{topic_id}")
+@router.get("/subscriptions/{topic_id}", response_model=SubscriptionModel)
 @requires("authenticated")
 def get_subscription(request: Request, topic_id: int):
     if not (topic := topics.fetch_one(topic_id, request.state.db)):

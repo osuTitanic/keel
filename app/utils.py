@@ -4,9 +4,10 @@ from app.common.database import stats, histories
 from app.common.database.objects import DBUser
 from app.common.cache import leaderboards
 
+from typing import Callable, Generator, Tuple
 from fastapi import HTTPException, Request
-from typing import Callable, Generator
 from sqlalchemy.orm import Session
+from itertools import tee
 from PIL import Image
 
 import app.session
@@ -27,6 +28,15 @@ def resolve_request(func: typing.Callable, *args, **kwargs) -> Request:
     if 'request' in signature.parameters:
         bound_arguments = signature.bind_partial(*args, **kwargs)
         return bound_arguments.arguments.get('request')
+
+def is_empty_generator(generator: Generator) -> Tuple[bool, Generator]:
+    try:
+        generator, copy = tee(generator)
+        next(copy)
+    except StopIteration:
+        return True, generator
+
+    return False, generator
 
 def resize_image(
     image: bytes,

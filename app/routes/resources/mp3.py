@@ -5,7 +5,7 @@ from io import BytesIO
 
 router = APIRouter()
 
-@router.get("/mp3/{filename}")
+@router.get("/mp3/{filename}", response_class=StreamingResponse)
 def get_internal_mp3(request: Request, filename: str):
     if not (file := request.state.storage.get_mp3_internal(filename)):
         raise HTTPException(

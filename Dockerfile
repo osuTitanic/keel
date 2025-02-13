@@ -26,6 +26,7 @@ ENV API_WORKERS $API_WORKERS
 
 CMD gunicorn \
         --access-logfile - \
+        --preload \
         -b 0.0.0.0:80 \
         -w $WEB_WORKERS \
         -k uvicorn.workers.UvicornWorker \

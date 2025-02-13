@@ -1,8 +1,9 @@
 
 from fastapi import HTTPException, APIRouter, Request, Query
 from fastapi.responses import StreamingResponse
+from app.utils import requires, is_empty_generator
 from app.security import require_login
-from app.utils import requires
+from typing import Generator
 from zipfile import ZipFile
 from io import BytesIO
 
@@ -19,7 +20,13 @@ def get_internal_osz(
     filename: str,
     no_video: bool = Query(False)
 ) -> StreamingResponse:
-    if not (file := request.state.storage.get_osz_iterable(filename)):
+    if not request.state.storage.file_exists(filename, 'osz'):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested resource could not be found"
+        )    
+
+    if not (generator := request.state.storage.get_osz_iterable(filename)):
         raise HTTPException(
             status_code=404,
             detail="The requested resource could not be found"
@@ -27,20 +34,19 @@ def get_internal_osz(
 
     if no_video:
         # Remove video files from the .osz file
-        file = remove_video_from_zip(file)
+        generator = remove_video_from_zip(generator)
 
     return StreamingResponse(
-        file,
+        generator,
         media_type="application/octet-stream",
         headers={"Content-Disposition": f'attachment; filename="{filename}.osz"'}
     )
 
-def remove_video_from_zip(osz: BytesIO) -> BytesIO:
-    video_extensions = [
-        ".wmv", ".flv", ".mp4", ".avi", ".m4v"
-    ]
+def remove_video_from_zip(osz: Generator) -> Generator:
+    video_extensions = (".wmv", ".flv", ".mp4", ".avi", ".m4v")
+    osz_io = BytesIO(b"".join(osz))
 
-    with ZipFile(osz, 'r') as zip_file:
+    with ZipFile(osz_io, 'r') as zip_file:
         files_to_keep = [
             item for item in zip_file.namelist()
             if not any(item.lower().endswith(ext) for ext in video_extensions)
@@ -53,4 +59,6 @@ def remove_video_from_zip(osz: BytesIO) -> BytesIO:
                 output_zip.writestr(file, zip_file.read(file))
 
         output.seek(0)
-        return output
+
+        while chunk := output.read(1024 * 64):
+            yield chunk

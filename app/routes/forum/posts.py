@@ -26,13 +26,16 @@ def get_post(
     if not (post := posts.fetch_one(post_id, request.state.db)):
         raise HTTPException(404, "The requested post could not be found")
 
+    if post.hidden:
+        raise HTTPException(404, "The requested post could not be found")
+
     if post.topic_id != topic_id:
         return RedirectResponse(f"/forum/{post.forum_id}/topics/{post.topic_id}/posts/{post.id}")
 
     if post.forum_id != forum_id:
         return RedirectResponse(f"/forum/{post.forum_id}/topics/{post.topic_id}/posts/{post.id}")
 
-    if post.hidden:
+    if post.deleted:
         post.content = '[ Deleted ]'
 
     return PostModel.model_validate(post, from_attributes=True)
@@ -87,10 +90,11 @@ def get_topic_posts(
     )
 
     for post in topic_posts:
-        if not post.hidden:
-            continue
+        if post.hidden:
+            topic_posts.remove(post)
 
-        post.content = '[ Deleted ]'
+        if post.deleted:
+            post.content = '[ Deleted ]'
 
     return [
         PostModel.model_validate(post, from_attributes=True)

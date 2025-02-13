@@ -71,7 +71,7 @@ class SubscriptionModel(BaseModel):
 class TopicCreateRequest(BaseModel):
     title: str
     content: str
-    notify: bool
+    notify: bool = False
     icon: int | None = None
     type: TopicType | None = None
 
@@ -91,7 +91,7 @@ class TopicCreateRequest(BaseModel):
 
 class PostCreateRequest(BaseModel):
     content: str
-    notify: bool
+    notify: bool = False
     icon: int | None = None
 
     @field_validator('content')

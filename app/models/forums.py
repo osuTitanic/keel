@@ -89,6 +89,29 @@ class TopicCreateRequest(BaseModel):
         
         return value
 
+class PostCreateRequest(BaseModel):
+    content: str
+    notify: bool
+    icon: int | None = None
+
+    @field_validator('content')
+    def content_length(cls, value):
+        if not value:
+            raise ValueError('Content cannot be empty')
+        
+        return value
+
+class PostUpdateRequest(BaseModel):
+    content: str
+    lock: bool = False
+
+    @field_validator('content')
+    def content_length(cls, value):
+        if not value:
+            raise ValueError('Content cannot be empty')
+        
+        return value
+
 class BBCodeRenderRequest(BaseModel):
     input: str
 

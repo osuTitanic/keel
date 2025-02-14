@@ -9,7 +9,8 @@ API_PORT = int(os.environ.get('API_PORT', 8000))
 
 API_RATELIMIT_ENABLED = eval(os.environ.get('API_RATELIMIT_ENABLED', 'True').capitalize())
 API_RATELIMIT_WINDOW = int(os.environ.get('API_RATELIMIT_WINDOW', 60))
-API_RATELIMIT_LIMIT = int(os.environ.get('API_RATELIMIT_LIMIT', 800))
+API_RATELIMIT_REGULAR = int(os.environ.get('API_RATELIMIT_REGULAR', 400))
+API_RATELIMIT_AUTHENTICATED = int(os.environ.get('API_RATELIMIT_AUTHENTICATED', 800))
 
 POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD')
 POSTGRES_PORT = int(os.environ.get('POSTGRES_PORT', 5432))

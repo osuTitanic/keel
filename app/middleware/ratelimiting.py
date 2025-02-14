@@ -21,16 +21,14 @@ def error_response(status_code: int, detail: str):
 async def ratelimit_middleware(request: Request, call_next: Callable):
     ip_address = ip.resolve_ip_address_fastapi(request)
     redis: Redis = request.state.redis
+    key = f'ratelimit:{ip_address}'
 
     # Get current request count
-    current = await utils.run_async(redis.get, f'ratelimit:{ip_address}')
+    current = await utils.run_async(redis.get, key)
 
-    if not current:
+    if current is None:
         # If the key doesn't exist, set to 1 and start the expiration timer
-        await utils.run_async(
-            redis.setex, f'ratelimit:{ip_address}',
-            config.API_RATELIMIT_WINDOW, 1
-        )
+        await utils.run_async(redis.setex, key, config.API_RATELIMIT_WINDOW, 1)
         return await call_next(request)
 
     # Check for rate limit
@@ -38,7 +36,7 @@ async def ratelimit_middleware(request: Request, call_next: Callable):
         return error_response(429, 'Rate limit exceeded')
 
     # Increment the request count
-    await utils.run_async(redis.incr, f'ratelimit:{ip_address}')
+    await utils.run_async(redis.incr, key)
 
     if int(current) + 1 >= config.API_RATELIMIT_LIMIT:
         await utils.run_async(

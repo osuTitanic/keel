@@ -42,6 +42,10 @@ async def ratelimit_middleware(request: Request, call_next: Callable):
             f"{limit} requests / {window} seconds."
         )
 
+        # Reset expiration timer
+        await utils.run_async(redis.expire, key, window)
+        return error_response(429, 'Rate limit exceeded')
+
     return await call_next(request)
 
 def resolve_ratelimit_configuration(request: Request) -> Tuple[int, int]:

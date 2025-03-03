@@ -11,9 +11,9 @@ router = APIRouter(
     }
 )
 
-@router.get("/{id}", response_model=BeatmapsetModel)
-def get_beatmapset(request: Request, id: int) -> BeatmapsetModel:
-    if not (beatmapset := beatmapsets.fetch_one(id, request.state.db)):
+@router.get("/{set_id}", response_model=BeatmapsetModel)
+def get_beatmapset(request: Request, set_id: int) -> BeatmapsetModel:
+    if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(
             status_code=404,
             detail="The requested beatmapset could not be found"
@@ -27,14 +27,14 @@ def get_beatmapset(request: Request, id: int) -> BeatmapsetModel:
 
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
-@router.patch("/{id}", response_model=BeatmapsetModel, dependencies=[require_login])
+@router.patch("/{set_id}", response_model=BeatmapsetModel, dependencies=[require_login])
 @requires("bat")
 def update_beatmapset_metadata(
     request: Request,
-    id: int,
+    set_id: int,
     update: BeatmapUpdateRequest = Body(...)
 ) -> BeatmapsetModel:
-    if not (beatmapset := beatmapsets.fetch_one(id, request.state.db)):
+    if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(
             status_code=404,
             detail="The requested beatmapset could not be found"

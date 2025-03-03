@@ -13,30 +13,30 @@ router = APIRouter(
     }
 )
 
-@router.get("/{id}/osz", dependencies=[require_login], response_class=StreamingResponse)
+@router.get("/{set_id}/osz", dependencies=[require_login], response_class=StreamingResponse)
 @requires("authenticated")
-def get_osz(request: Request, id: int, no_video: bool = Query(False)) -> StreamingResponse:
-    if not (beatmapset := beatmapsets.fetch_one(id, request.state.db)):
+def get_osz(request: Request, set_id: int, no_video: bool = Query(False)) -> StreamingResponse:
+    if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(status_code=404)
 
     if not beatmapset.available:
         raise HTTPException(status_code=451)
 
-    if not (response := request.state.storage.api.osz(id, no_video)):
+    if not (response := request.state.storage.api.osz(set_id, no_video)):
         raise HTTPException(404)
 
     return StreamingResponse(
         response.iter_content(1024*256),
         media_type='application/octet-stream',
         headers={
-            'Content-Disposition': f'attachment; filename={id} {beatmapset.artist} - {beatmapset.title}.osz',
+            'Content-Disposition': f'attachment; filename={set_id} {beatmapset.artist} - {beatmapset.title}.osz',
             'Content-Length': response.headers.get('Content-Length', 0)
         }
     )
 
-@router.get("/{id}/background", response_class=Response)
-def get_background_large(request: Request, id: int) -> Response:
-    if not (file := request.state.storage.get_background(f'{id}l')):
+@router.get("/{set_id}/background", response_class=Response)
+def get_background_large(request: Request, set_id: int) -> Response:
+    if not (file := request.state.storage.get_background(f'{set_id}l')):
         raise HTTPException(404)
 
     return Response(
@@ -44,9 +44,9 @@ def get_background_large(request: Request, id: int) -> Response:
         media_type='image/jpeg'
     )
 
-@router.get("/{id}/background/small", response_class=Response)
-def get_background_small(request: Request, id: int) -> Response:
-    if not (file := request.state.storage.get_background(f'{id}')):
+@router.get("/{set_id}/background/small", response_class=Response)
+def get_background_small(request: Request, set_id: int) -> Response:
+    if not (file := request.state.storage.get_background(f'{set_id}')):
         raise HTTPException(404)
 
     return Response(
@@ -54,9 +54,9 @@ def get_background_small(request: Request, id: int) -> Response:
         media_type='image/jpeg'
     )
 
-@router.get("/{id}/audio", response_class=Response)
-def get_audio_preview(request: Request, id: int) -> Response:
-    if not (file := request.state.storage.get_mp3(id)):
+@router.get("/{set_id}/audio", response_class=Response)
+def get_audio_preview(request: Request, set_id: int) -> Response:
+    if not (file := request.state.storage.get_mp3(set_id)):
         raise HTTPException(404)
 
     return Response(

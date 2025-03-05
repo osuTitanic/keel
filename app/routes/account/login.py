@@ -81,6 +81,8 @@ def refresh_access_token(request: Request) -> JSONResponse:
     The refresh token can either be provided through the `Authorization` header,
     or the `refresh_token` cookie.
     """
+    user: DBUser = request.user
+
     if "authenticated" not in request.auth.scopes:
         # Try to authenticate the user using the refresh token
         user = validate_refresh_token(request)

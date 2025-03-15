@@ -60,7 +60,7 @@ async def password_authentication_async(password: str, bcrypt: str) -> bool:
         bcrypt
     )
 
-def require_login_function(authorization: str = Header(..., alias="Authorization")):
+def require_login_function(authorization: str = Header(None, alias="Authorization")):
     return authorization
 
 require_login = Depends(require_login_function)

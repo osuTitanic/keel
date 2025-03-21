@@ -44,6 +44,7 @@ class BeatmapsetModel(BaseModel):
     last_update: datetime
     osz_filesize: int
     osz_filesize_novideo: int
+    display_title: str
     language_id: int
     genre_id: int
     ratings: list

@@ -4,13 +4,8 @@ from datetime import datetime
 from typing import List
 
 class ClientHashModel(BaseModel):
-    md5: List[str]
     file: str
-
-class ClientScreenshotModel(BaseModel):
-    src: str
-    width: str
-    height: str
+    md5: List[str]
 
 class ClientModel(BaseModel):
     name: str
@@ -18,11 +13,10 @@ class ClientModel(BaseModel):
     category: str
     known_bugs: str | None
     supported: bool
-    recommended: bool
     preview: bool
     downloads: List[str]
+    screenshots: List[str]
     hashes: List[ClientHashModel]
-    screenshots: List[ClientScreenshotModel]
     created_at: datetime
 
 class ClientUploadRequest(BaseModel):
@@ -30,5 +24,5 @@ class ClientUploadRequest(BaseModel):
     description: str
     category: str
     downloads: List[str]
+    screenshots: List[str]
     hashes: List[ClientHashModel]
-    screenshots: List[ClientScreenshotModel]

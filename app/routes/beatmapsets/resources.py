@@ -29,7 +29,7 @@ def get_osz(request: Request, set_id: int, no_video: bool = Query(False)) -> Str
         response.iter_content(1024*256),
         media_type='application/octet-stream',
         headers={
-            'Content-Disposition': f'attachment; filename={set_id} {beatmapset.artist} - {beatmapset.title}.osz',
+            'Content-Disposition': f'attachment; filename="{set_id} {beatmapset.artist} - {beatmapset.title}.osz"',
             'Content-Length': response.headers.get('Content-Length', 0)
         }
     )

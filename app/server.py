@@ -22,10 +22,10 @@ Don't be afraid to report them on our GitHub repository.
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    session.database.engine.dispose()
     session.database.wait_for_connection()
     session.redis.ping()
     yield
-    session.database.engine.dispose()
     session.redis.close()
 
 api = FastAPI(

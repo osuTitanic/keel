@@ -1,6 +1,8 @@
 
 from app.routes import router as BaseRouter
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from app import session
 
 import logging
 import config
@@ -18,6 +20,14 @@ Note that this documentation may contain parts that are incorrect and contain er
 Don't be afraid to report them on our GitHub repository.
 """
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    session.database.wait_for_connection()
+    session.redis.ping()
+    yield
+    session.database.engine.dispose()
+    session.redis.close()
+
 api = FastAPI(
     title='Titanic! API',
     description=description,
@@ -25,6 +35,7 @@ api = FastAPI(
     debug=config.DEBUG,
     redoc_url="/docs",
     docs_url=None,
+    lifespan=lifespan,
     contact={
         "name": "Titanic",
         "url": "https://osu.titanic.sh",

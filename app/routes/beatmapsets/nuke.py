@@ -42,27 +42,31 @@ def nuke_beatmap(request: Request, set_id: int):
         topic.id,
         {
             'icon_id': 7,
-            'forum_id': 10,
-            'status_text': None
+            'forum_id': 12,
+            'status_text': None,
+            'hidden': True
         },
         request.state.db
     )
 
     posts.update_by_topic(
         topic.id,
-        {'forum_id': 10},
+        {
+            'forum_id': 12,
+            'hidden': True
+        },
         request.state.db
     )
 
     beatmapsets.update(
         set_id,
-        {'status': DatabaseStatus.WIP.value},
+        {'status': DatabaseStatus.Inactive.value},
         request.state.db
     )
 
     beatmaps.update_by_set_id(
         set_id,
-        {'status': DatabaseStatus.WIP.value},
+        {'status': DatabaseStatus.Inactive.value},
         request.state.db
     )
 
@@ -70,6 +74,14 @@ def nuke_beatmap(request: Request, set_id: int):
         set_id,
         request.state.db
     )
+
+    request.state.storage.remove_osz2(beatmapset.id)
+    request.state.storage.remove_osz(beatmapset.id)
+    request.state.storage.remove_background(beatmapset.id)
+    request.state.storage.remove_mp3(beatmapset.id)
+
+    for beatmap in beatmapset.beatmaps:
+        request.state.storage.remove_beatmap_file(beatmap.id)
 
     send_nuke_webhook(
         beatmapset,

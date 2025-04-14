@@ -20,6 +20,11 @@ class AuthBackend(AuthenticationBackend):
         if (access_token := request.cookies.get('access_token')):
             # Use access_token cookie to authenticate user
             user = await self.token_authentication(access_token, request)
+
+            if not user:
+                self.logger.warning('Invalid access token')
+                return AuthCredentials([]), UnauthenticatedUser()
+
             scopes = await self.resolve_user_scopes(user, request)
             return AuthCredentials(scopes), user
 

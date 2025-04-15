@@ -129,7 +129,10 @@ def create_post(
 
     if topic.forum_id != forum_id:
         return RedirectResponse(f"/forum/{topic.forum_id}/topics/{topic.id}/posts")
-    
+
+    if len(data.content) > 2**14:
+        raise HTTPException(400, "Post content is too long")
+
     new_icon = resolve_icon(
         data,
         request,
@@ -223,6 +226,9 @@ def edit_post(
 
     if post.user_id != request.user.id and not request.user.is_moderator:
         raise HTTPException(403, "You are not authorized to perform this action")
+
+    if len(data.content) > 2**14:
+        raise HTTPException(400, "Post content is too long")
 
     updates = {
         'content': data.content

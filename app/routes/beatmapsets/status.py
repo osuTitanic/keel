@@ -75,9 +75,9 @@ def update_beatmap_statuses(
         raise HTTPException(404)
     
     status_updates = {
-        int(key.removeprefix('status-')): int(value)
+        int(key): int(value)
         for key, value in updates.items()
-        if int(value) != -3
+        if (key.isdecimal() and value.isdecimal()) and int(value) != -3
     }
 
     if not status_updates:

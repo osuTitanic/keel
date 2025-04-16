@@ -47,6 +47,9 @@ def password_reset(
         user
     )
 
+    # Set a lock for the user to prevent spamming
+    request.state.redis.set(f'reset_lock:{user.id}', 1, ex=3600*12)
+
     return VerificationResponse(
         user_id=user.id,
         verification_id=verification.id

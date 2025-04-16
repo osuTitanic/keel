@@ -25,6 +25,11 @@ def password_reset(
 
     if not (user := users.fetch_by_email(reset.email, request.state.db)):
         raise HTTPException(404, 'We could not find any user with that email address.')
+    
+    lock = request.state.redis.get(f'reset_lock:{user.id}') or b'0'
+
+    if int(lock):
+        raise HTTPException(503, 'You have already requested a password reset. Please check your email.')
 
     request.state.logger.info(
         'Sending verification email for resetting password...'

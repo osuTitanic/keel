@@ -80,7 +80,7 @@ def reward_kudosu(request: Request, set_id: int, post_id: int):
         )
 
     is_authorized = (
-        request.user.id != beatmapset.creator_id or
+        request.user.id == beatmapset.creator_id or
         request.user.is_bat
     )
 

@@ -73,6 +73,7 @@ def get_top_plays(
         mode.integer,
         offset=offset,
         limit=limit,
+        exclude_approved=(not APPROVED_MAP_REWARDS),
         session=request.state.db
     )
 

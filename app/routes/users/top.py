@@ -2,6 +2,7 @@
 from app.models import ScoreCollectionResponse, ScoreModelWithoutUser, ModeAlias
 from app.common.database.repositories import scores, users
 from fastapi import HTTPException, Request, APIRouter, Query
+from config import APPROVED_MAP_REWARDS
 
 router = APIRouter()
 
@@ -29,6 +30,7 @@ def get_top_plays_preferred_mode(
         user.preferred_mode,
         offset=offset,
         limit=limit,
+        exclude_approved=(not APPROVED_MAP_REWARDS),
         session=request.state.db
     )
 

@@ -5,10 +5,6 @@ from enum import Enum
 
 from .user import UserModelCompact
 
-class Renderer(str, Enum):
-    opengl = 'OpenGL'
-    directx = 'DirectX'
-
 class BenchmarkModel(BaseModel):
     id: int
     smoothness: float
@@ -21,7 +17,7 @@ class BenchmarkModel(BaseModel):
     user: UserModelCompact
 
 class BenchmarkHardware(BaseModel):
-    renderer: Renderer
+    renderer: str
     cpu: str
     cores: int
     threads: int
@@ -30,6 +26,16 @@ class BenchmarkHardware(BaseModel):
     os: str
     motherboard_manufacturer: str
     motherboard: str
+
+    @field_validator('renderer', mode='before')
+    def validate_renderer(cls, value, field):
+        if not isinstance(value, str) or len(value) <= 0:
+            raise ValueError(f"{field.name} must be a string")
+
+        if len(value) > 12:
+            raise ValueError(f"{field.name} must be a string of a maximum of 12 characters")
+
+        return value
 
     @field_validator('cores', 'threads', mode='before')
     def validate_cores_and_threads(cls, value, field):

@@ -37,7 +37,8 @@ def get_top_plays_preferred_mode(
     top_count = scores.fetch_top_scores_count(
         user.id,
         user.preferred_mode,
-        request.state.db
+        exclude_approved=(not APPROVED_MAP_REWARDS),
+        session=request.state.db
     )
 
     return ScoreCollectionResponse(
@@ -80,7 +81,8 @@ def get_top_plays(
     top_count = scores.fetch_top_scores_count(
         user.id,
         mode.integer,
-        request.state.db
+        exclude_approved=(not APPROVED_MAP_REWARDS),
+        session=request.state.db
     )
 
     return ScoreCollectionResponse(

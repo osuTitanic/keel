@@ -1,5 +1,5 @@
 
-from app.models import ServerStatsModel
+from app.models import ServerStatsModel, BeatmapModeStatsModel
 from fastapi import APIRouter, Request
 
 from . import beatmapsets
@@ -44,5 +44,18 @@ def server_stats(request: Request):
         total_users=int(request.state.redis.get("bancho:totalusers") or 0),
         total_scores=int(request.state.redis.get("bancho:totalscores") or 0),
         total_beatmaps=int(request.state.redis.get("bancho:totalbeatmaps") or 0),
-        total_beatmapsets=int(request.state.redis.get("bancho:totalbeatmapsets") or 0)
+        total_beatmapsets=int(request.state.redis.get("bancho:totalbeatmapsets") or 0),
+        beatmap_modes={
+            mode: BeatmapModeStatsModel(
+                mode=mode,
+                count_graveyard=int(request.state.redis.get(f"bancho:totalbeatmaps:{mode}:-2") or 0),
+                count_wip=int(request.state.redis.get(f"bancho:totalbeatmaps:{mode}:-1") or 0),
+                count_pending=int(request.state.redis.get(f"bancho:totalbeatmaps:{mode}:0") or 0),
+                count_ranked=int(request.state.redis.get(f"bancho:totalbeatmaps:{mode}:1") or 0),
+                count_approved=int(request.state.redis.get(f"bancho:totalbeatmaps:{mode}:2") or 0),
+                count_qualified=int(request.state.redis.get(f"bancho:totalbeatmaps:{mode}:3") or 0),
+                count_loved=int(request.state.redis.get(f"bancho:totalbeatmaps:{mode}:4") or 0),
+            )
+            for mode in range(4)
+        }
     )

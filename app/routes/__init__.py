@@ -40,7 +40,9 @@ router.include_router(resources.router, prefix="/resources", tags=["internal res
 def server_stats(request: Request):
     return ServerStatsModel(
         uptime=round(time.time() - app.session.startup_time),
-        total_scores=int(request.state.redis.get("bancho:totalscores") or 0),
+        online_users=int(request.state.redis.get("bancho:users") or 0),
         total_users=int(request.state.redis.get("bancho:totalusers") or 0),
-        online_users=int(request.state.redis.get("bancho:users") or 0)
+        total_scores=int(request.state.redis.get("bancho:totalscores") or 0),
+        total_beatmaps=int(request.state.redis.get("bancho:totalbeatmaps") or 0),
+        total_beatmapsets=int(request.state.redis.get("bancho:totalbeatmapsets") or 0)
     )

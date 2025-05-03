@@ -6,6 +6,7 @@ from typing import List
 from app.models import KudosuModel, KudosuWithoutSetModel, ErrorResponse
 from app.common.database import beatmapsets, modding, posts
 from app.common.constants import DatabaseStatus
+from app.common.cache import leaderboards
 from app.security import require_login
 from app.utils import requires
 
@@ -162,6 +163,12 @@ def reward_kudosu(request: Request, set_id: int, post_id: int):
         request.state.db
     )
 
+    leaderboards.update_kudosu(
+        post.user_id,
+        post.user.country,
+        session=request.state.db
+    )
+
     return KudosuModel.model_validate(kudosu, from_attributes=True)
 
 @router.post("/{set_id}/kudosu/{post_id}/revoke", response_model=KudosuModel, dependencies=[require_login])
@@ -241,6 +248,12 @@ def revoke_kudosu(request: Request, set_id: int, post_id: int):
         session=request.state.db
     )
 
+    leaderboards.update_kudosu(
+        post.user_id,
+        post.user.country,
+        session=request.state.db
+    )
+
     return KudosuModel.model_validate(kudosu, from_attributes=True)
 
 @router.post("/{set_id}/kudosu/{post_id}/reset", dependencies=[require_login])
@@ -301,6 +314,12 @@ def reset_kudosu(request: Request, set_id: int, post_id: int):
         beatmapset.id,
         {'star_priority': max(beatmapset.star_priority - total_kudosu, 0)},
         request.state.db
+    )
+
+    leaderboards.update_kudosu(
+        post.user_id,
+        post.user.country,
+        session=request.state.db
     )
 
     return {}

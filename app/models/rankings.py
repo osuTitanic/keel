@@ -19,6 +19,7 @@ class ModeAlias(str, Enum):
 class OrderType(str, Enum):
     Performance = 'performance'
     RankedScore = 'rscore'
+    FirstPlaces = 'leader'
     TotalScore = 'tscore'
     Country = 'country'
     PPv1 = 'ppv1'

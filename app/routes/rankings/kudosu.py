@@ -10,7 +10,7 @@ from typing import List
 router = APIRouter()
 
 @router.get("/kudosu", response_model=List[RankingEntryModelWithoutStats])
-def get_rankings(
+def get_kudosu_rankings(
     request: Request,
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=50)

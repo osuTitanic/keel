@@ -47,6 +47,11 @@ class RankingEntryModel(BaseModel):
     user: UserModel
     stats: RankingStatsModel
 
+class RankingEntryModelWithoutStats(BaseModel):
+    index: int
+    score: float
+    user: UserModel
+
 class CountryEntryModel(BaseModel):
     index: int
     country_name: str

@@ -15,6 +15,7 @@ import functools
 import inspect
 import asyncio
 import typing
+import config
 import io
 
 async def run_async(func: Callable, *args):
@@ -79,12 +80,13 @@ def sync_ranks(user: DBUser, session: Session) -> None:
         )
         user_stats.rank = global_rank
 
-        # Update rank history
-        histories.update_rank(
-            user_stats,
-            user.country,
-            session=session
-        )
+        if not config.FROZEN_RANK_UPDATES:
+            # Update rank history
+            histories.update_rank(
+                user_stats,
+                user.country,
+                session=session
+            )
 
 def requires(
     scopes: str | typing.Sequence[str],

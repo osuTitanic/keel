@@ -104,6 +104,17 @@ def add_favourite(
             detail="You have already favourited this beatmapset"
         )
 
+    count = favourites.fetch_count(
+        request.user.id,
+        request.state.db
+    )
+    
+    if count > 49:
+        raise HTTPException(
+            status_code=400,
+            detail="You have too many favourite maps. Please go to your profile and delete some first."
+        )
+
     favourite = favourites.create(
         request.user.id,
         beatmapset.id,

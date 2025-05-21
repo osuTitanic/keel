@@ -33,7 +33,7 @@ def friends(request: Request):
     ]
 
 @router.post("/friends", response_model=RelationshipResponse, responses=add_responses)
-@requires("users.friends.add")
+@requires("users.friends.create")
 def add_friend(request: Request, id: int):
     """Add a user to the authenticated user's friends list"""
     if id == request.user.id:

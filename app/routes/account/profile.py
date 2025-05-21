@@ -1,11 +1,10 @@
 
 from fastapi import HTTPException, APIRouter, Request
-from starlette.authentication import requires
-
 from app.models import UserModel, ErrorResponse, ProfileUpdateModel
 from app.common.constants.regexes import DISCORD_USERNAME, URL
 from app.security import require_login
 from app.common.database import users
+from app.utils import requires
 
 import re
 

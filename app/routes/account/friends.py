@@ -2,9 +2,9 @@
 from app.models import RelationshipResponse, UserModelCompact, ErrorResponse
 from app.common.database import relationships, users
 from app.security import require_login
+from app.utils import requires
 
 from fastapi import HTTPException, APIRouter, Request
-from starlette.authentication import requires
 from typing import List
 
 router = APIRouter(

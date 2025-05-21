@@ -26,7 +26,7 @@ class AuthBackend(AuthenticationBackend):
                 self.logger.warning('Invalid access token')
                 return AuthCredentials([]), UnauthenticatedUser()
 
-            scopes = await self.resolve_user_scopes(user, request)
+            scopes = await self.resolve_user_scopes(user)
             return AuthCredentials(scopes), user
 
         if not (auth_header := request.headers.get('Authorization')):
@@ -55,7 +55,7 @@ class AuthBackend(AuthenticationBackend):
             self.logger.warning(f'Invalid credentials for {authorization["scheme"]}')
             return AuthCredentials([]), UnauthenticatedUser()
 
-        scopes = await self.resolve_user_scopes(user, request)
+        scopes = await self.resolve_user_scopes(user)
         return AuthCredentials(scopes), user
 
     async def basic_authentication(self, data: str, request: HTTPConnection) -> DBUser | None:
@@ -95,7 +95,7 @@ class AuthBackend(AuthenticationBackend):
             user_id
         )
 
-    async def resolve_user_scopes(self, user: DBUser, request: HTTPConnection) -> List[str]:
+    async def resolve_user_scopes(self, user: DBUser) -> List[str]:
         granted, rejected = await self.fetch_user_permissions(user.id)
         scopes = ['users.authenticated', *granted]
 

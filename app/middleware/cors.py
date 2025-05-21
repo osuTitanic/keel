@@ -4,6 +4,8 @@ from config import DOMAIN_NAME
 from app import api
 
 origins = [
+    f"http://localhost",
+    f"http://osu.localhost",
     f"http://localhost:8080",
     f"http://127.0.0.1:8080",
     f"http://api.{DOMAIN_NAME}",

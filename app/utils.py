@@ -2,6 +2,7 @@
 from app.common.database.repositories import wrapper
 from app.common.database import stats, histories
 from app.common.database.objects import DBUser
+from app.common.helpers import permissions
 from app.common.cache import leaderboards
 
 from typing import Callable, Generator, Tuple
@@ -109,6 +110,9 @@ def requires(
 
             if not any(scope in request.auth.scopes for scope in scopes_list):
                 raise HTTPException(status_code, detail=message)
+            
+            if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
+                raise HTTPException(status_code, detail=message)
 
             return await func(*args, **kwargs)
 
@@ -123,6 +127,9 @@ def requires(
                 return func(*args, **kwargs)
 
             if not any(scope in request.auth.scopes for scope in scopes_list):
+                raise HTTPException(status_code, detail=message)
+
+            if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
                 raise HTTPException(status_code, detail=message)
 
             return func(*args, **kwargs)

@@ -105,18 +105,15 @@ def requires(
             if not request:
                 raise ValueError("The function does not have a request parameter")
 
+            if not any(permissions.includes_permission(scope, request.auth.scopes) for scope in scopes_list):
+                raise HTTPException(status_code, detail=message)
+
             if request.user.is_authenticated:
                 if request.user.is_admin:
-                    return func(*args, **kwargs)
+                    return await func(*args, **kwargs)
 
-                if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
+                if not all(permissions.has_permission(scope, request.user.id) for scope in scopes_list):
                     raise HTTPException(status_code, detail=message)
-
-                if all(permissions.is_granted(scope, request.user.id) for scope in scopes_list):
-                    return func(*args, **kwargs)
-
-            if not any(scope in request.auth.scopes for scope in scopes_list):
-                raise HTTPException(status_code, detail=message)
 
             return await func(*args, **kwargs)
 
@@ -127,18 +124,15 @@ def requires(
             if not request:
                 raise ValueError("The function does not have a request parameter")
 
+            if not any(permissions.includes_permission(scope, request.auth.scopes) for scope in scopes_list):
+                raise HTTPException(status_code, detail=message)
+
             if request.user.is_authenticated:
                 if request.user.is_admin:
                     return func(*args, **kwargs)
 
-                if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
+                if not all(permissions.has_permission(scope, request.user.id) for scope in scopes_list):
                     raise HTTPException(status_code, detail=message)
-
-                if all(permissions.is_granted(scope, request.user.id) for scope in scopes_list):
-                    return func(*args, **kwargs)
-
-            if not any(scope in request.auth.scopes for scope in scopes_list):
-                raise HTTPException(status_code, detail=message)
 
             return func(*args, **kwargs)
 

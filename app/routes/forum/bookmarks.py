@@ -50,7 +50,7 @@ def get_bookmark(request: Request, topic_id: int):
     return BookmarkModel.model_validate(bookmark, from_attributes=True)
 
 @router.post("/bookmarks", response_model=BookmarkModel, responses=responses)
-@requires("authenticated")
+@requires("forum.bookmarks.create")
 def create_bookmark(request: Request, data: BookmarkRequest = Body(...)):
     if not (topic := topics.fetch_one(data.topic_id, request.state.db)):
         raise HTTPException(404, "The requested topic could not be found")
@@ -67,7 +67,7 @@ def create_bookmark(request: Request, data: BookmarkRequest = Body(...)):
     return BookmarkModel.model_validate(bookmark, from_attributes=True)
 
 @router.delete("/bookmarks/{topic_id}", responses=responses)
-@requires("authenticated")
+@requires("forum.bookmarks.delete")
 def delete_bookmark(request: Request, topic_id: int) -> dict:
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
         raise HTTPException(404, "The requested topic could not be found")

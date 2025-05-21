@@ -54,7 +54,7 @@ def get_subscription(request: Request, topic_id: int):
     return SubscriptionModel.model_validate(subscription, from_attributes=True)
 
 @router.post("/subscriptions", response_model=SubscriptionModel)
-@requires("authenticated")
+@requires("forum.subscriptions.create")
 def create_subscription(request: Request, data: SubscriptionRequest = Body(...)):
     if not (topic := topics.fetch_one(data.topic_id, request.state.db)):
         raise HTTPException(404, "The requested topic could not be found")
@@ -71,7 +71,7 @@ def create_subscription(request: Request, data: SubscriptionRequest = Body(...))
     return SubscriptionModel.model_validate(subscription, from_attributes=True)
 
 @router.delete("/subscriptions/{topic_id}")
-@requires("authenticated")
+@requires("forum.subscriptions.delete")
 def delete_subscription(request: Request, topic_id: int) -> dict:
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
         raise HTTPException(404, "The requested topic could not be found")

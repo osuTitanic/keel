@@ -61,7 +61,7 @@ def get_topic(
     return TopicModel.model_validate(topic, from_attributes=True)
 
 @router.post("/{forum_id}/topics", response_model=TopicModel, dependencies=[require_login])
-@requires(["authenticated", "unrestricted", "unsilenced", "activated"])
+@requires(["forum.topics.create"])
 def create_topic(
     request: Request,
     forum_id: int,

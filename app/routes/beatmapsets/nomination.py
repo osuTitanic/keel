@@ -29,7 +29,7 @@ def beatmap_nominations(request: Request, set_id: int):
     ]
 
 @router.post("/{set_id}/nominations", response_model=List[NominationModel], dependencies=[require_login], responses=responses)
-@requires("bat")
+@requires("beatmaps.nominations.create")
 def nominate_beatmap(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(404, "The requested beatmapset could not be found")
@@ -83,7 +83,7 @@ def nominate_beatmap(request: Request, set_id: int):
     ]
 
 @router.delete("/{set_id}/nominations", response_model=List[NominationModel], dependencies=[require_login], responses=responses)
-@requires("bat")
+@requires("beatmaps.nominations.delete")
 def reset_nominations(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(404, "The requested beatmap could not be found")

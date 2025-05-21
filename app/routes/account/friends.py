@@ -33,7 +33,7 @@ def friends(request: Request):
     ]
 
 @router.post("/friends", response_model=RelationshipResponse, responses=add_responses)
-@requires("authenticated")
+@requires("users.friends.add")
 def add_friend(request: Request, id: int):
     """Add a user to the authenticated user's friends list"""
     if id == request.user.id:
@@ -83,7 +83,7 @@ def add_friend(request: Request, id: int):
     return RelationshipResponse(status='friends')
 
 @router.delete("/friends", response_model=RelationshipResponse, responses=remove_responses)
-@requires("authenticated")
+@requires("users.friends.delete")
 def remove_friend(request: Request, id: int):
     """Remove a user from the authenticated user's friends list"""
     if not (target := users.fetch_by_id(id, session=request.state.db)):

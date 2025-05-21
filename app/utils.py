@@ -105,13 +105,14 @@ def requires(
             if not request:
                 raise ValueError("The function does not have a request parameter")
 
-            if request.user.is_authenticated and request.user.is_admin:
-                return await func(*args, **kwargs)
+            if request.user.is_authenticated:
+                if request.user.is_admin:
+                    return func(*args, **kwargs)
+
+                if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
+                    raise HTTPException(status_code, detail=message)
 
             if not any(scope in request.auth.scopes for scope in scopes_list):
-                raise HTTPException(status_code, detail=message)
-            
-            if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
                 raise HTTPException(status_code, detail=message)
 
             return await func(*args, **kwargs)
@@ -123,13 +124,14 @@ def requires(
             if not request:
                 raise ValueError("The function does not have a request parameter")
 
-            if request.user.is_authenticated and request.user.is_admin:
-                return func(*args, **kwargs)
+            if request.user.is_authenticated:
+                if request.user.is_admin:
+                    return func(*args, **kwargs)
+
+                if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
+                    raise HTTPException(status_code, detail=message)
 
             if not any(scope in request.auth.scopes for scope in scopes_list):
-                raise HTTPException(status_code, detail=message)
-
-            if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
                 raise HTTPException(status_code, detail=message)
 
             return func(*args, **kwargs)

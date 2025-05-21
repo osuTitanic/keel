@@ -112,6 +112,9 @@ def requires(
                 if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
                     raise HTTPException(status_code, detail=message)
 
+                if all(permissions.is_granted(scope, request.user.id) for scope in scopes_list):
+                    return func(*args, **kwargs)
+
             if not any(scope in request.auth.scopes for scope in scopes_list):
                 raise HTTPException(status_code, detail=message)
 
@@ -130,6 +133,9 @@ def requires(
 
                 if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
                     raise HTTPException(status_code, detail=message)
+
+                if all(permissions.is_granted(scope, request.user.id) for scope in scopes_list):
+                    return func(*args, **kwargs)
 
             if not any(scope in request.auth.scopes for scope in scopes_list):
                 raise HTTPException(status_code, detail=message)

@@ -97,7 +97,7 @@ class AuthBackend(AuthenticationBackend):
 
     async def resolve_user_scopes(self, user: DBUser, request: HTTPConnection) -> List[str]:
         granted, rejected = await self.fetch_user_permissions(user.id)
-        scopes = ['authenticated', *granted]
+        scopes = ['users.authenticated', *granted]
 
         for rejected_scope in rejected:
             if rejected_scope in scopes:

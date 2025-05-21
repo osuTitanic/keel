@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 @router.get("/subscriptions", response_model=List[SubscriptionModel])
-@requires("authenticated")
+@requires("users.authenticated")
 def get_subscriptions(request: Request):
     subscriptions = users.fetch_subscriptions(
         request.user.id,
@@ -34,7 +34,7 @@ def get_subscriptions(request: Request):
     ]
 
 @router.get("/subscriptions/{topic_id}", response_model=SubscriptionModel)
-@requires("authenticated")
+@requires("users.authenticated")
 def get_subscription(request: Request, topic_id: int):
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
         raise HTTPException(404, "The requested topic could not be found")

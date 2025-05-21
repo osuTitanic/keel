@@ -11,7 +11,7 @@ router = APIRouter(dependencies=[require_login])
 responses = {404: {"description": "Bookmark/Topic not found", "model": ErrorResponse}}
 
 @router.get("/bookmarks", response_model=List[BookmarkModel])
-@requires("authenticated")
+@requires("users.authenticated")
 def get_bookmarks(request: Request):
     bookmarks = users.fetch_bookmarks(
         request.user.id,
@@ -30,7 +30,7 @@ def get_bookmarks(request: Request):
     ]
 
 @router.get("/bookmarks/{topic_id}", response_model=BookmarkModel, responses=responses)
-@requires("authenticated")
+@requires("users.authenticated")
 def get_bookmark(request: Request, topic_id: int):
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
         raise HTTPException(404, "The requested topic could not be found")

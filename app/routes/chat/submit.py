@@ -21,7 +21,7 @@ router = APIRouter(
 )
 
 @router.post("/channels/{target}/messages", response_model=MessageModel)
-@requires(["authenticated", "unrestricted", "unsilenced", "activated"])
+@requires(["chat.messages.create"])
 def post_message(
     target: str,
     request: Request,
@@ -75,7 +75,7 @@ def post_message(
     )
 
 @router.post("/dms/{target_id}/messages", response_model=PrivateMessageModel)
-@requires(["authenticated", "unrestricted", "unsilenced", "activated"])
+@requires(["chat.messages.private.create"])
 def post_private_message(
     target_id: int,
     request: Request,

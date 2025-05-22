@@ -9,7 +9,7 @@ from app.utils import requires
 router = APIRouter()
 
 @router.post("/", response_model=BenchmarkModel)
-@requires(["authenticated", "unrestricted", "unsilenced", "activated"])
+@requires("benchmarks.submit")
 def submit_benchmark_score(
     request: Request,
     body: BenchmarkSubmissionRequest = Body(...)

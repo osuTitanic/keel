@@ -75,7 +75,7 @@ def get_user_beatmapset(request: Request, user_id: int, beatmap_id: int) -> Beat
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
 @router.post("/{user_id}/beatmapsets/{beatmap_id}/revive", response_model=BeatmapsetModel, responses=action_responses)
-@requires(["authenticated", "activated"])
+@requires(["beatmaps.revive"])
 def revive_beatmapset(
     request: Request,
     user_id: int,
@@ -147,7 +147,7 @@ def revive_beatmapset(
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
 @router.delete("/{user_id}/beatmapsets/{beatmap_id}", response_model=BeatmapsetModel, responses=action_responses)
-@requires(["authenticated", "activated"])
+@requires(["beatmaps.delete"])
 def delete_beatmapset(
     request: Request,
     user_id: int,

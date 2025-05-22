@@ -24,7 +24,7 @@ router = APIRouter(
 )
 
 @router.post("/{set_id}/nuke", response_model=BeatmapsetModel)
-@requires('bat')
+@requires('beatmaps.nuke')
 def nuke_beatmap(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(404, 'The requested beatmapset could not be found')

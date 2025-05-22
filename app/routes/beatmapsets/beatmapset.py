@@ -28,7 +28,7 @@ def get_beatmapset(request: Request, set_id: int) -> BeatmapsetModel:
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
 @router.patch("/{set_id}", response_model=BeatmapsetModel, dependencies=[require_login])
-@requires("bat")
+@requires("beatmaps.metadata.update")
 def update_beatmapset_metadata(
     request: Request,
     set_id: int,

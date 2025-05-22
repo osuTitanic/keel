@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 @router.get("/{set_id}/osz", dependencies=[require_login], response_class=StreamingResponse)
-@requires("authenticated")
+@requires("beatmaps.download")
 def get_osz(request: Request, set_id: int, no_video: bool = Query(False)) -> StreamingResponse:
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(status_code=404)

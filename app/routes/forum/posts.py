@@ -49,7 +49,7 @@ def get_post(
     return PostModel.model_validate(post, from_attributes=True)
 
 @router.delete("/{forum_id}/topics/{topic_id}/posts/{post_id}", dependencies=[require_login])
-@requires(["authenticated", "activated"])
+@requires(["forum.posts.delete"])
 def delete_post(
     request: Request,
     forum_id: int,
@@ -110,7 +110,7 @@ def get_topic_posts(
     ]
 
 @router.post("/{forum_id}/topics/{topic_id}/posts", response_model=PostModel, dependencies=[require_login])
-@requires(["authenticated", "activated", "unrestricted", "unsilenced"])
+@requires(["forum.posts.create"])
 def create_post(
     request: Request,
     forum_id: int,
@@ -197,7 +197,7 @@ def create_post(
     return PostModel.model_validate(post, from_attributes=True)
 
 @router.patch("/{forum_id}/topics/{topic_id}/posts/{post_id}", response_model=PostModel, dependencies=[require_login])
-@requires(["authenticated", "activated"])
+@requires(["forum.posts.edit"])
 def edit_post(
     request: Request,
     forum_id: int,

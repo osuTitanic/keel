@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 @router.post("/login", response_model=TokenResponse)
-@requires("authenticated")
+@requires("users.authenticated")
 def generate_access_token(request: Request) -> JSONResponse:
     """Request an access token to access authenticated routes, and have higher rate limits.
 

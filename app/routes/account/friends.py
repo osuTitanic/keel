@@ -2,9 +2,9 @@
 from app.models import RelationshipResponse, UserModelCompact, ErrorResponse
 from app.common.database import relationships, users
 from app.security import require_login
+from app.utils import requires
 
 from fastapi import HTTPException, APIRouter, Request
-from starlette.authentication import requires
 from typing import List
 
 router = APIRouter(
@@ -23,7 +23,7 @@ remove_responses = {
 }
 
 @router.get("/friends", response_model=List[UserModelCompact])
-@requires("authenticated")
+@requires("users.authenticated")
 def friends(request: Request):
     """Get a list of friends for the authenticated user"""
     return [
@@ -33,7 +33,7 @@ def friends(request: Request):
     ]
 
 @router.post("/friends", response_model=RelationshipResponse, responses=add_responses)
-@requires("authenticated")
+@requires("users.friends.create")
 def add_friend(request: Request, id: int):
     """Add a user to the authenticated user's friends list"""
     if id == request.user.id:
@@ -83,7 +83,7 @@ def add_friend(request: Request, id: int):
     return RelationshipResponse(status='friends')
 
 @router.delete("/friends", response_model=RelationshipResponse, responses=remove_responses)
-@requires("authenticated")
+@requires("users.friends.delete")
 def remove_friend(request: Request, id: int):
     """Remove a user from the authenticated user's friends list"""
     if not (target := users.fetch_by_id(id, session=request.state.db)):

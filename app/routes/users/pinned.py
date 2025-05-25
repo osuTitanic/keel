@@ -101,7 +101,7 @@ def get_pinned_scores_by_preferred_mode(
     )
 
 @router.post("/{user_id}/pinned", response_model=ScoreModelWithoutUser)
-@requires("authenticated")
+@requires("scores.pins.create")
 def pin_score(
     request: Request,
     user_id: int,
@@ -146,7 +146,7 @@ def pin_score(
     return ScoreModelWithoutUser.model_validate(score, from_attributes=True)
 
 @router.delete("/{user_id}/pinned", response_model=ScoreModelWithoutUser)
-@requires("authenticated")
+@requires("scores.pins.delete")
 def unpin_score(
     request: Request,
     user_id: int,

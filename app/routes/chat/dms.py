@@ -11,7 +11,7 @@ router = APIRouter(dependencies=[require_login])
 responses = {404: {'model': ErrorResponse, 'description': "User not found"}}
 
 @router.get("/dms", response_model=List[PrivateMessageSelectionEntry])
-@requires("authenticated")
+@requires("chat.messages.private.view")
 def direct_message_selection(request: Request) -> List[PrivateMessageSelectionEntry]:
     user_list = messages.fetch_dm_entries(
         request.user.id,
@@ -35,7 +35,7 @@ def direct_message_selection(request: Request) -> List[PrivateMessageSelectionEn
     return sorted(entries, key=lambda x: x.last_message.id, reverse=True)
 
 @router.get("/dms/{target_id}/messages", response_model=List[PrivateMessageModel], responses=responses)
-@requires("authenticated")
+@requires("chat.messages.private.view")
 def direct_message_history(
     request: Request,
     target_id: int,

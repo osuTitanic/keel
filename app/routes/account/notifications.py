@@ -10,7 +10,7 @@ from app.utils import requires
 router = APIRouter()
 
 @router.get("/notifications", response_model=List[NotificationModel])
-@requires("authenticated")
+@requires("users.authenticated")
 def get_notifications(request: Request) -> List[NotificationModel]:
     """Get a list of unread notifications for the authenticated user"""
     return [
@@ -19,14 +19,14 @@ def get_notifications(request: Request) -> List[NotificationModel]:
     ]
 
 @router.delete("/notifications", response_model=List[NotificationModel])
-@requires("authenticated")
+@requires("users.notifications.delete")
 def confirm_all_notifications(request: Request) -> List[NotificationModel]:
     """Confirm all unread notifications for the authenticated user"""
     notifications.update_by_user_id(request.user.id, {'read': True}, request.state.db)
     return RedirectResponse("/account/notifications", status_code=303)
 
 @router.delete("/notifications/{id}", response_model=List[NotificationModel])
-@requires("authenticated")
+@requires("users.notifications.delete")
 def confirm_notification(request: Request, id: int) -> List[NotificationModel]:
     """Confirm a specific notification for the authenticated user"""
     if not (notification := notifications.fetch_one(id, request.state.db)):

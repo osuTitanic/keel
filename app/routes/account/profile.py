@@ -1,11 +1,10 @@
 
 from fastapi import HTTPException, APIRouter, Request
-from starlette.authentication import requires
-
 from app.models import UserModel, ErrorResponse, ProfileUpdateModel
 from app.common.constants.regexes import DISCORD_USERNAME, URL
 from app.security import require_login
 from app.common.database import users
+from app.utils import requires
 
 import re
 
@@ -15,7 +14,7 @@ router = APIRouter(
 )
 
 @router.get("/profile", response_model=UserModel)
-@requires("authenticated")
+@requires("users.authenticated")
 def profile(request: Request) -> UserModel:
     """Get the authenticated user's profile"""
     return UserModel.model_validate(
@@ -24,7 +23,7 @@ def profile(request: Request) -> UserModel:
     )
 
 @router.post("/profile", response_model=UserModel)
-@requires(["authenticated", "unrestricted", "unsilenced", "activated"])
+@requires(["users.profile.update"])
 def profile_update(
     request: Request,
     update: ProfileUpdateModel

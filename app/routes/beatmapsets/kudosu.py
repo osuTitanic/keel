@@ -66,7 +66,7 @@ def get_kudosu_by_post(request: Request, set_id: int, post_id: int):
     ]
 
 @router.post("/{set_id}/kudosu/{post_id}/reward", response_model=KudosuModel, dependencies=[require_login])
-@requires("authenticated")
+@requires("forum.kudosu.reward")
 def reward_kudosu(request: Request, set_id: int, post_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(
@@ -172,7 +172,7 @@ def reward_kudosu(request: Request, set_id: int, post_id: int):
     return KudosuModel.model_validate(kudosu, from_attributes=True)
 
 @router.post("/{set_id}/kudosu/{post_id}/revoke", response_model=KudosuModel, dependencies=[require_login])
-@requires("bat")
+@requires("forum.kudosu.revoke")
 def revoke_kudosu(request: Request, set_id: int, post_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(
@@ -257,7 +257,7 @@ def revoke_kudosu(request: Request, set_id: int, post_id: int):
     return KudosuModel.model_validate(kudosu, from_attributes=True)
 
 @router.post("/{set_id}/kudosu/{post_id}/reset", dependencies=[require_login])
-@requires("bat")
+@requires("forum.kudosu.reset")
 def reset_kudosu(request: Request, set_id: int, post_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(

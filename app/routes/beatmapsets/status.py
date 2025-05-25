@@ -37,7 +37,7 @@ router = APIRouter(
 )
 
 @router.patch("/{set_id}/status", response_model=BeatmapsetModel)
-@requires("bat")
+@requires("beatmaps.update_status")
 def update_beatmapset_status(
     request: Request,
     set_id: int,
@@ -65,7 +65,7 @@ def update_beatmapset_status(
     return handler(beatmapset, request)
 
 @router.patch("/{set_id}/status/beatmaps", response_model=BeatmapsetModel)
-@requires("bat")
+@requires("beatmaps.update_status")
 def update_beatmap_statuses(
     request: Request,
     set_id: int,

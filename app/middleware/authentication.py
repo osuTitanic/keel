@@ -2,9 +2,10 @@
 from starlette.authentication import AuthenticationBackend, AuthCredentials, UnauthenticatedUser
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
-from typing import List
+from typing import List, Tuple
 
-from app.common.database.repositories import users, groups
+from app.common.database.repositories import users
+from app.common.helpers import permissions
 from app.common.database import DBUser
 from app import api, utils
 
@@ -25,7 +26,7 @@ class AuthBackend(AuthenticationBackend):
                 self.logger.warning('Invalid access token')
                 return AuthCredentials([]), UnauthenticatedUser()
 
-            scopes = await self.resolve_user_scopes(user, request)
+            scopes = await self.resolve_user_scopes(user)
             return AuthCredentials(scopes), user
 
         if not (auth_header := request.headers.get('Authorization')):
@@ -54,7 +55,7 @@ class AuthBackend(AuthenticationBackend):
             self.logger.warning(f'Invalid credentials for {authorization["scheme"]}')
             return AuthCredentials([]), UnauthenticatedUser()
 
-        scopes = await self.resolve_user_scopes(user, request)
+        scopes = await self.resolve_user_scopes(user)
         return AuthCredentials(scopes), user
 
     async def basic_authentication(self, data: str, request: HTTPConnection) -> DBUser | None:
@@ -88,27 +89,19 @@ class AuthBackend(AuthenticationBackend):
             data['id'], request.state.db
         )
 
-    async def fetch_user_groups(self, user_id: int, request: HTTPConnection) -> List[str]:
-        user_groups = await utils.run_async(
-            groups.fetch_user_groups,
-            user_id, True, request.state.db
+    async def fetch_user_permissions(self, user_id: int) -> Tuple[List[str], List[str]]:
+        return await utils.run_async(
+            permissions.fetch_all,
+            user_id
         )
-        return [group.short_name for group in user_groups]
-    
-    async def resolve_user_scopes(self, user: DBUser, request: HTTPConnection) -> List[str]:
-        scopes = ['authenticated']
 
-        if user.activated:
-            scopes.append('activated')
+    async def resolve_user_scopes(self, user: DBUser) -> List[str]:
+        granted, rejected = await self.fetch_user_permissions(user.id)
+        scopes = ['users.authenticated', *granted]
 
-        if not user.restricted:
-            scopes.append('unrestricted')
-
-        if not user.silence_end:
-            scopes.append('unsilenced')
-
-        for group in await self.fetch_user_groups(user.id, request):
-            scopes.append(group.lower())
+        for rejected_scope in rejected:
+            if rejected_scope in scopes:
+                scopes.remove(rejected_scope)
 
         return scopes
 

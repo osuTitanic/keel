@@ -10,7 +10,7 @@ router = APIRouter(
 )
 
 @router.get("/osz2/{filename}", response_class=StreamingResponse)
-@requires("authenticated")
+@requires("beatmaps.download")
 def get_internal_osz2(request: Request, filename: str):
     if not request.state.storage.file_exists(filename, 'osz2'):
         raise HTTPException(

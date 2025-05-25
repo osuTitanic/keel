@@ -116,7 +116,7 @@ def requires(
                 if request.user.is_admin:
                     return await func(*args, **kwargs)
 
-                granted, rejected = permissions.fetch_all(request.user.id)
+                granted, rejected = await run_async(permissions.fetch_all, request.user.id)
 
                 if any(is_rejected(scope, rejected) for scope in scopes_list):
                     raise HTTPException(status_code, detail=message)

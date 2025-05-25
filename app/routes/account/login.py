@@ -83,7 +83,7 @@ def refresh_access_token(request: Request) -> JSONResponse:
     """
     user: DBUser = request.user
 
-    if "authenticated" not in request.auth.scopes:
+    if "users.authenticated" not in request.auth.scopes:
         # Try to authenticate the user using the refresh token
         user = validate_refresh_token(request)
 

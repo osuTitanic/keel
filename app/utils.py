@@ -96,6 +96,10 @@ def requires(
 ) -> typing.Callable[[typing.Callable], typing.Callable]:
     """This function checks if the user is either an admin, or has the required scope(s)"""
     scopes_list = [scopes] if isinstance(scopes, str) else list(scopes)
+    
+    def is_rejected(permission: str, rejected: List[str]) -> bool:
+        permission = permission.lower().removesuffix('.*')
+        return permissions.includes_permission(permission, rejected)
 
     def decorator(func: typing.Callable) -> typing.Callable:
         @functools.wraps(func)
@@ -112,7 +116,9 @@ def requires(
                 if request.user.is_admin:
                     return await func(*args, **kwargs)
 
-                if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
+                granted, rejected = permissions.fetch_all(request.user.id)
+
+                if any(is_rejected(scope, rejected) for scope in scopes_list):
                     raise HTTPException(status_code, detail=message)
 
             return await func(*args, **kwargs)
@@ -131,7 +137,9 @@ def requires(
                 if request.user.is_admin:
                     return func(*args, **kwargs)
 
-                if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
+                granted, rejected = permissions.fetch_all(request.user.id)
+
+                if any(is_rejected(scope, rejected) for scope in scopes_list):
                     raise HTTPException(status_code, detail=message)
 
             return func(*args, **kwargs)

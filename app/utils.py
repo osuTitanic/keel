@@ -5,7 +5,7 @@ from app.common.database.objects import DBUser
 from app.common.helpers import permissions
 from app.common.cache import leaderboards
 
-from typing import Callable, Generator, Tuple
+from typing import Callable, Generator, Tuple, List
 from fastapi import HTTPException, Request
 from sqlalchemy.orm import Session
 from itertools import tee
@@ -112,7 +112,7 @@ def requires(
                 if request.user.is_admin:
                     return await func(*args, **kwargs)
 
-                if not all(permissions.has_permission(scope, request.user.id) for scope in scopes_list):
+                if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
                     raise HTTPException(status_code, detail=message)
 
             return await func(*args, **kwargs)
@@ -131,7 +131,7 @@ def requires(
                 if request.user.is_admin:
                     return func(*args, **kwargs)
 
-                if not all(permissions.has_permission(scope, request.user.id) for scope in scopes_list):
+                if any(permissions.is_rejected(scope, request.user.id) for scope in scopes_list):
                     raise HTTPException(status_code, detail=message)
 
             return func(*args, **kwargs)

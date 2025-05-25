@@ -23,7 +23,7 @@ def profile(request: Request) -> UserModel:
     )
 
 @router.post("/profile", response_model=UserModel)
-@requires(["users.profile.update"])
+@requires("users.profile.update")
 def profile_update(
     request: Request,
     update: ProfileUpdateModel

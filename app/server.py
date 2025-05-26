@@ -13,11 +13,6 @@ logging.basicConfig(
     level=logging.DEBUG if config.DEBUG else logging.INFO,
 )
 
-warnings.filterwarnings(
-    "ignore",
-    module="pydantic"
-)
-
 description = """\
 Welcome to the documentation for the Titanic! API.  
 This service lets you access & interact with (almost) everything Titanic! has to offer.
@@ -62,3 +57,10 @@ if config.DEBUG:
         "url": f"http://localhost:{config.API_PORT}",
         "description": "Local server"
     })
+
+if not config.DEBUG:
+    # Ignore pydantic warnings in production
+    warnings.filterwarnings(
+        "ignore",
+        module="pydantic"
+    )

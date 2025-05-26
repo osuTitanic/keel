@@ -4,12 +4,18 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app import session
 
+import warnings
 import logging
 import config
 
 logging.basicConfig(
     format='[%(asctime)s] - <%(name)s> %(levelname)s: %(message)s',
     level=logging.DEBUG if config.DEBUG else logging.INFO,
+)
+
+warnings.filterwarnings(
+    "ignore",
+    module="pydantic"
 )
 
 description = """\

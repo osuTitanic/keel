@@ -39,6 +39,7 @@ class BeatmapsetModel(BaseModel):
     has_storyboard: bool
     server: int
     available: bool
+    enhanced: bool
     created_at: datetime
     approved_at: datetime | None
     last_update: datetime
@@ -69,3 +70,4 @@ class BeatmapUpdateRequest(BaseModel):
     language: BeatmapLanguage = BeatmapLanguage.Unspecified
     genre: BeatmapGenre = BeatmapGenre.Unspecified
     display_title: str | None = None
+    enhanced: bool = False

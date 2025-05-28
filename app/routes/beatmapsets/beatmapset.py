@@ -45,6 +45,7 @@ def update_beatmapset_metadata(
         {
             'tags': update.tags,
             'offset': update.offset,
+            'enhanced': update.enhanced,
             'genre_id': update.genre.value,
             'language_id': update.language.value,
             'display_title': (

@@ -15,6 +15,7 @@ class BeatmapsetModelWithoutBeatmaps(BaseModel):
     has_storyboard: bool
     server: int
     available: bool
+    enhanced: bool
     created_at: datetime
     approved_at: datetime | None
     last_update: datetime

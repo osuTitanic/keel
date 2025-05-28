@@ -1,8 +1,17 @@
-FROM python:3.11-bullseye
+FROM python:3.13-slim-bullseye
 
 # Installing/Updating system dependencies
-RUN apt update -y
-RUN apt install postgresql git curl ffmpeg libavcodec-extra -y
+RUN apt update -y && \
+    apt install -y --no-install-recommends \
+        postgresql-client \
+        git \
+        curl \
+        build-essential \
+        gcc \
+        python3-dev \
+        libpcre3-dev \
+        libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install rust toolchain
 RUN curl -sSf https://sh.rustup.rs | sh -s -- -y
@@ -23,6 +32,10 @@ COPY . .
 # Get config for deployment
 ARG API_WORKERS=4
 ENV API_WORKERS $API_WORKERS
+
+# Generate __pycache__ directories
+ENV PYTHONDONTWRITEBYTECODE=1
+RUN python -m compileall -q app
 
 CMD gunicorn \
         --access-logfile - \

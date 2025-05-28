@@ -433,9 +433,13 @@ def move_beatmap_topic(beatmapset: DBBeatmapset, status: int, session: Session):
         return
 
     forum_id = {
-        DatabaseStatus.Pending: 8,
+        DatabaseStatus.Pending: 9,
         DatabaseStatus.WIP: 10,
         DatabaseStatus.Graveyard: 12,
+        DatabaseStatus.Approved: 8,
+        DatabaseStatus.Qualified: 8,
+        DatabaseStatus.Ranked: 8,
+        DatabaseStatus.Loved: 8
     }.get(status, 9)
 
     topics.update(

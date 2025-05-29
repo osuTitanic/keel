@@ -22,7 +22,7 @@ def get_internal_mp3(request: Request, filename: str):
     )
 
 @router.put("/mp3/{set_id}", dependencies=[require_login])
-@requires("beatmaps.resources.mt.upload")
+@requires("beatmaps.resources.mp3.upload")
 def upload_internal_background(
     request: Request,
     set_id: int,

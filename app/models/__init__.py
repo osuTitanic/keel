@@ -20,6 +20,7 @@ from .notifications import *
 from .packs import *
 from .playstyle import *
 from .rankings import *
+from .reports import *
 from .score import *
 from .search import *
 from .server import *

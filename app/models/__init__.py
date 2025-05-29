@@ -13,6 +13,7 @@ from .forums import *
 from .groups import *
 from .history import *
 from .kudosu import *
+from .moderation import *
 from .multiplayer import *
 from .nominations import *
 from .notifications import *

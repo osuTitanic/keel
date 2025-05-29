@@ -1,6 +1,9 @@
 
-from fastapi import HTTPException, APIRouter, Request
-from fastapi.responses import PlainTextResponse
+from fastapi import HTTPException, APIRouter, Request, UploadFile, File
+from fastapi.responses import PlainTextResponse, Response
+from app.common.database import beatmaps
+from app.security import require_login
+from app.utils import requires
 
 router = APIRouter()
 
@@ -15,4 +18,33 @@ def get_internal_beatmap(request: Request, filename: str):
     return PlainTextResponse(
         file,
         media_type="text/plain"
+    )
+
+@router.put("/osu/{beatmap_id}", dependencies=[require_login])
+@requires("beatmaps.resources.osu.upload")
+def upload_internal_beatmap(
+    request: Request,
+    beatmap_id: int,
+    osu: UploadFile = File(...)
+) -> Response:
+    if not (beatmap := beatmaps.fetch_by_id(beatmap_id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap set could not be found"
+        )
+
+    if beatmap.status > 0 and not request.state.user.is_admin:
+        raise HTTPException(
+            status_code=400,
+            detail="This beatmap is already approved and cannot be modified"
+        )
+
+    request.state.storage.upload_beatmap_file(
+        beatmap.id,
+        osu.file.read(),
+    )
+
+    return Response(
+        status_code=204,
+        headers={"Location": f'/resources/osu/{beatmap.id}'}
     )

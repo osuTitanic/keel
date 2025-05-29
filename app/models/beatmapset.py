@@ -70,4 +70,5 @@ class BeatmapUpdateRequest(BaseModel):
     language: BeatmapLanguage = BeatmapLanguage.Unspecified
     genre: BeatmapGenre = BeatmapGenre.Unspecified
     display_title: str | None = None
+    download_server: int = 0
     enhanced: bool = False

@@ -48,6 +48,7 @@ def update_beatmapset_metadata(
             'enhanced': update.enhanced,
             'genre_id': update.genre.value,
             'language_id': update.language.value,
+            'download_server': update.download_server,
             'display_title': (
                 update.display_title or
                 f"[bold:0,size:20]{beatmapset.artist}|[]{beatmapset.title}"

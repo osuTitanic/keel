@@ -69,6 +69,6 @@ class BeatmapUpdateRequest(BaseModel):
     tags: str = ""
     language: BeatmapLanguage = BeatmapLanguage.Unspecified
     genre: BeatmapGenre = BeatmapGenre.Unspecified
+    download_server: int | None = None
     display_title: str | None = None
-    download_server: int = 0
     enhanced: bool = False

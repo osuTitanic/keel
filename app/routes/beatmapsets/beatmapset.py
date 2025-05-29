@@ -50,8 +50,8 @@ def update_beatmapset_metadata(
             'language_id': update.language.value,
             'download_server': (
                 update.download_server
-                if beatmapset.server == 0
-                else beatmapset.server
+                if update.download_server is not None
+                else beatmapset.download_server
             ),
             'display_title': (
                 update.display_title or

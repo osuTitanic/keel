@@ -6,7 +6,7 @@ from app.models.moderation import *
 from app.session import events
 from app.utils import requires
 
-from fastapi import HTTPException, APIRouter, Request
+from fastapi import HTTPException, APIRouter, Request, Query
 from datetime import datetime, timedelta
 from typing import List
 
@@ -51,11 +51,14 @@ def update_user_infringement(
     if record.user_id != user_id:
         raise HTTPException(400, "Infringement record does not belong to the specified user")
 
+    if record.action == InfringementAction.Silence and update.is_permanent:
+        raise HTTPException(400, "Silence records cannot be made permanent")
+
     success = infringements.update(
         record.id,
         {
-            "description": update.description,
             "duration": update.duration,
+            "description": update.description,
             "is_permanent": update.is_permanent
         },
         request.state.db
@@ -69,21 +72,35 @@ def update_user_infringement(
         from_attributes=True
     )
 
-@router.patch("/infringements/{id}")
+@router.delete("/infringements/{id}")
 @requires("users.moderation.infringements.delete")
 def delete_user_infringement(
     request: Request,
     user_id: int,
-    id: int
+    id: int,
+    restore_scores: bool = Query(False)
 ) -> dict:
+    if not (user := users.fetch_by_id(user_id, session=request.state.db)):
+        raise HTTPException(404, "User not found")
+
     if not (record := infringements.fetch_one(id, request.state.db)):
         raise HTTPException(404, "Infringement record not found")
 
-    if record.user_id != user_id:
+    if record.user_id != user.id:
         raise HTTPException(400, "Infringement record does not belong to the specified user")
-    
-    # TODO: Handle unrestrict/unsilence
 
+    handlers = {
+        0: lambda: infringements_helper.unrestrict_user(user, restore_scores, request.state.db),
+        1: lambda: infringements_helper.unsilence_user(user, session=request.state.db)
+    }
+
+    if record.action not in handlers:
+        raise HTTPException(400, "Invalid action for deletion")
+
+    # Call the appropriate handler for the action
+    handlers[record.action]()
+
+    # Delete the infringement record
     infringements.delete_by_id(
         record.id,
         request.state.db

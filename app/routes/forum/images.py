@@ -1,13 +1,14 @@
 
 from fastapi import APIRouter, Request, UploadFile, File
 from fastapi.responses import JSONResponse
+from app.security import require_login
 from app.utils import requires
 from requests import Response
 from time import time
 
 router = APIRouter()
 
-@router.post("/images")
+@router.post("/images", dependencies=[require_login])
 @requires("forum.posts.create")
 def upload_image(request: Request, input: UploadFile = File(...)) -> dict:
     """Upload an image to imgbb.com"""

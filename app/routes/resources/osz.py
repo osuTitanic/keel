@@ -43,7 +43,7 @@ def get_internal_osz(
     )
 
 @router.put("/osz/{set_id}")
-@requires("beatmaps.upload")
+@requires("beatmaps.resources.osz.upload")
 def upload_internal_osz(
     request: Request,
     set_id: int,

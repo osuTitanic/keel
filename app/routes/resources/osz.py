@@ -1,12 +1,12 @@
 
-from fastapi import HTTPException, APIRouter, Request, Query
-from fastapi.responses import StreamingResponse
-from app.utils import requires, is_empty_generator
+from fastapi import HTTPException, APIRouter, Request, UploadFile, Query, File
+from fastapi.responses import StreamingResponse, Response
+from app.common.database import beatmapsets
 from app.security import require_login
+from app.utils import requires
 from typing import Generator
 from zipfile import ZipFile
 from io import BytesIO
-
 
 router = APIRouter(
     responses={403: {'description': 'Authentication failure'}},
@@ -40,6 +40,35 @@ def get_internal_osz(
         generator,
         media_type="application/octet-stream",
         headers={"Content-Disposition": f'attachment; filename="{filename}.osz"'}
+    )
+
+@router.put("/osz/{set_id}")
+@requires("beatmaps.upload")
+def upload_internal_osz(
+    request: Request,
+    set_id: int,
+    osz: UploadFile = File(...)
+) -> Response:
+    if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap set could not be found"
+        )
+
+    if beatmapset.status > 0 and not request.state.user.is_admin:
+        raise HTTPException(
+            status_code=400,
+            detail="This beatmap is already approved and cannot be modified"
+        )
+
+    request.state.storage.upload_osz(
+        beatmapset.id,
+        osz.file.read(),
+    )
+
+    return Response(
+        status_code=204,
+        headers={"Location": f'/osz/{beatmapset.id}'}
     )
 
 def remove_video_from_zip(osz: Generator) -> Generator:

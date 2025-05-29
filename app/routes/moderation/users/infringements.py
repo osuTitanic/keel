@@ -102,7 +102,7 @@ def handle_restrict(
     if user.restricted:
         raise HTTPException(400, "User is already restricted")
 
-    infringements_helper.restrict_user(
+    record = infringements_helper.restrict_user(
         user,
         data.description,
         until=(
@@ -112,19 +112,13 @@ def handle_restrict(
         session=request.state.db
     )
 
+    if not record:
+        raise HTTPException(500, "Failed to create infringement record")
+
     events.submit(
         "logout",
         user.id
     )
-
-    # Fetch latest infringement
-    record = infringements.fetch_last(
-        user.id,
-        session=request.state.db
-    )
-
-    if not record:
-        raise HTTPException(500, "Failed to create infringement record")
 
     return InfringementModel.model_validate(
         record,
@@ -139,27 +133,21 @@ def handle_silence(
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(404, "User not found")
 
-    infringements_helper.silence_user(
+    record = infringements_helper.silence_user(
         user,
         data.duration,
         data.description,
         session=request.state.db
     )
 
+    if not record:
+        raise HTTPException(500, "Failed to create infringement record")
+
     # Update user on bancho
     events.submit(
         "update_user_silence",
         user.id
     )
-
-    # Fetch latest infringement
-    record = infringements.fetch_last(
-        user.id,
-        session=request.state.db
-    )
-
-    if not record:
-        raise HTTPException(500, "Failed to create infringement record")
 
     return InfringementModel.model_validate(
         record,

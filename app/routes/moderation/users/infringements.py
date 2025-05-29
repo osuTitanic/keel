@@ -10,7 +10,7 @@ from fastapi import HTTPException, APIRouter, Request, Query
 from datetime import datetime, timedelta
 from typing import List
 
-router = APIRouter(dependencies=[require_login])
+router = APIRouter()
 
 @router.get("/infringements", response_model=List[InfringementModel])
 @requires("users.moderation.infringements")

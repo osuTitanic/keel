@@ -68,7 +68,7 @@ def upload_internal_osz(
 
     return Response(
         status_code=204,
-        headers={"Location": f'/osz/{beatmapset.id}'}
+        headers={"Location": f'/resources/osz/{beatmapset.id}'}
     )
 
 def remove_video_from_zip(osz: Generator) -> Generator:

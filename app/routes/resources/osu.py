@@ -4,6 +4,8 @@ from fastapi.responses import PlainTextResponse, Response
 from app.common.database import beatmaps
 from app.security import require_login
 from app.utils import requires
+from datetime import datetime
+from hashlib import md5
 
 router = APIRouter()
 
@@ -39,9 +41,21 @@ def upload_internal_beatmap(
             detail="This beatmap is already approved and cannot be modified"
         )
 
+    beatmap_data = osu.file.read()
+    beatmap_hash = md5(beatmap_data).hexdigest()
+
     request.state.storage.upload_beatmap_file(
         beatmap.id,
-        osu.file.read(),
+        beatmap_data,
+    )
+
+    beatmaps.update(
+        beatmap.id,
+        {
+            "md5": beatmap_hash,
+            "last_update": datetime.now()
+        },
+        request.state.db
     )
 
     return Response(

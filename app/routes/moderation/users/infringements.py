@@ -1,7 +1,6 @@
 
 from app.common.helpers import infringements as infringements_helper
 from app.common.database import infringements, users
-from app.security import require_login
 from app.models.moderation import *
 from app.session import events
 from app.utils import requires

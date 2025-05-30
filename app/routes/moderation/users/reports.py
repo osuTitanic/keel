@@ -7,7 +7,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get("/reports", response_class=List[ReportModel])
+@router.get("/reports", response_model=List[ReportModel])
 @requires("users.moderation.reports")
 def get_user_reports(request: Request, user_id: int) -> List[ReportModel]:
     return [

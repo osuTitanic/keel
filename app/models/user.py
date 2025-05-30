@@ -39,6 +39,7 @@ class NameHistoryModel(BaseModel):
     user_id: int
     changed_at: datetime
     name: str
+    reserved: bool
 
 class StatsModel(BaseModel):
     mode: int

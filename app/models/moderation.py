@@ -26,3 +26,10 @@ class InfringementUpdateRequest(BaseModel):
     duration: int
     description: str
     is_permanent: bool = False
+
+class NameChangeRequest(BaseModel):
+    name: str
+
+class NameHistoryUpdateRequest(BaseModel):
+    name: str
+    reserved: bool = True

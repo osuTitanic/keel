@@ -33,3 +33,8 @@ class NameChangeRequest(BaseModel):
 class NameHistoryUpdateRequest(BaseModel):
     name: str
     reserved: bool = True
+
+class BadgeUpdateRequest(BaseModel):
+    description: str
+    icon_url: str
+    badge_url: str | None = None

@@ -4,9 +4,11 @@ from fastapi import APIRouter
 
 from . import infringements
 from . import reports
+from . import badges
 from . import names
 
 router = APIRouter(dependencies=[require_login])
 router.include_router(infringements.router)
 router.include_router(reports.router)
+router.include_router(badges.router)
 router.include_router(names.router)

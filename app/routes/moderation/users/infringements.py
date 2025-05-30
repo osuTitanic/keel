@@ -72,14 +72,14 @@ def update_user_infringement(
         from_attributes=True
     )
 
-@router.delete("/infringements/{id}")
+@router.delete("/infringements/{id}", response_model=InfringementModel)
 @requires("users.moderation.infringements.delete")
 def delete_user_infringement(
     request: Request,
     user_id: int,
     id: int,
     restore_scores: bool = Query(False)
-) -> dict:
+) -> InfringementModel:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(404, "User not found")
 
@@ -106,7 +106,10 @@ def delete_user_infringement(
         request.state.db
     )
 
-    return {}
+    return InfringementModel.model_validate(
+        record,
+        from_attributes=True
+    )
 
 def handle_restrict(
     request: Request,

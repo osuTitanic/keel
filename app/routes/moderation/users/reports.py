@@ -15,7 +15,7 @@ def get_user_reports(request: Request, user_id: int) -> List[ReportModel]:
         for report in reports.fetch_all(user_id, request.state.db)
     ]
 
-@router.delete("/reports/{id}")
+@router.delete("/reports/{id}", response_model=ReportModel)
 @requires("users.moderation.reports.delete")
 def resolve_user_report(
     request: Request,

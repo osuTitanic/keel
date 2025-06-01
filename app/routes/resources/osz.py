@@ -55,7 +55,7 @@ def upload_internal_osz(
             detail="The requested beatmap set could not be found"
         )
 
-    if beatmapset.status > 0 and not request.state.user.is_admin:
+    if beatmapset.status > 0 and not request.user.is_admin:
         raise HTTPException(
             status_code=400,
             detail="This beatmap is already approved and cannot be modified"

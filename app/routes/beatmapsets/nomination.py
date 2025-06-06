@@ -2,10 +2,11 @@
 from fastapi import HTTPException, APIRouter, Request
 from typing import List
 
-from app.common.database import beatmapsets, nominations, topics, posts
+from app.common.database import notifications, beatmapsets, nominations, topics, posts
 from app.models import NominationModel, ErrorResponse
 from app.common.webhooks import Embed, Author, Image
 from app.common.database import DBUser, DBBeatmapset
+from app.common.constants import NotificationType
 from app.security import require_login
 from app.common import officer
 from app.utils import requires
@@ -87,13 +88,20 @@ def nominate_beatmap(request: Request, set_id: int):
 def reset_nominations(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(404, "The requested beatmap could not be found")
-    
+
     if beatmapset.status > 0:
         raise HTTPException(400, "This beatmap is already in approved status")
-    
+
     if beatmapset.creator_id == request.user.id:
         raise HTTPException(400, "You cannot reset your own beatmap")
-    
+
+    notify_nominatiors(
+        'Bubble popped',
+        f'The nominations for "{beatmapset.full_name}" have been reset by {request.user.name}.',
+        beatmapset,
+        request
+    )
+
     nominations.delete_all(
         set_id,
         request.state.db
@@ -153,3 +161,27 @@ def send_nomination_webhook(
         icon_url=f'http://osu.{config.DOMAIN_NAME}/a/{user.id}'
     )
     officer.event(embeds=[embed])
+
+def notify_nominatiors(
+    header: str,
+    content: str,
+    beatmapset: DBBeatmapset,
+    request: Request,
+) -> None:
+    entries = nominations.fetch_by_beatmapset(
+        beatmapset.id,
+        request.state.db
+    )
+
+    for nomination in entries:
+        if nomination.user_id == request.user.id:
+            continue
+
+        notifications.create(
+            nomination.user_id,
+            NotificationType.Other,
+            header=header,
+            content=content,
+            link=f'http://{config.DOMAIN_NAME}/s/{beatmapset.id}',
+            session=request.state.db
+        )

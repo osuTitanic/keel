@@ -9,14 +9,15 @@ from fastapi import (
     Body
 )
 
+from app.common.constants import DatabaseStatus, NotificationType
 from app.common.webhooks import Embed, Author, Image, Field
 from app.models import BeatmapsetModel, ErrorResponse
 from app.common.database import DBBeatmapset, DBUser
-from app.common.constants import DatabaseStatus
 from app.security import require_login
 from app.common import officer
 from app.utils import requires
 from app.common.database import (
+    notifications,
     nominations,
     beatmapsets,
     beatmaps,
@@ -194,6 +195,13 @@ def update_beatmap_statuses(
 
 def handle_pending_status(beatmapset: DBBeatmapset, request: Request) -> BeatmapsetModel:
     if beatmapset.status > 0:
+        notify_nominatiors(
+            f'Beatmap was disqualified',
+            f'The beatmap "{beatmapset.full_name}" was disqualified by {request.user.name}.',
+            beatmapset,
+            request
+        )
+
         nominations.delete_all(
             beatmapset.id,
             request.state.db
@@ -604,3 +612,27 @@ def send_status_webhook(
     ]
 
     officer.event(embeds=[embed])
+
+def notify_nominatiors(
+    header: str,
+    content: str,
+    beatmapset: DBBeatmapset,
+    request: Request,
+) -> None:
+    entries = nominations.fetch_by_beatmapset(
+        beatmapset.id,
+        request.state.db
+    )
+
+    for nomination in entries:
+        if nomination.user_id == request.user.id:
+            continue
+
+        notifications.create(
+            nomination.user_id,
+            NotificationType.Other,
+            header=header,
+            content=content,
+            link=f'http://{config.DOMAIN_NAME}/s/{beatmapset.id}',
+            session=request.state.db
+        )

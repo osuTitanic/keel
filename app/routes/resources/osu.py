@@ -1,6 +1,7 @@
 
 from fastapi import HTTPException, APIRouter, Request, UploadFile, File
 from fastapi.responses import PlainTextResponse, Response
+from app.common.helpers import permissions
 from app.common.database import beatmaps
 from app.security import require_login
 from app.utils import requires
@@ -35,7 +36,12 @@ def upload_internal_beatmap(
             detail="The requested beatmap set could not be found"
         )
 
-    if beatmap.status > 0 and not request.user.is_admin:
+    can_force_replace = permissions.has_permission(
+        'beatmaps.moderation.resources',
+        request.state.user.id
+    )
+
+    if beatmap.status > 0 and not can_force_replace:
         raise HTTPException(
             status_code=400,
             detail="This beatmap is already approved and cannot be modified"

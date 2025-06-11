@@ -38,7 +38,7 @@ def upload_internal_beatmap(
 
     can_force_replace = permissions.has_permission(
         'beatmaps.moderation.resources',
-        request.state.user.id
+        request.user.id
     )
 
     if beatmap.status > 0 and not can_force_replace:

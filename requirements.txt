@@ -4,7 +4,7 @@ requests==2.32.4
 redis==6.2.0
 geoip2==5.1.0
 rosu-pp-py==3.1.0
-sendgrid==6.12.3
+sendgrid==6.12.4
 boto3-type-annotations-with-docs==0.3.1
 boto3<2
 psycopg2-binary==2.9.10

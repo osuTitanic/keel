@@ -1,4 +1,5 @@
 
+from app.common.constants import UserActivity
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -7,4 +8,5 @@ class ActivityModel(BaseModel):
     user_id: int
     mode: int
     time: datetime
-    activity: str
+    type: UserActivity
+    data: dict

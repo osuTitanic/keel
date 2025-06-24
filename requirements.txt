@@ -1,5 +1,5 @@
 sqlalchemy==2.0.41
-python-dotenv==1.1.0
+python-dotenv==1.1.1
 requests==2.32.4
 redis==6.2.0
 geoip2==5.1.0

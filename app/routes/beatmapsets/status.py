@@ -9,19 +9,16 @@ from fastapi import (
     Body
 )
 
-from app.common.constants import DatabaseStatus, NotificationType
-from app.common.webhooks import Embed, Author, Image, Field
 from app.models import BeatmapsetModel, ErrorResponse
-from app.common.database import DBBeatmapset, DBUser
+from app.common.constants import DatabaseStatus
+from app.common.database import DBBeatmapset
+from app.common.helpers import permissions
 from app.security import require_login
-from app.common import officer
 from app.utils import requires
 from app.common.database import (
-    notifications,
     nominations,
     beatmapsets,
     beatmaps,
-    topics,
     scores,
     posts
 )
@@ -267,6 +264,17 @@ def handle_approved_status(beatmapset: DBBeatmapset, request: Request) -> Beatma
             detail="This beatmap does not have enough nominations."
         )
 
+    is_allowed = permissions.has_permission(
+        "beatmaps.moderation.force_approved",
+        request.user.id,
+    )
+
+    if not is_allowed:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to force approve beatmaps."
+        )
+
     update_beatmap_icon(
         beatmapset,
         DatabaseStatus.Approved.value,
@@ -436,7 +444,7 @@ def has_enough_nominations(beatmapset: DBBeatmapset, session: Session) -> bool:
 
     return count >= required_nominations(beatmapset)
 
-def move_beatmap_topic(beatmapset: DBBeatmapset, status: int, session: Session):
+def move_beatmap_topic(beatmapset: DBBeatmapset, status: DatabaseStatus, session: Session):
     if not beatmapset.topic_id:
         return
 

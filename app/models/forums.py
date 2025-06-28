@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List
 from enum import Enum
 
-from .user import UserModelCompact, UserModel
+from .user import UserModelCompact
 
 class TopicType(str, Enum):
     Announcement = 'announcement'
@@ -26,7 +26,7 @@ class PostModel(BaseModel):
     edit_count: int
     edit_locked: bool
     deleted: bool
-    user: UserModel
+    user: UserModelCompact
 
 class TopicModel(BaseModel):
     id: int

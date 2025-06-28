@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List
 
+from .user import UserModelCompact
 from .beatmap import BeatmapModel
-from .user import UserModel
 
 class ScoreModel(BaseModel):
     id: int
@@ -29,7 +29,7 @@ class ScoreModel(BaseModel):
     grade: str
     pinned: bool
     beatmap: BeatmapModel
-    user: UserModel
+    user: UserModelCompact
 
 class ScoreModelWithoutBeatmap(BaseModel):
     id: int
@@ -53,7 +53,7 @@ class ScoreModelWithoutBeatmap(BaseModel):
     nKatu: int
     grade: str
     pinned: bool
-    user: UserModel
+    user: UserModelCompact
 
 class ScoreModelWithoutUser(BaseModel):
     id: int

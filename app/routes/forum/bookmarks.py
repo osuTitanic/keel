@@ -3,7 +3,9 @@ from fastapi import HTTPException, APIRouter, Request, Body
 from typing import List
 
 from app.models import BookmarkModel, BookmarkRequest, ErrorResponse
+from app.common.constants import UserActivity
 from app.common.database import users, topics
+from app.common.helpers import activity
 from app.security import require_login
 from app.utils import requires
 
@@ -64,6 +66,18 @@ def create_bookmark(request: Request, data: BookmarkRequest = Body(...)):
         request.state.db
     )
 
+    activity.submit(
+        request.user.id, None,
+        UserActivity.ForumBookmarked,
+        {
+            'username': request.user.name,
+            'topic_name': topic.title,
+            'topic_id': topic.id
+        },
+        is_hidden=True,
+        session=request.state.db
+    )
+
     return BookmarkModel.model_validate(bookmark, from_attributes=True)
 
 @router.delete("/bookmarks/{topic_id}", responses=responses)
@@ -83,5 +97,17 @@ def delete_bookmark(request: Request, topic_id: int) -> dict:
 
     if not rows:
         raise HTTPException(404, "The requested bookmark could not be found")
-    
+
+    activity.submit(
+        request.user.id, None,
+        UserActivity.ForumUnbookmarked,
+        {
+            'username': request.user.name,
+            'topic_name': topic.title,
+            'topic_id': topic.id
+        },
+        is_hidden=True,
+        session=request.state.db
+    )
+
     return {}

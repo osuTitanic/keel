@@ -1,12 +1,14 @@
 
 from fastapi import HTTPException, APIRouter, Request
+from sqlalchemy.orm import Session
 from typing import List
 
 from app.common.database import notifications, beatmapsets, nominations, topics, posts
+from app.common.constants import NotificationType, UserActivity
 from app.models import NominationModel, ErrorResponse
 from app.common.webhooks import Embed, Author, Image
 from app.common.database import DBUser, DBBeatmapset
-from app.common.constants import NotificationType
+from app.common.helpers import activity
 from app.security import require_login
 from app.common import officer
 from app.utils import requires
@@ -68,10 +70,11 @@ def nominate_beatmap(request: Request, set_id: int):
         request.state.db
     )
 
-    send_nomination_webhook(
+    broadcast_nomination(
         beatmapset,
         request.user,
-        type='add'
+        type='add',
+        session=request.state.db
     )
 
     request.state.logger.info(
@@ -124,10 +127,11 @@ def reset_nominations(request: Request, set_id: int):
         request.state.db
     )
 
-    send_nomination_webhook(
+    broadcast_nomination(
         beatmapset,
         request.user,
-        type='reset'
+        type='reset',
+        session=request.state.db
     )
 
     request.state.logger.info(
@@ -136,11 +140,27 @@ def reset_nominations(request: Request, set_id: int):
 
     return []
 
-def send_nomination_webhook(
+def broadcast_nomination(
     beatmapset: DBBeatmapset,
     user: DBUser,
-    type: str = 'add'
+    type: str,
+    session: Session
 ) -> None:
+    # Post to userpage & #announce channel
+    activity.submit(
+        user.id, None,
+        UserActivity.BeatmapNominated,
+        {
+            'username': user.name,
+            'beatmapset_id': beatmapset.id,
+            'beatmapset_name': beatmapset.full_name,
+            'type': type
+        },
+        is_announcement=True,
+        session=session
+    )
+
+    # Post to webhook
     author_text = {
         'add': f'{user.name} nominated a Beatmap',
         'reset': f'{user.name} reset all nominations',

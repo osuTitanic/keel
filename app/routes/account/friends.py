@@ -1,6 +1,8 @@
 
 from app.models import RelationshipResponse, UserModelCompact, ErrorResponse
 from app.common.database import relationships, users
+from app.common.constants import UserActivity
+from app.common.helpers import activity
 from app.security import require_login
 from app.utils import requires
 
@@ -72,6 +74,18 @@ def add_friend(request: Request, id: int):
         f'{request.user.name} added {target.name} to their friends list.'
     )
 
+    activity.submit(
+        request.user.id, None,
+        UserActivity.FriendAdded,
+        {
+            'username': request.user.name,
+            'target_username': target.name,
+            'target_id': target.id
+        },
+        is_hidden=True,
+        session=request.state.db
+    )
+
     target_friends = relationships.fetch_target_ids(
         target.id,
         request.state.db
@@ -112,6 +126,18 @@ def remove_friend(request: Request, id: int):
 
     request.state.logger.info(
         f'{request.user.name} removed {target.name} from their friends list.'
+    )
+
+    activity.submit(
+        request.user.id, None,
+        UserActivity.FriendRemoved,
+        {
+            'username': request.user.name,
+            'target_username': target.name,
+            'target_id': target.id
+        },
+        is_hidden=True,
+        session=request.state.db
     )
 
     target_friends = relationships.fetch_target_ids(

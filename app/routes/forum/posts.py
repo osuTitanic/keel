@@ -8,8 +8,9 @@ from typing import List
 from app.common.database.objects import DBForumPost, DBForumTopic, DBBeatmapset, DBUser
 from app.common.database import topics, posts, notifications, nominations, beatmapsets
 from app.models import PostModel, ErrorResponse, PostCreateRequest, PostUpdateRequest
-from app.common.constants import NotificationType, DatabaseStatus
+from app.common.constants import NotificationType, DatabaseStatus, UserActivity
 from app.common.webhooks import Embed, Image, Author
+from app.common.helpers import activity
 from app.security import require_login
 from app.common import officer
 from app.utils import requires
@@ -184,7 +185,7 @@ def create_post(
             request.state.db
         )
 
-    send_post_webhook(
+    broadcast_post_activity(
         topic,
         post,
         request.user
@@ -314,11 +315,28 @@ def resolve_icon(data: PostCreateRequest, request: Request, topic: DBForumTopic)
     if data.icon != -1:
         return data.icon
 
-def send_post_webhook(
+def broadcast_post_activity(
     topic: DBForumTopic,
     post: DBForumPost,
-    author: DBUser
+    author: DBUser,
+    session: Session
 ) -> None:
+    # Post to userpage & #announce channel
+    activity.submit(
+        author.id, None,
+        UserActivity.ForumPostCreated,
+        {
+            'username': author.name,
+            'topic_name': topic.title,
+            'topic_id': topic.id,
+            'post_id': post.id
+        },
+        is_announcement=True,
+        is_hidden=True,
+        session=session
+    )
+
+    # Post to webhook
     embed = Embed(
         title=topic.title,
         description=post.content[:512] + ('...' if len(post.content) > 1024 else ''),
@@ -335,6 +353,7 @@ def send_post_webhook(
         icon_url=f'http://osu.{config.DOMAIN_NAME}/a/{author.id}'
     )
     officer.event(embeds=[embed])
+    # TODO: Move webhook logic into activity module
 
 def update_topic_status_text(
     beatmapset: DBBeatmapset,

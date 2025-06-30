@@ -8,6 +8,8 @@ from app.common.database.objects import DBForumTopic, DBUser, DBForumPost
 from app.models import TopicModel, ErrorResponse, TopicCreateRequest
 from app.common.database import forums, topics, posts
 from app.common.webhooks import Embed, Image, Author
+from app.common.constants import UserActivity
+from app.common.helpers import activity
 from app.security import require_login
 from app.common import officer
 from app.utils import requires
@@ -117,10 +119,10 @@ def create_topic(
         session=request.state.db
     )
 
-    send_topic_webhook(
-        topic,
-        post,
-        request.user
+    broadcast_topic_activity(
+        topic, post,
+        request.user,
+        request.state.db
     )
 
     request.state.logger.info(
@@ -129,11 +131,26 @@ def create_topic(
 
     return TopicModel.model_validate(topic, from_attributes=True)
 
-def send_topic_webhook(
+def broadcast_topic_activity(
     topic: DBForumTopic,
     post: DBForumPost,
-    author: DBUser
+    author: DBUser,
+    session: Session
 ) -> None:
+    # Post to userpage & #announce channel
+    activity.submit(
+        author.id, None,
+        UserActivity.ForumTopicCreated,
+        {
+            'username': author.name,
+            'topic_name': topic.title,
+            'topic_id': topic.id
+        },
+        is_announcement=True,
+        session=session
+    )
+
+    # Post to webhook
     embed = Embed(
         title=topic.title,
         description=post.content[:512] + ('...' if len(post.content) > 1024 else ''),
@@ -150,6 +167,7 @@ def send_topic_webhook(
         icon_url=f'http://osu.{config.DOMAIN_NAME}/a/{author.id}'
     )
     officer.event(embeds=[embed])
+    # TODO: Move webhook logic into activity module
 
 def update_notifications(
     notify: bool,

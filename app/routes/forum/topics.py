@@ -144,7 +144,9 @@ def broadcast_topic_activity(
         {
             'username': author.name,
             'topic_name': topic.title,
-            'topic_id': topic.id
+            'topic_id': topic.id,
+            'forum_id': topic.forum_id,
+            'forum_name': topic.forum.name
         },
         is_announcement=True,
         session=session

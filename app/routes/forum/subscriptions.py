@@ -3,7 +3,9 @@ from fastapi import HTTPException, APIRouter, Request, Body
 from typing import List
 
 from app.models import SubscriptionModel, SubscriptionRequest, ErrorResponse
+from app.common.constants import UserActivity
 from app.common.database import users, topics
+from app.common.helpers import activity
 from app.security import require_login
 from app.utils import requires
 
@@ -68,6 +70,18 @@ def create_subscription(request: Request, data: SubscriptionRequest = Body(...))
         request.state.db
     )
 
+    activity.submit(
+        request.user.id, None,
+        UserActivity.ForumSubscribed,
+        {
+            'username': request.user.name,
+            'topic_name': topic.title,
+            'topic_id': topic.id
+        },
+        is_hidden=True,
+        session=request.state.db
+    )
+
     return SubscriptionModel.model_validate(subscription, from_attributes=True)
 
 @router.delete("/subscriptions/{topic_id}")
@@ -87,5 +101,17 @@ def delete_subscription(request: Request, topic_id: int) -> dict:
 
     if not rows:
         raise HTTPException(404, "The requested subscription could not be found")
-    
+
+    activity.submit(
+        request.user.id, None,
+        UserActivity.ForumUnsubscribed,
+        {
+            'username': request.user.name,
+            'topic_name': topic.title,
+            'topic_id': topic.id
+        },
+        is_hidden=True,
+        session=request.state.db
+    )
+
     return {}

@@ -13,6 +13,7 @@ from . import account
 from . import clients
 from . import groups
 from . import scores
+from . import events
 from . import forum
 from . import users
 from . import oauth
@@ -28,6 +29,7 @@ router.include_router(oauth.router, prefix="/oauth", tags=["oauth"])
 router.include_router(users.router, prefix="/users", tags=["users"])
 router.include_router(groups.router, prefix="/groups", tags=["groups"])
 router.include_router(scores.router, prefix="/scores", tags=["scores"])
+router.include_router(events.router, prefix="/events", tags=["events"])
 router.include_router(clients.router, prefix="/clients", tags=["clients"])
 router.include_router(account.router, prefix="/account", tags=["account"])
 router.include_router(beatmaps.router, prefix="/beatmaps", tags=["beatmaps"])

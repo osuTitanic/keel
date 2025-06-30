@@ -16,3 +16,4 @@ pillow==11.2.1
 email-validator==2.2.0
 pyjwt==2.10.1
 regex==2024.11.6
+websockets==15.0.1

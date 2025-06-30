@@ -1,13 +1,14 @@
 
+from app.common.database.objects import DBUser, DBBeatmap
 from app.common.database.repositories import wrapper
 from app.common.database import stats, histories
-from app.common.database.objects import DBUser
 from app.common.helpers import permissions
 from app.common.cache import leaderboards
 
 from typing import Callable, Generator, Tuple, List
 from fastapi import HTTPException, Request
 from sqlalchemy.orm import Session
+from collections import Counter
 from itertools import tee
 from PIL import Image
 
@@ -39,6 +40,10 @@ def is_empty_generator(generator: Generator) -> Tuple[bool, Generator]:
         return True, generator
 
     return False, generator
+
+def primary_beatmapset_mode(beatmaps: List[DBBeatmap]) -> int:
+    counter = Counter([beatmap.mode for beatmap in beatmaps])
+    return counter.most_common(1)[0][0] if counter else 0
 
 def resize_image(
     image: bytes,

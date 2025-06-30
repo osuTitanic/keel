@@ -5,9 +5,10 @@ from datetime import datetime
 from typing import List
 
 from app.common.database import users, beatmapsets, beatmaps, topics, posts, nominations
+from app.common.constants import DatabaseStatus, UserActivity
+from app.utils import requires, primary_beatmapset_mode
 from app.models import BeatmapsetModel, ErrorResponse
-from app.common.constants import DatabaseStatus
-from app.utils import requires
+from app.common.helpers import activity
 
 router = APIRouter()
 action_responses = {
@@ -141,6 +142,19 @@ def revive_beatmapset(
             'forum_id': 10
         },
         request.state.db
+    )
+
+    activity.submit(
+        beatmapset.creator_id,
+        primary_beatmapset_mode(beatmapset.beatmaps),
+        UserActivity.BeatmapRevived,
+        {
+            "username": beatmapset.creator,
+            "beatmapset_id": beatmapset.id,
+            "beatmapset_name": beatmapset.full_name
+        },
+        is_announcement=True,
+        session=request.state.db
     )
 
     request.state.db.refresh(beatmapset)

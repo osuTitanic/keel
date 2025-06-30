@@ -1,6 +1,8 @@
 
 from app.models import ErrorResponse, FavouriteModel, UserModelCompact, BeatmapsetModel, FavouriteCreateRequest
 from app.common.database import favourites, users, beatmapsets
+from app.common.constants import UserActivity
+from app.common.helpers import activity
 from app.utils import requires
 
 from fastapi import HTTPException, APIRouter, Request, Body
@@ -126,7 +128,19 @@ def add_favourite(
             status_code=500,
             detail="An error occurred while trying to add the favourite"
         )
-    
+
+    activity.submit(
+        request.user.id, None,
+        UserActivity.BeatmapFavouriteAdded,
+        {
+            'username': request.user.name,
+            'beatmapset_id': beatmapset.id,
+            'beatmapset_name': beatmapset.full_name
+        },
+        is_hidden=True,
+        session=request.state.db
+    )
+
     return FavouriteModel(
         user=UserModelCompact.model_validate(user, from_attributes=True),
         beatmapset=BeatmapsetModel.model_validate(beatmapset, from_attributes=True),
@@ -161,6 +175,18 @@ def remove_favourite(request: Request, user_id: int, set_id: int):
         user.id,
         favourite.set_id,
         request.state.db
+    )
+
+    activity.submit(
+        request.user.id, None,
+        UserActivity.BeatmapFavouriteRemoved,
+        {
+            'username': request.user.name,
+            'beatmapset_id': favourite.beatmapset.id,
+            'beatmapset_name': favourite.beatmapset.full_name
+        },
+        is_hidden=True,
+        session=request.state.db
     )
 
     return FavouriteModel(

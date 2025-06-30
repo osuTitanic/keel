@@ -9,10 +9,11 @@ from fastapi import (
     Body
 )
 
-from app.common.constants import DatabaseStatus, NotificationType
+from app.common.constants import DatabaseStatus, NotificationType, UserActivity
 from app.common.webhooks import Embed, Author, Image, Field
 from app.models import BeatmapsetModel, ErrorResponse
 from app.common.database import DBBeatmapset, DBUser
+from app.common.helpers import activity, permissions
 from app.security import require_login
 from app.common import officer
 from app.utils import requires
@@ -161,9 +162,10 @@ def update_beatmap_statuses(
         request.state.db
     )
 
-    send_status_webhook(
+    broadcast_status_update(
         beatmapset,
-        request.user
+        request.user,
+        request.state.db
     )
 
     if set_status > DatabaseStatus.Pending:
@@ -253,9 +255,10 @@ def handle_pending_status(beatmapset: DBBeatmapset, request: Request) -> Beatmap
         f'"{beatmapset.full_name}" was set to "Pending" status by {request.user.name}.'
     )
 
-    send_status_webhook(
+    broadcast_status_update(
         beatmapset,
-        request.user
+        request.user,
+        request.state.db
     )
 
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
@@ -313,9 +316,10 @@ def handle_approved_status(beatmapset: DBBeatmapset, request: Request) -> Beatma
         request.state.db
     )
 
-    send_status_webhook(
+    broadcast_status_update(
         beatmapset,
-        request.user
+        request.user,
+        request.state.db
     )
 
     request.state.db.refresh(beatmapset)
@@ -367,9 +371,10 @@ def handle_qualified_status(beatmapset: DBBeatmapset, request: Request) -> Beatm
         request.state.db
     )
 
-    send_status_webhook(
+    broadcast_status_update(
         beatmapset,
-        request.user
+        request.user,
+        request.state.db
     )
 
     request.state.db.refresh(beatmapset)
@@ -415,9 +420,10 @@ def handle_loved_status(beatmapset: DBBeatmapset, request: Request) -> Beatmapse
         request.state.db
     )
 
-    send_status_webhook(
+    broadcast_status_update(
         beatmapset,
-        request.user
+        request.user,
+        request.state.db
     )
 
     request.state.db.refresh(beatmapset)
@@ -596,23 +602,35 @@ def update_topic_status_text(
             session=session
         )
 
-def send_status_webhook(
+def broadcast_status_update(
     beatmapset: DBBeatmapset,
-    user: DBUser
+    user: DBUser,
+    session: Session
 ) -> None:
+    activity.submit(
+        user.id, None,
+        UserActivity.BeatmapStatusUpdated,
+        {
+            'username': user.name,
+            'beatmapset_id': beatmapset.id,
+            'beatmapset_name': beatmapset.full_name,
+            'status': beatmapset.status
+        },
+        is_announcement=True,
+        session=session
+    )
+
     embed = Embed(
         title=f'{beatmapset.artist} - {beatmapset.title}',
         url=f'http://osu.{config.DOMAIN_NAME}/s/{beatmapset.id}',
         thumbnail=Image(f'http://osu.{config.DOMAIN_NAME}/mt/{beatmapset.id}'),
         color=0x009ed9
     )
-
     embed.author = Author(
         name=f'{user.name} updated a beatmap',
         url=f'http://osu.{config.DOMAIN_NAME}/u/{user.id}',
         icon_url=f'http://osu.{config.DOMAIN_NAME}/a/{user.id}'
     )
-
     embed.fields= [
         Field(
             beatmap.version,
@@ -621,7 +639,6 @@ def send_status_webhook(
         )
         for beatmap in beatmapset.beatmaps
     ]
-
     officer.event(embeds=[embed])
 
 def notify_nominatiors(

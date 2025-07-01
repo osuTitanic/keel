@@ -100,6 +100,7 @@ def send_nuke_webhook(
     beatmapset: DBBeatmapset,
     user: DBUser
 ) -> None:
+    # TODO: Move to activity system
     embed = Embed(
         title=f'{beatmapset.artist} - {beatmapset.title}',
         url=f'http://osu.{config.DOMAIN_NAME}/s/{beatmapset.id}',

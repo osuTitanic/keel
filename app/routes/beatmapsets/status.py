@@ -607,6 +607,7 @@ def broadcast_status_update(
     user: DBUser,
     session: Session
 ) -> None:
+    # Post to webhook & #announce channel
     activity.submit(
         user.id, None,
         UserActivity.BeatmapStatusUpdated,
@@ -614,32 +615,15 @@ def broadcast_status_update(
             'username': user.name,
             'beatmapset_id': beatmapset.id,
             'beatmapset_name': beatmapset.full_name,
-            'status': beatmapset.status
+            'status': beatmapset.status,
+            'beatmaps': {
+                beatmap.version: beatmap.status
+                for beatmap in beatmapset.beatmaps
+            }
         },
         is_announcement=True,
         session=session
     )
-
-    embed = Embed(
-        title=f'{beatmapset.artist} - {beatmapset.title}',
-        url=f'http://osu.{config.DOMAIN_NAME}/s/{beatmapset.id}',
-        thumbnail=Image(f'http://osu.{config.DOMAIN_NAME}/mt/{beatmapset.id}'),
-        color=0x009ed9
-    )
-    embed.author = Author(
-        name=f'{user.name} updated a beatmap',
-        url=f'http://osu.{config.DOMAIN_NAME}/u/{user.id}',
-        icon_url=f'http://osu.{config.DOMAIN_NAME}/a/{user.id}'
-    )
-    embed.fields= [
-        Field(
-            beatmap.version,
-            f'{DatabaseStatus(beatmap.status).name}',
-            inline=True
-        )
-        for beatmap in beatmapset.beatmaps
-    ]
-    officer.event(embeds=[embed])
 
 def notify_nominatiors(
     header: str,

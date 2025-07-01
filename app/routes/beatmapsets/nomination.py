@@ -146,7 +146,7 @@ def broadcast_nomination(
     type: str,
     session: Session
 ) -> None:
-    # Post to userpage & #announce channel
+    # Post to webhook & #announce channel
     activity.submit(
         user.id, None,
         UserActivity.BeatmapNominated,
@@ -159,28 +159,6 @@ def broadcast_nomination(
         is_announcement=True,
         session=session
     )
-
-    # Post to webhook
-    author_text = {
-        'add': f'{user.name} nominated a Beatmap',
-        'reset': f'{user.name} reset all nominations',
-    }
-    color = {
-        'add': 0x00da1d,
-        'reset': 0xff0000,
-    }
-    embed = Embed(
-        title=f'{beatmapset.artist} - {beatmapset.title}',
-        url=f'http://osu.{config.DOMAIN_NAME}/s/{beatmapset.id}',
-        thumbnail=Image(f'http://osu.{config.DOMAIN_NAME}/mt/{beatmapset.id}'),
-        color=color.get(type)
-    )
-    embed.author = Author(
-        name=author_text.get(type),
-        url=f'http://osu.{config.DOMAIN_NAME}/u/{user.id}',
-        icon_url=f'http://osu.{config.DOMAIN_NAME}/a/{user.id}'
-    )
-    officer.event(embeds=[embed])
 
 def notify_nominatiors(
     header: str,

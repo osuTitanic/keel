@@ -8,7 +8,7 @@ import app
 
 router = APIRouter()
 
-@router.websocket("/")
+@router.websocket("/ws")
 async def event_websocket(websocket: WebSocket):
     await websocket.accept()
 

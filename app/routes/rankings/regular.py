@@ -4,9 +4,9 @@ from app.common.database import users, stats
 from app.common.cache import leaderboards
 from app import utils
 from app.models import (
+    UserModelWithStats,
     RankingEntryModel,
     RankingStatsModel,
-    UserModel,
     OrderType,
     ModeAlias
 )
@@ -60,7 +60,7 @@ def get_rankings(
         RankingEntryModel(
             index=index + offset + 1,
             score=score,
-            user=UserModel.model_validate(sorted_players[index], from_attributes=True),
+            user=UserModelWithStats.model_validate(sorted_players[index], from_attributes=True),
             stats=resolve_stats_model(sorted_players[index], mode.integer)
         )
         for index, (user_id, score) in enumerate(top_players)

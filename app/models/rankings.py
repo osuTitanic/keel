@@ -4,7 +4,7 @@ from functools import cached_property
 from pydantic import BaseModel
 from enum import Enum
 
-from .user import UserModel
+from .user import UserModelWithStats
 
 class ModeAlias(str, Enum):
     Osu = 'osu'
@@ -44,13 +44,13 @@ class CountryStatsModel(BaseModel):
 class RankingEntryModel(BaseModel):
     index: int
     score: float
-    user: UserModel
+    user: UserModelWithStats
     stats: RankingStatsModel
 
 class RankingEntryModelWithoutStats(BaseModel):
     index: int
     score: float
-    user: UserModel
+    user: UserModelWithStats
 
 class CountryEntryModel(BaseModel):
     index: int

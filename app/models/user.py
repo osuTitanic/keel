@@ -63,33 +63,6 @@ class StatsModel(BaseModel):
     c_count: int
     d_count: int
 
-class UserModel(BaseModel):
-    id: int
-    name: str
-    country: str
-    created_at: datetime
-    latest_activity: datetime
-    silence_end: datetime | None
-    restricted: bool
-    activated: bool
-    preferred_mode: int
-    playstyle: int
-    userpage: str | None
-    signature: str | None
-    banner: str | None
-    website: str | None
-    discord: str | None
-    twitter: str | None
-    location: str | None
-    interests: str | None
-
-    relationships: List[RelationshipModel]
-    achievements: List[AchievementModel]
-    names: List[NameHistoryModel]
-    badges: List[BadgeModel]
-    stats: List[StatsModel]
-    groups: List[GroupEntryModel]
-
 class UserModelCompact(BaseModel):
     id: int
     name: str
@@ -108,6 +81,17 @@ class UserModelCompact(BaseModel):
     twitter: str | None
     location: str | None
     interests: str | None
+
+class UserModel(UserModelCompact):
+    relationships: List[RelationshipModel]
+    achievements: List[AchievementModel]
+    names: List[NameHistoryModel]
+    badges: List[BadgeModel]
+    stats: List[StatsModel]
+    groups: List[GroupEntryModel]
+
+class UserModelWithStats(UserModelCompact):
+    stats: List[StatsModel] | None = None
 
 class ProfileUpdateModel(BaseModel):
     interests: str | None = None

@@ -1,5 +1,5 @@
 
-from app.models import RankingEntryModelWithoutStats, UserModel
+from app.models import RankingEntryModelWithoutStats, UserModelWithStats
 from app.common.database.repositories import users
 from app.common.database.objects import DBUser
 from app.common.cache import leaderboards
@@ -39,7 +39,7 @@ def get_kudosu_rankings(
         RankingEntryModelWithoutStats(
             index=index + offset + 1,
             score=score,
-            user=UserModel.model_validate(sorted_players[index], from_attributes=True)
+            user=UserModelWithStats.model_validate(sorted_players[index], from_attributes=True)
         )
         for index, (user_id, score) in enumerate(top_players)
     ]

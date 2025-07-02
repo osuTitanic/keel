@@ -1,18 +1,15 @@
 
 
 from fastapi import HTTPException, APIRouter, Request
+from sqlalchemy.orm import Session
 
 from app.common.database import beatmapsets, topics, posts, beatmaps, modding
+from app.common.constants import DatabaseStatus, UserActivity
 from app.models import BeatmapsetModel, ErrorResponse
-from app.common.webhooks import Embed, Author, Image
 from app.common.database import DBUser, DBBeatmapset
-from app.common.constants import DatabaseStatus
+from app.common.helpers import activity
 from app.security import require_login
-from app.common import officer
 from app.utils import requires
-
-import config
-import app
 
 router = APIRouter(
     dependencies=[require_login],
@@ -83,12 +80,12 @@ def nuke_beatmap(request: Request, set_id: int):
     for beatmap in beatmapset.beatmaps:
         request.state.storage.remove_beatmap_file(beatmap.id)
 
-    send_nuke_webhook(
+    broadcast_nuke(
         beatmapset,
-        request.user
+        request.user,
+        request.state.db
     )
 
-    # TODO: Remove thumbnails, previews and osz files
     request.state.db.refresh(beatmapset)
     request.state.logger.info(
         f'Beatmap "{beatmapset.full_name}" was nuked by {request.user.name}.'
@@ -96,20 +93,20 @@ def nuke_beatmap(request: Request, set_id: int):
 
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
-def send_nuke_webhook(
+def broadcast_nuke(
     beatmapset: DBBeatmapset,
-    user: DBUser
+    user: DBUser,
+    session: Session
 ) -> None:
-    # TODO: Move to activity system
-    embed = Embed(
-        title=f'{beatmapset.artist} - {beatmapset.title}',
-        url=f'http://osu.{config.DOMAIN_NAME}/s/{beatmapset.id}',
-        thumbnail=Image(f'http://osu.{config.DOMAIN_NAME}/mt/{beatmapset.id}'),
-        color=0xff0000
+    # Post to webhook & #announce channel
+    activity.submit(
+        user.id, None,
+        UserActivity.BeatmapNuked,
+        {
+            'username': user.name,
+            'beatmapset_id': beatmapset.id,
+            'beatmapset_name': beatmapset.full_name
+        },
+        is_announcement=True,
+        session=session
     )
-    embed.author = Author(
-        name=f'{user.name} nuked a Beatmap',
-        url=f'http://osu.{config.DOMAIN_NAME}/u/{user.id}',
-        icon_url=f'http://osu.{config.DOMAIN_NAME}/a/{user.id}'
-    )
-    officer.event(embeds=[embed])

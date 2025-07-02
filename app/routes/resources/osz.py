@@ -78,10 +78,14 @@ def upload_internal_osz(
     )
 
 def remove_video_from_zip(osz: Generator) -> Generator:
-    video_extensions = (".wmv", ".flv", ".mp4", ".avi", ".m4v", ".mpg")
-    osz_io = BytesIO(b"".join(osz))
+    video_extensions = (
+        ".wmv", ".flv", ".mp4",
+        ".avi", ".m4v", ".mpg",
+        ".mov", ".webm", ".mkv",
+        ".ogv", ".mpeg", ".3gp"
+    )
 
-    with ZipFile(osz_io, 'r') as zip_file:
+    with ZipFile(BytesIO(b"".join(osz)), 'r') as zip_file:
         files_to_keep = [
             item for item in zip_file.namelist()
             if not any(item.lower().endswith(ext) for ext in video_extensions)

@@ -1,5 +1,5 @@
 
-from fastapi.websockets import WebSocketDisconnect
+from fastapi.websockets import WebSocketDisconnect, WebSocketState
 from fastapi import APIRouter, WebSocket
 from redis.asyncio.client import PubSub
 from app.security import require_login
@@ -28,6 +28,11 @@ async def event_websocket(websocket: WebSocket):
     finally:
         await pubsub.unsubscribe("bancho:events")
         await pubsub.close()
+        
+        if websocket.application_state != WebSocketState.CONNECTED:
+            # No need to close the websocket, if it is already disconnected
+            return
+
         await websocket.close()
 
 async def event_listener(websocket: WebSocket, pubsub: PubSub) -> None:

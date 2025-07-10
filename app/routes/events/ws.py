@@ -18,6 +18,9 @@ async def event_websocket(websocket: WebSocket):
     pubsub = app.session.redis_async.pubsub()
     await pubsub.subscribe("bancho:events")
 
+    # Close existing unused database session
+    websocket.state.db.close()
+
     try:
         await event_listener(websocket, pubsub)
     except WebSocketDisconnect:

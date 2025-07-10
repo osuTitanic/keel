@@ -1,16 +1,24 @@
 
-from fastapi import Request
-from typing import Callable
-import app
+from starlette.types import ASGIApp, Receive, Scope, Send
+from app import api, session
 
-@app.api.middleware("http")
-async def state_middleware(request: Request, call_next: Callable):
-    with app.session.database.managed_session() as session:
-        request.state.db = session
-        request.state.redis = app.session.redis
-        request.state.logger = app.session.logger
-        request.state.events = app.session.events
-        request.state.storage = app.session.storage
-        request.state.requests = app.session.requests
-        request.state.redis_async = app.session.redis_async
-        return await call_next(request)
+class StateMiddleware:
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] not in ("http", "websocket"):
+            return await self.app(scope, receive, send)
+
+        with session.database.managed_session() as database_session:
+            state = scope.setdefault("state", {})
+            state["db"] = database_session
+            state["redis"] = session.redis
+            state["logger"] = session.logger
+            state["events"] = session.events
+            state["storage"] = session.storage
+            state["requests"] = session.requests
+            state["redis_async"] = session.redis_async
+            await self.app(scope, receive, send)
+
+api.add_middleware(StateMiddleware)

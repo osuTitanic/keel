@@ -2,13 +2,16 @@
 from fastapi.websockets import WebSocketDisconnect
 from fastapi import APIRouter, WebSocket
 from redis.asyncio.client import PubSub
+from app.security import require_login
+from app.utils import requires
 
 import asyncio
 import app
 
 router = APIRouter()
 
-@router.websocket("/ws")
+@router.websocket("/ws", dependencies=[require_login])
+@requires("users.authenticated")
 async def event_websocket(websocket: WebSocket):
     await websocket.accept()
 

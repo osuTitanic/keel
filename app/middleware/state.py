@@ -12,4 +12,5 @@ async def state_middleware(request: Request, call_next: Callable):
         request.state.events = app.session.events
         request.state.storage = app.session.storage
         request.state.requests = app.session.requests
+        request.state.redis_async = app.session.redis_async
         return await call_next(request)

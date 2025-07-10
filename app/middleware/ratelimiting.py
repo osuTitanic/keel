@@ -1,8 +1,8 @@
 
 from fastapi.responses import JSONResponse
 from typing import Callable, Tuple
+from redis.asyncio import Redis
 from fastapi import Request
-from redis import Redis
 
 from app.models import ErrorResponse
 from app.common.helpers import ip
@@ -19,18 +19,18 @@ async def ratelimit_middleware(request: Request, call_next: Callable):
         # Skip rate limiting for local IPs
         return await call_next(request)
 
-    redis: Redis = request.state.redis
+    redis: Redis = request.state.redis_async
     key = f'ratelimit:{ip_address}'
 
     # Get ratelimit configuration
     window, limit = resolve_ratelimit_configuration(request)
 
     # Get current request count
-    current = await utils.run_async(redis.get, key)
+    current = await redis.get(key)
 
     if current is None:
         # If the key doesn't exist, set to 1 and start the expiration timer
-        await utils.run_async(redis.setex, key, window, 1)
+        await redis.setex(key, window, 1)
         return await call_next(request)
 
     # Check for rate limit
@@ -38,7 +38,7 @@ async def ratelimit_middleware(request: Request, call_next: Callable):
         return error_response(429, 'Rate limit exceeded')
 
     # Increment the request count
-    await utils.run_async(redis.incr, key)
+    await redis.incr(key)
 
     if int(current) + 1 >= limit:
         await utils.run_async(
@@ -48,7 +48,7 @@ async def ratelimit_middleware(request: Request, call_next: Callable):
         )
 
         # Reset expiration timer
-        await utils.run_async(redis.expire, key, window)
+        await redis.expire(key, window)
         return error_response(429, 'Rate limit exceeded')
 
     return await call_next(request)

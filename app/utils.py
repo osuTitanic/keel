@@ -31,6 +31,10 @@ def resolve_request(func: typing.Callable, *args, **kwargs) -> Request:
     if 'request' in signature.parameters:
         bound_arguments = signature.bind_partial(*args, **kwargs)
         return bound_arguments.arguments.get('request')
+    
+    if 'websocket' in signature.parameters:
+        bound_arguments = signature.bind_partial(*args, **kwargs)
+        return bound_arguments.arguments.get('websocket')
 
 def is_empty_generator(generator: Generator) -> Tuple[bool, Generator]:
     try:

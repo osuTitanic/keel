@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from app.models import MessagePostRequest, PrivateMessageModel, MessageModel, ErrorResponse
 from app.common.database import channels, groups, messages, users
-from app.common.constants.strings import BAD_WORDS
 from app.common.database.objects import DBUser
 from app.security import require_login
 from app.utils import requires
@@ -41,13 +40,10 @@ def post_message(
     if user_permissions < channel.write_permissions:
         raise HTTPException(403, 'Insufficient permissions')
 
-    has_bad_words = any([
-        word in data.message.lower()
-        for word in BAD_WORDS
-    ])
+    data.message, timeout = request.state.filters.apply(data.message)
 
-    if has_bad_words and not request.user.is_bot:
-        silence_user(request.user.id, 60*10, request.state.db)
+    if timeout is not None:
+        silence_user(request.user, timeout, request.state, channel.name)
         raise HTTPException(400, 'Message contains offensive language')
 
     # TODO: Check if channel is moderated
@@ -90,6 +86,12 @@ def post_private_message(
     if target.id == request.user.id:
         raise HTTPException(400, 'Cannot send messages to yourself')
 
+    data.message, timeout = request.state.filters.apply(data.message)
+
+    if timeout is not None:
+        silence_user(request.user, timeout, request.state, "pms")
+        raise HTTPException(400, 'Message contains offensive language')
+
     # TODO: Check for message spamming
     # TODO: Check if target blocked user / has friend-only dms
 
@@ -112,23 +114,12 @@ def post_private_message(
         from_attributes=True
     )
 
-def silence_user(user: DBUser, duration: int, request: Request):
-    silence_offset = (
-        user.silence_end or datetime.now()
-    )
-
-    users.update(
-        user.id,
-        {"silence_end": silence_offset + timedelta(seconds=duration)},
-        session=request.state.db
-    )
-
-    # Send 'silence' event to bancho
+def silence_user(user: DBUser, duration: int, request: Request, target: str):
     request.state.events.submit(
         'silence',
         user_id=user.id,
         duration=duration,
-        reason='Auto-silenced for using offensive language in chat.'
+        reason=f'Inappropriate discussion in {target}'
     )
 
 def is_user_silenced(user: DBUser) -> bool:

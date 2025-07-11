@@ -16,6 +16,7 @@ class StateMiddleware:
             state["redis"] = session.redis
             state["logger"] = session.logger
             state["events"] = session.events
+            state["filters"] = session.filters
             state["storage"] = session.storage
             state["requests"] = session.requests
             state["redis_async"] = session.redis_async

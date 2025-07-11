@@ -118,7 +118,9 @@ def resolve_message_users(messages: List[MessageModel], request: Request) -> Lis
     return messages
 
 def resolve_user(username: str, session: Session) -> DBUser | None:
-    if user := users.fetch_by_name_extended(username, session):
+    safe_name = username.lower().replace(' ', '_')
+
+    if user := users.fetch_by_safe_name(safe_name, session):
         return user
 
     if name_change := names.fetch_by_name_extended(username, session):

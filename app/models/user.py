@@ -73,8 +73,6 @@ class UserModelCompact(BaseModel):
     activated: bool
     preferred_mode: int
     playstyle: int
-    userpage: str | None
-    signature: str | None
     banner: str | None
     website: str | None
     discord: str | None

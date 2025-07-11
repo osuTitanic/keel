@@ -1,4 +1,5 @@
 
+from .common.helpers.filter import ChatFilter
 from .common.cache.events import EventQueue
 from .common.database import Postgres
 from .common.storage import Storage
@@ -39,6 +40,7 @@ startup_time = time.time()
 
 storage = Storage()
 requests = Session()
+filters = ChatFilter()
 requests.headers = {
     'User-Agent': f'osuTitanic ({config.DOMAIN_NAME})'
 }

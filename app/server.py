@@ -26,6 +26,7 @@ async def lifespan(app: FastAPI):
     session.database.engine.dispose()
     session.database.wait_for_connection()
     session.redis.ping()
+    session.filters.populate()
     yield
     session.redis.close()
 

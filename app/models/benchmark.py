@@ -30,17 +30,17 @@ class BenchmarkHardware(BaseModel):
     @field_validator('renderer', mode='before')
     def validate_renderer(cls, value, field):
         if not isinstance(value, str) or len(value) <= 0:
-            raise ValueError(f"{field.name} must be a string")
+            raise ValueError("Renderer must be a string")
 
         if len(value) > 12:
-            raise ValueError(f"{field.name} must be a string of a maximum of 12 characters")
+            raise ValueError("Renderer must be a string of a maximum of 12 characters")
 
         return value
 
     @field_validator('cores', 'threads', mode='before')
     def validate_cores_and_threads(cls, value, field):
         if not isinstance(value, int) or value <= 0:
-            raise ValueError(f"{field.name} must be a positive integer")
+            raise ValueError("Cores/Threads must be positive integers")
         return value
     
     @field_validator('ram', mode='before')

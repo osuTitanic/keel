@@ -35,3 +35,7 @@ class ValidationRequest(BaseModel):
     def validate_type(cls, value: str):
         if value not in ('username', 'email', 'password'):
             raise ValueError('Invalid validation type')
+
+class IrcTokenResponse(BaseModel):
+    username: str
+    token: str

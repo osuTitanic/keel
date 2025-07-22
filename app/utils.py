@@ -18,12 +18,15 @@ import inspect
 import asyncio
 import typing
 import config
+import string
+import random
 import io
 
 async def run_async(func: Callable, *args):
-    return await asyncio.get_event_loop().run_in_executor(
-        None, func, *args
-    )
+    return await asyncio.get_event_loop().run_in_executor(None, func, *args)
+
+def random_string(length: int, pool: str = string.ascii_letters + string.digits) -> str:
+    return ''.join(random.choices(pool, k=length))
 
 def resolve_request(func: typing.Callable, *args, **kwargs) -> Request:
     signature = inspect.signature(func)

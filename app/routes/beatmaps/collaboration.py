@@ -24,3 +24,22 @@ def get_collaborations(request: Request, id: int) -> List[CollaborationModelWith
         CollaborationModelWithoutBeatmap.model_validate(collaboration, from_attributes=True)
         for collaboration in collaborations.fetch_by_beatmap(id, request.state.db)
     ]
+
+@router.get("/{id}/collaborations/requests", response_model=List[CollaborationRequestModelWithoutBeatmap])
+def get_collaboration_requests(request: Request, id: int) -> List[CollaborationRequestModelWithoutBeatmap]:
+    if not (beatmap := beatmaps.fetch_by_id(id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+
+    if beatmap.status <= -3:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+
+    return [
+        CollaborationRequestModelWithoutBeatmap.model_validate(collaboration, from_attributes=True)
+        for collaboration in collaborations.fetch_requests_outgoing(id, request.state.db)
+    ]

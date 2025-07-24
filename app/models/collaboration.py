@@ -12,10 +12,21 @@ class CollaborationModel(BaseModel):
     allow_resource_updates: bool
     created_at: datetime
 
+class CollaborationModelWithoutBeatmap(BaseModel):
+    user: UserModelCompact
+    is_beatmap_author: bool
+    allow_resource_updates: bool
+    created_at: datetime
+
 class CollaborationRequestModel(BaseModel):
     user: UserModelCompact
     target: UserModelCompact
     beatmap: BeatmapModel
+    created_at: datetime
+
+class CollaborationRequestModelWithoutBeatmap(BaseModel):
+    user: UserModelCompact
+    target: UserModelCompact
     created_at: datetime
 
 class CollaborationBlacklistModel(BaseModel):

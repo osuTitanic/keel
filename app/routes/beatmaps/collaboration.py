@@ -110,6 +110,7 @@ def create_collaboration_request(
         session=request.state.db
     )
 
+    # TODO: Send notification to the user
     return CollaborationRequestModelWithoutBeatmap.model_validate(
         collaboration,
         from_attributes=True

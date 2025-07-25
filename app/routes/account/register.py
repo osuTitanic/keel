@@ -193,7 +193,7 @@ def validate_username(username: str, session: Session) -> str | None:
     if len(username) < 3:
         return "Your username is too short."
 
-    if len(username) > 25:
+    if len(username) > 15:
         return "Your username is too long."
 
     if not USERNAME.match(username):

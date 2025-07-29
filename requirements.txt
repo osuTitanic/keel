@@ -1,4 +1,4 @@
-sqlalchemy==2.0.41
+sqlalchemy==2.0.42
 python-dotenv==1.1.1
 requests==2.32.4
 redis==6.2.0

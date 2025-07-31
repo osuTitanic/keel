@@ -87,7 +87,7 @@ class UserModel(UserModelCompact):
     badges: List[BadgeModel]
     stats: List[StatsModel]
     groups: List[GroupEntryModel]
-    rankings: Dict[int, dict | None]
+    rankings: Dict[int, Dict[str, dict]]
 
 class UserModelWithStats(UserModelCompact):
     stats: List[StatsModel] | None = None
@@ -107,7 +107,7 @@ class StatusStatsModel(BaseModel):
     rank: int
     pp: float
 
-class RankingModel(BaseModel):
+class StatusRankingModel(BaseModel):
     global_rank: int
     ppv1_rank: int
     score_rank: int
@@ -121,5 +121,5 @@ class StatusModel(BaseModel):
     beatmap_id: int
     beatmap_checksum: str
     beatmap_text: str
-    rankings: RankingModel
+    rankings: StatusRankingModel
     stats: StatusStatsModel

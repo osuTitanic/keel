@@ -1,6 +1,6 @@
 
 from fastapi import HTTPException, APIRouter, Request, Query
-from app.models import StatusModel, StatusStatsModel, RankingModel
+from app.models import StatusModel, StatusStatsModel, StatusRankingModel
 from app.common.cache import status, leaderboards
 
 router = APIRouter()
@@ -19,7 +19,7 @@ def get_user_status(request: Request, user_id: int) -> StatusModel:
         beatmap_checksum=user.status.beatmap_checksum,
         beatmap_text=user.status.text,
         stats=StatusStatsModel.model_validate(user, from_attributes=True),
-        rankings=RankingModel(
+        rankings=StatusRankingModel(
             global_rank=leaderboards.global_rank(user_id, user.status.mode.value),
             ppv1_rank=leaderboards.ppv1_rank(user_id, user.status.mode.value),
             score_rank=leaderboards.score_rank(user_id, user.status.mode.value),

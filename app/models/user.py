@@ -2,7 +2,7 @@
 from app.common.constants import ClientStatus, GameMode, Mods
 from datetime import datetime
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 
 from .groups import GroupEntryModel
 
@@ -87,6 +87,7 @@ class UserModel(UserModelCompact):
     badges: List[BadgeModel]
     stats: List[StatsModel]
     groups: List[GroupEntryModel]
+    rankings: Dict[int, dict]
 
 class UserModelWithStats(UserModelCompact):
     stats: List[StatsModel] | None = None

@@ -87,7 +87,7 @@ class UserModel(UserModelCompact):
     badges: List[BadgeModel]
     stats: List[StatsModel]
     groups: List[GroupEntryModel]
-    rankings: Dict[int, dict]
+    rankings: Dict[int, dict | None]
 
 class UserModelWithStats(UserModelCompact):
     stats: List[StatsModel] | None = None

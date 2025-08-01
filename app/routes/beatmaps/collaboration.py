@@ -79,6 +79,12 @@ def create_collaboration_request(
             detail="You are not authorized to perform this action"
         )
         
+    if request.user.id == data.user_id:
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot send a collaboration request to yourself"
+        )
+
     is_blacklisted = collaborations.is_blacklisted(
         data.user_id,
         request.user.id,

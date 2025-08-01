@@ -140,8 +140,20 @@ def delete_collaboration_request(
             status_code=404,
             detail="The requested beatmap could not be found"
         )
+        
+    if not (collaboration := collaborations.fetch_request(id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested invitation could not be found"
+        )
 
-    if beatmap.beatmapset.creator_id != request.user.id:
+    # Only the beatmap creator or the target user can delete the request
+    is_authorized = (
+        beatmap.beatmapset.creator_id == request.user.id or
+        collaboration.target_id == request.user.id
+    )
+
+    if not is_authorized:
         raise HTTPException(
             status_code=403,
             detail="You are not authorized to perform this action"
@@ -151,8 +163,8 @@ def delete_collaboration_request(
 
     if not success:
         raise HTTPException(
-            status_code=404,
-            detail="The requested invitation could not be found"
+            status_code=500,
+            detail="An error occurred while deleting the collaboration request"
         )
 
     return {}

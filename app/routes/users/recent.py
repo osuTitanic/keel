@@ -1,18 +1,17 @@
 
 from fastapi import HTTPException, Request, APIRouter, Query
+from app.models import ScoreCollectionResponse, ScoreModelWithoutUser, ModeAlias
 from app.common.database import scores, users
-from app.models import ScoreModel, ModeAlias
-from typing import List
 
 router = APIRouter()
 
-@router.get("/{user_id}/recent", response_model=List[ScoreModel])
+@router.get("/{user_id}/recent", response_model=ScoreCollectionResponse)
 def get_recent_scores(
     request: Request,
     user_id: int,
     limit: int = Query(5, ge=1, le=50),
     min_status: int = Query(0, ge=0, le=3),
-) -> List[ScoreModel]:
+) -> ScoreCollectionResponse:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
             status_code=404,
@@ -26,19 +25,22 @@ def get_recent_scores(
         request.state.db
     )
 
-    return [
-        ScoreModel.model_validate(score, from_attributes=True)
-        for score in recent_scores
-    ]
+    return ScoreCollectionResponse(
+        total=len(recent_scores),
+        scores=[
+            ScoreModelWithoutUser.model_validate(score, from_attributes=True)
+            for score in recent_scores
+        ]
+    )
 
-@router.get("/{user_id}/recent/{mode}", response_model=List[ScoreModel])
+@router.get("/{user_id}/recent/{mode}", response_model=ScoreCollectionResponse)
 def get_recent_scores_by_mode(
     request: Request,
     user_id: int,
     mode: ModeAlias,
     limit: int = Query(5, ge=1, le=50),
     min_status: int = Query(0, ge=0, le=3),
-) -> List[ScoreModel]:
+) -> ScoreCollectionResponse:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
             status_code=404,
@@ -53,7 +55,10 @@ def get_recent_scores_by_mode(
         request.state.db
     )
 
-    return [
-        ScoreModel.model_validate(score, from_attributes=True)
-        for score in recent_scores
-    ]
+    return ScoreCollectionResponse(
+        total=len(recent_scores),
+        scores=[
+            ScoreModelWithoutUser.model_validate(score, from_attributes=True)
+            for score in recent_scores
+        ]
+    )

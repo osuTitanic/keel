@@ -1,9 +1,8 @@
 
 from fastapi import APIRouter, HTTPException, Request, Query
-from app.models import ScoreModel, ScoreModelWithoutBeatmap, ErrorResponse
 from app.common.database import scores, beatmaps
 from app.common.constants import GameMode
-from typing import List
+from app.models import *
 
 import config
 
@@ -18,12 +17,12 @@ user_responses = {
     404: {"model": ErrorResponse, "description": "User not found"},
 }
 
-@router.get("/{id}/scores", response_model=List[ScoreModelWithoutBeatmap])
+@router.get("/{id}/scores", response_model=ScoreCollectionResponseWithoutBeatmap)
 def get_beatmap_scores(
     request: Request, id: int,
     mode: str = Query(None),
     offset: int = Query(0, ge=0)
-) -> List[ScoreModelWithoutBeatmap]:
+) -> ScoreCollectionResponseWithoutBeatmap:
     if not (beatmap := beatmaps.fetch_by_id(id, request.state.db)):
         raise HTTPException(
             status_code=404,
@@ -52,11 +51,20 @@ def get_beatmap_scores(
         limit=config.SCORE_RESPONSE_LIMIT,
         session=request.state.db
     )
+    
+    score_count = scores.fetch_count_beatmap(
+        beatmap.id,
+        mode_enum.value,
+        session=request.state.db
+    )
 
-    return [
-        ScoreModelWithoutBeatmap.model_validate(score, from_attributes=True)
-        for score in top_scores
-    ]
+    return ScoreCollectionResponseWithoutBeatmap(
+        total=score_count,
+        scores=[
+            ScoreModelWithoutBeatmap.model_validate(score, from_attributes=True)
+            for score in top_scores
+        ]
+    )
 
 @router.get("/{beatmap_id}/scores/users/{user_id}", response_model=ScoreModel, responses=user_responses)
 def get_beatmap_user_score(

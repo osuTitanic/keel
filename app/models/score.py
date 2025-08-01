@@ -93,5 +93,9 @@ class ScoreCollectionResponse(BaseModel):
     total: int
     scores: List[ScoreModelWithoutUser]
 
+class ScoreCollectionResponseWithoutBeatmap(BaseModel):
+    total: int
+    scores: List[ScoreModelWithoutBeatmap]
+
 class ScorePinRequest(BaseModel):
     score_id: int

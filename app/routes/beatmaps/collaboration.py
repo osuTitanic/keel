@@ -168,3 +168,56 @@ def delete_collaboration_request(
         )
 
     return {}
+
+@router.post("/{beatmap_id}/collaborations/requests/{id}/accept", dependencies=[require_login])
+@requires("users.authenticated")
+def accept_collaboration_request(
+    request: Request,
+    beatmap_id: int,
+    id: int
+) -> CollaborationModel:
+    if not (pending := collaborations.fetch_request(id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested collaboration request could not be found"
+        )
+
+    if pending.beatmap_id != beatmap_id:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+        
+    if not pending.beatmap:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+        
+    if pending.beatmap.status > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot accept collaboration requests for a beatmap that is already approved"
+        )
+
+    if pending.target_id != request.user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
+    collaboration = collaborations.create(
+        pending.beatmap_id,
+        pending.target_id,
+        is_beatmap_author=False,
+        allow_resource_updates=pending.allow_resource_updates,
+        session=request.state.db
+    )
+
+    # Remove collaboration request
+    collaborations.delete_request(id, request.state.db)
+
+    return CollaborationModel.model_validate(
+        collaboration,
+        from_attributes=True
+    )

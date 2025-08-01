@@ -1,7 +1,7 @@
 
 from app.common.constants import ClientStatus, GameMode, Mods
+from pydantic import BaseModel, field_validator
 from datetime import datetime
-from pydantic import BaseModel
 from typing import List, Dict
 
 from .groups import GroupEntryModel
@@ -89,8 +89,18 @@ class UserModel(UserModelCompact):
     groups: List[GroupEntryModel]
     rankings: Dict[int, Dict[str, dict]]
 
+    @field_validator('stats', mode='before')
+    def validate_stats(cls, value):
+        # Sort stats by mode
+        return sorted(value, key=lambda x: x.mode)
+
 class UserModelWithStats(UserModelCompact):
     stats: List[StatsModel] | None = None
+
+    @field_validator('stats', mode='before')
+    def validate_stats(cls, value):
+        # Sort stats by mode
+        return sorted(value, key=lambda x: x.mode)
 
 class ProfileUpdateModel(BaseModel):
     interests: str | None = None

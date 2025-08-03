@@ -197,6 +197,62 @@ def create_collaboration_request(
         from_attributes=True
     )
 
+@router.delete("/{beatmap_id}/collaborations/{user_id}", dependencies=[require_login])
+@requires("users.authenticated")
+def delete_collaboration(
+    request: Request,
+    beatmap_id: int,
+    user_id: int
+) -> dict:
+    if not (beatmap := beatmaps.fetch_by_id(beatmap_id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+
+    if beatmap.status <= -3:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+
+    if beatmap.status > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="This beatmap is already approved"
+        )
+
+    if not (collaboration := collaborations.fetch_one(beatmap_id, user_id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested collaboration could not be found"
+        )
+
+    if collaboration.beatmap_id != beatmap_id:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+
+    if beatmap.beatmapset.creator_id != request.user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
+    success = collaborations.delete(
+        beatmap_id, user_id,
+        request.state.db
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=500,
+            detail="An error occurred while deleting the collaboration"
+        )
+
+    return {}
+
 @router.delete("/{beatmap_id}/collaborations/requests/{id}", dependencies=[require_login])
 @requires("users.authenticated")
 def delete_collaboration_request(

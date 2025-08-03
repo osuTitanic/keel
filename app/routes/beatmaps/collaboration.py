@@ -109,6 +109,17 @@ def create_collaboration_request(
             detail="This user is already collaborating on this beatmap"
         )
 
+    request_count = collaborations.fetch_request_count(
+        beatmap_id,
+        request.state.db
+    )
+
+    if request_count >= 8:
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot send more than 8 collaboration requests for a single beatmap"
+        )
+
     collaboration = collaborations.create_request(
         user_id=request.user.id,
         target_id=data.user_id,

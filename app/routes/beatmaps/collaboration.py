@@ -2,7 +2,8 @@
 from fastapi import HTTPException, APIRouter, Request, Body
 from typing import List
 
-from app.common.database import beatmaps, collaborations
+from app.common.database import beatmaps, collaborations, notifications
+from app.common.constants import NotificationType
 from app.models.collaboration import *
 from app.security import require_login
 from app.utils import requires
@@ -310,7 +311,20 @@ def delete_collaboration_request(
             detail="An error occurred while deleting the collaboration request"
         )
 
-    # TODO: Send notification to creator
+    # Send notification to creator
+    if beatmap.beatmapset.creator_id != request.user.id:
+        notifications.create(
+            beatmap.beatmapset.creator_id,
+            NotificationType.Other,
+            header="Collaboration Invite Declined",
+            content=(
+                f"{request.user.name} has declined your invite to "
+                f'collaborate on "{beatmap.full_name}".'
+            ),
+            link=f"/b/{beatmap.id}",
+            session=request.state.db
+        )
+
     return {}
 
 @router.post("/{beatmap_id}/collaborations/requests/{id}/accept", dependencies=[require_login])
@@ -361,7 +375,20 @@ def accept_collaboration_request(
     # Remove collaboration request
     collaborations.delete_request(id, request.state.db)
 
-    # TODO: Send notification to creator
+    # Send notification to creator
+    if pending.beatmap.beatmapset.creator_id != request.user.id:
+        notifications.create(
+            pending.beatmap.beatmapset.creator_id,
+            NotificationType.Other,
+            header="Collaboration Invite Accepted",
+            content=(
+                f"{request.user.name} has accepted your invite to "
+                f'collaborate on "{pending.beatmap.full_name}".'
+            ),
+            link=f"/b/{pending.beatmap.id}",
+            session=request.state.db
+        )
+
     return CollaborationModel.model_validate(
         collaboration,
         from_attributes=True

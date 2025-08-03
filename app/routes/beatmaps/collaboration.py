@@ -28,6 +28,65 @@ def get_collaborations(request: Request, id: int) -> List[CollaborationModelWith
         for collaboration in collaborations.fetch_by_beatmap(id, request.state.db)
     ]
 
+@router.patch("/{beatmap_id}/collaborations/{user_id}", response_model=CollaborationModelWithoutBeatmap, dependencies=[require_login])
+@requires("users.authenticated")
+def update_collaboration(
+    request: Request,
+    beatmap_id: int,
+    user_id: int,
+    data: CollaborationUpdateRequest = Body(...)
+) -> CollaborationModelWithoutBeatmap:
+    if not (beatmap := beatmaps.fetch_by_id(beatmap_id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+
+    if beatmap.status <= -3:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+        
+    if beatmap.status > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="This beatmap is already approved"
+        )
+
+    if not (collaboration := collaborations.fetch_one(beatmap_id, user_id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested collaboration request could not be found"
+        )
+
+    if collaboration.beatmap_id != beatmap_id:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+
+    if beatmap.beatmapset.creator_id != request.user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
+    collaborations.update(
+        beatmap_id, user_id,
+        {
+            "allow_resource_updates": data.allow_resource_updates,
+            "is_beatmap_author": data.is_beatmap_author
+        },
+        session=request.state.db
+    )
+    request.state.db.refresh(collaboration)
+
+    return CollaborationModelWithoutBeatmap.model_validate(
+        collaboration,
+        from_attributes=True
+    )
+
 @router.get("/{id}/collaborations/requests", response_model=List[CollaborationRequestModelWithoutBeatmap], dependencies=[require_login])
 @requires("users.authenticated")
 def get_collaboration_requests(request: Request, id: int) -> List[CollaborationRequestModelWithoutBeatmap]:
@@ -72,6 +131,12 @@ def create_collaboration_request(
             status_code=404,
             detail="The requested beatmap could not be found"
         )
+        
+    if beatmap.status > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="This beatmap is already approved"
+        )
 
     if beatmap.beatmapset.creator_id != request.user.id:
         raise HTTPException(
@@ -82,7 +147,7 @@ def create_collaboration_request(
     if request.user.id == data.user_id:
         raise HTTPException(
             status_code=400,
-            detail="You cannot send a collaboration request to yourself"
+            detail="You cannot send an invite to yourself"
         )
 
     is_blacklisted = collaborations.is_blacklisted(
@@ -114,10 +179,10 @@ def create_collaboration_request(
         request.state.db
     )
 
-    if request_count >= 8:
+    if request_count >= 6:
         raise HTTPException(
             status_code=400,
-            detail="You cannot send more than 8 collaboration requests for a single beatmap"
+            detail="You cannot send more than 6 collaboration requests for a single beatmap"
         )
 
     collaboration = collaborations.create_request(
@@ -127,7 +192,6 @@ def create_collaboration_request(
         session=request.state.db
     )
 
-    # TODO: Send notification to the user
     return CollaborationRequestModelWithoutBeatmap.model_validate(
         collaboration,
         from_attributes=True
@@ -152,10 +216,22 @@ def delete_collaboration_request(
             detail="The requested beatmap could not be found"
         )
         
+    if beatmap.status > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="This beatmap is already approved"
+        )
+        
     if not (collaboration := collaborations.fetch_request(id, request.state.db)):
         raise HTTPException(
             status_code=404,
             detail="The requested invitation could not be found"
+        )
+
+    if collaboration.beatmap_id != beatmap_id:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
         )
 
     # Only the beatmap creator or the target user can delete the request
@@ -178,6 +254,7 @@ def delete_collaboration_request(
             detail="An error occurred while deleting the collaboration request"
         )
 
+    # TODO: Send notification to creator
     return {}
 
 @router.post("/{beatmap_id}/collaborations/requests/{id}/accept", dependencies=[require_login])
@@ -204,11 +281,11 @@ def accept_collaboration_request(
             status_code=404,
             detail="The requested beatmap could not be found"
         )
-        
+
     if pending.beatmap.status > 0:
         raise HTTPException(
             status_code=400,
-            detail="You cannot accept collaboration requests for a beatmap that is already approved"
+            detail="This beatmap is already approved"
         )
 
     if pending.target_id != request.user.id:
@@ -228,6 +305,7 @@ def accept_collaboration_request(
     # Remove collaboration request
     collaborations.delete_request(id, request.state.db)
 
+    # TODO: Send notification to creator
     return CollaborationModel.model_validate(
         collaboration,
         from_attributes=True

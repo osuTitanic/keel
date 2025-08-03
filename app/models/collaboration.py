@@ -36,3 +36,7 @@ class CollaborationBlacklistModel(BaseModel):
 
 class CollaborationCreateRequest(BaseModel):
     user_id: int
+
+class CollaborationUpdateRequest(BaseModel):
+    allow_resource_updates: bool
+    is_beatmap_author: bool

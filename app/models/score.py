@@ -15,6 +15,7 @@ class ScoreModel(BaseModel):
     status_score: int
     client_version: int
     pp: float
+    ppv1: float
     acc: float
     total_score: int
     max_combo: int
@@ -40,6 +41,7 @@ class ScoreModelWithoutBeatmap(BaseModel):
     status_score: int
     client_version: int
     pp: float
+    ppv1: float
     acc: float
     total_score: int
     max_combo: int
@@ -64,6 +66,7 @@ class ScoreModelWithoutUser(BaseModel):
     status_score: int
     client_version: int
     pp: float
+    ppv1: float
     acc: float
     total_score: int
     max_combo: int

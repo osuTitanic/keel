@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -12,7 +13,7 @@ jobs:
 
     steps:
       - name: Update repository
-        run: /workspace/scripts/update_project.sh web/keel
+        run: /workspace/scripts/update_project.sh web/keel main
 
       - name: Rebuild & update container
         run: /workspace/scripts/update_containers.sh keel

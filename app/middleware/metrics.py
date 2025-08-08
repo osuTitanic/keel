@@ -2,7 +2,7 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from starlette.requests import Request
-from typing import Callable, Tuple
+from typing import Callable
 
 import time
 import app

@@ -26,11 +26,12 @@ def get_osz(request: Request, set_id: int, no_video: bool = Query(False)) -> Str
         raise HTTPException(404)
 
     return StreamingResponse(
-        response.iter_content(1024*256),
+        response.iter_content(65536),
         media_type='application/octet-stream',
         headers={
             'Content-Disposition': f'attachment; filename="{set_id} {beatmapset.artist} - {beatmapset.title}.osz"',
-            'Content-Length': response.headers.get('Content-Length', 0)
+            'Content-Length': response.headers.get('Content-Length', 0),
+            'Last-Modified': beatmapset.last_update.strftime('%a, %d %b %Y %H:%M:%S GMT')
         }
     )
 

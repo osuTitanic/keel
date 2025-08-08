@@ -1,6 +1,6 @@
 
 from .objects import TagOptions, CaseInsensitiveDict
-from .regexes import _domain_re, _url_re
+from .regexes import _url_re
 
 import regex
 import sys

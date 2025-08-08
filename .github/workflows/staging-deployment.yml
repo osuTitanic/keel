@@ -1,0 +1,21 @@
+name: Deploy to osu.staging.titanic.sh
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'app/**'
+      - 'Dockerfile'
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    if: github.actor == 'Lekuruu'
+
+    steps:
+      - name: Update repository
+        run: /workspace/scripts/update_project.sh web/keel
+
+      - name: Rebuild & update container
+        run: /workspace/scripts/update_containers.sh keel

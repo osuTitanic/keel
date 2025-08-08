@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Update repository
         run: /workspace/scripts/update_project.sh web/keel main
+        working-directory: /workspace
 
       - name: Rebuild & update container
         run: /workspace/scripts/update_containers.sh keel
+        working-directory: /workspace

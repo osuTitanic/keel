@@ -1,4 +1,4 @@
-name: Deploy to osu.staging.titanic.sh
+name: Deploy to api.staging.titanic.sh
 
 on:
   push:

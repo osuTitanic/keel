@@ -13,9 +13,9 @@ jobs:
 
     steps:
       - name: Update repository
-        run: /workspace/scripts/update_project.sh web/keel main
-        working-directory: /workspace
+        run: /titanic/scripts/update_project.sh web/keel main
+        working-directory: /titanic
 
       - name: Rebuild & update container
-        run: /workspace/scripts/update_containers.sh keel
-        working-directory: /workspace
+        run: /titanic/scripts/update_containers.sh keel
+        working-directory: /titanic

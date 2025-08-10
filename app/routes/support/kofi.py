@@ -2,7 +2,7 @@
 from fastapi import HTTPException, APIRouter, Request, Form
 from fastapi.responses import JSONResponse
 
-from app.common.database.repositories import groups, users
+from app.common.database.repositories import groups, users, names
 from app.models.kofi import KofiWebhookData
 from app.common import webhooks, officer
 
@@ -46,7 +46,8 @@ def kofi_donation_webhook(
 def assign_donator_group(data: KofiWebhookData, request: Request) -> bool:
     user = (
         users.fetch_by_email(data.email, request.state.db) or
-        users.fetch_by_name_extended(data.from_name, request.state.db)
+        users.fetch_by_name_case_insensitive(data.from_name, request.state.db) or
+        names.fetch_user_by_past_name(data.from_name, request.state.db)
     )
 
     if not user:

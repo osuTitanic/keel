@@ -45,8 +45,8 @@ def kofi_donation_webhook(
 
 def assign_donator_group(data: KofiWebhookData, request: Request) -> bool:
     user = (
-        users.fetch_by_name_extended(data.from_name, request.state.db) or
-        users.fetch_by_email(data.email, request.state.db)
+        users.fetch_by_email(data.email, request.state.db) or
+        users.fetch_by_name_extended(data.from_name, request.state.db)
     )
 
     if not user:

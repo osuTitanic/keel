@@ -39,7 +39,7 @@ def kofi_donation_webhook(
     )
 
     # Announce in events channel
-    officer.event(embed=embed)
+    officer.event(embeds=[embed])
 
     return JSONResponse({'success': True}, status_code=200)
 

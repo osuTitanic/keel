@@ -50,12 +50,15 @@ def assign_donator_group(data: KofiWebhookData, request: Request) -> bool:
     )
 
     if not user:
+        request.state.logger.warning(f"User could not be determined")
         return False
 
     if user.activated:
+        request.state.logger.warning(f"User has an inactive account")
         return False
 
     if groups.entry_exists(user.id, donator_group_id, request.state.db):
+        request.state.logger.info(f"User is already in the donator group")
         return True
 
     groups.create_entry(

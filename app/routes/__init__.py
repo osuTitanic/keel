@@ -7,6 +7,7 @@ from . import benchmarks
 from . import resources
 from . import rankings
 from . import beatmaps
+from . import support
 from . import account
 from . import clients
 from . import groups
@@ -29,6 +30,7 @@ router.include_router(scores.router, prefix="/scores", tags=["scores"])
 router.include_router(events.router, prefix="/events", tags=["events"])
 router.include_router(clients.router, prefix="/clients", tags=["clients"])
 router.include_router(account.router, prefix="/account", tags=["account"])
+router.include_router(support.router, prefix="/support", tags=["support"])
 router.include_router(beatmaps.router, prefix="/beatmaps", tags=["beatmaps"])
 router.include_router(rankings.router, prefix="/rankings", tags=["rankings"])
 router.include_router(benchmarks.router, prefix="/benchmarks", tags=["benchmarks"])

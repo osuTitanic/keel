@@ -29,7 +29,7 @@ FROM python:3.13-slim-bullseye
 # Installing runtime dependencies
 RUN apt update -y && \
     apt install -y --no-install-recommends \
-        libpcre3-dev libssl-dev tini \
+        libpcre3-dev libssl-dev tini curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy installed Python packages from builder

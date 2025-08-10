@@ -13,7 +13,7 @@ class KofiShopItem(BaseModel):
     direct_link_code: str
     variation_name: str
     quantity: int
-    
+
 class KofiShippingAddress(BaseModel):
     full_name: str
     street_address: str
@@ -26,12 +26,12 @@ class KofiShippingAddress(BaseModel):
 
 class KofiWebhookData(BaseModel):
     type: DonationType
+    message: str | None
     verification_token: str
     message_id: str
     timestamp: str
     is_public: bool
     from_name: str
-    message: str
     amount: str
     url: str
     email: str
@@ -39,6 +39,6 @@ class KofiWebhookData(BaseModel):
     is_subscription_payment: bool
     is_first_subscription_payment: bool
     kofi_transaction_id: str
-    shop_items: List[KofiShopItem] | None = None
-    shipping: KofiShippingAddress | None = None
-    tier_name: str | None = None
+    shop_items: List[KofiShopItem] | None
+    shipping: KofiShippingAddress | None
+    tier_name: str | None

@@ -18,6 +18,7 @@ class BeatmapModelWithoutSet(BaseModel):
     playcount: int
     passcount: int
     total_length: int
+    drain_length: int
     max_combo: int
     bpm: float
     cs: float
@@ -25,6 +26,9 @@ class BeatmapModelWithoutSet(BaseModel):
     od: float
     hp: float
     diff: float
+    count_normal: int
+    count_slider: int
+    count_spinner: int
 
 class BeatmapsetModel(BaseModel):
     id: int

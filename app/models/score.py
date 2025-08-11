@@ -18,8 +18,6 @@ class ScoreModel(BaseModel):
     ppv1: float
     acc: float
     total_score: int
-    total_hits: int
-    total_objects: int
     max_combo: int
     mods: int
     perfect: bool
@@ -49,8 +47,6 @@ class ScoreModelWithoutBeatmap(BaseModel):
     ppv1: float
     acc: float
     total_score: int
-    total_hits: int
-    total_objects: int
     max_combo: int
     mods: int
     perfect: bool
@@ -79,8 +75,6 @@ class ScoreModelWithoutUser(BaseModel):
     ppv1: float
     acc: float
     total_score: int
-    total_hits: int
-    total_objects: int
     max_combo: int
     mods: int
     perfect: bool

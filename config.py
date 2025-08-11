@@ -56,7 +56,7 @@ RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY')
 KOFI_VERIFICATION_TOKEN = os.environ.get('KOFI_VERIFICATION_TOKEN')
 OFFICER_WEBHOOK_URL = os.environ.get('OFFICER_WEBHOOK_URL')
 EVENT_WEBHOOK_URL = os.environ.get('EVENT_WEBHOOK_URL')
-DATA_PATH = os.path.abspath('.data')
+DATA_PATH = os.path.abspath('./.data')
 
 IMAGE_PROXY_BASEURL = os.environ.get('IMAGE_PROXY_BASEURL')
 VALID_IMAGE_SERVICES = (

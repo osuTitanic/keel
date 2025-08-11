@@ -18,9 +18,13 @@ class ScoreModel(BaseModel):
     ppv1: float
     acc: float
     total_score: int
+    total_hits: int
+    total_objects: int
     max_combo: int
     mods: int
     perfect: bool
+    passed: bool
+    pinned: bool
     n300: int
     n100: int
     n50: int
@@ -28,7 +32,8 @@ class ScoreModel(BaseModel):
     nGeki: int
     nKatu: int
     grade: str
-    pinned: bool
+    replay_views: int
+    failtime: int | None
     beatmap: BeatmapModel
     user: UserModelCompact
 
@@ -44,9 +49,13 @@ class ScoreModelWithoutBeatmap(BaseModel):
     ppv1: float
     acc: float
     total_score: int
+    total_hits: int
+    total_objects: int
     max_combo: int
     mods: int
     perfect: bool
+    passed: bool
+    pinned: bool
     n300: int
     n100: int
     n50: int
@@ -54,7 +63,8 @@ class ScoreModelWithoutBeatmap(BaseModel):
     nGeki: int
     nKatu: int
     grade: str
-    pinned: bool
+    replay_views: int
+    failtime: int | None
     user: UserModelCompact
 
 class ScoreModelWithoutUser(BaseModel):
@@ -69,9 +79,13 @@ class ScoreModelWithoutUser(BaseModel):
     ppv1: float
     acc: float
     total_score: int
+    total_hits: int
+    total_objects: int
     max_combo: int
     mods: int
     perfect: bool
+    passed: bool
+    pinned: bool
     n300: int
     n100: int
     n50: int
@@ -79,7 +93,8 @@ class ScoreModelWithoutUser(BaseModel):
     nGeki: int
     nKatu: int
     grade: str
-    pinned: bool
+    replay_views: int
+    failtime: int | None
     beatmap: BeatmapModel
 
 class ScoreRecordsModel(BaseModel):

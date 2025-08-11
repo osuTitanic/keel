@@ -43,6 +43,7 @@ ARG API_WORKERS=4
 ENV API_WORKERS $API_WORKERS
 
 # Copy source code
+WORKDIR /keel
 COPY . .
 
 # Generate __pycache__ directories

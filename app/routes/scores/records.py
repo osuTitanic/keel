@@ -1,11 +1,13 @@
 
 from app.models import ScoreRecordsModel, ScoreModel
-from app.common.database import DBScore
+from app.common.database import DBScore, DBBeatmap
 from app.common.constants import Mods
 
 from fastapi import Request, APIRouter
 from sqlalchemy.orm import Session
 from typing import List
+
+import config
 
 router = APIRouter()
 
@@ -97,6 +99,10 @@ def top_score_pp(
     for mod in exclude:
         query = query.filter(DBScore.mods.op("&")(mod) == 0)
 
+    if not config.APPROVED_MAP_REWARDS:
+        # Ensure that the map is either ranked or approved
+        query = query.join(DBScore.beatmap).filter(DBBeatmap.status.in_((1, 2)))
+
     return query.order_by(DBScore.pp.desc()).first()
 
 def top_score_rscore(
@@ -116,5 +122,9 @@ def top_score_rscore(
 
     for mod in exclude:
         query = query.filter(DBScore.mods.op("&")(mod) == 0)
+
+    if not config.APPROVED_MAP_REWARDS:
+        # Ensure that the map is either ranked or approved
+        query = query.join(DBScore.beatmap).filter(DBBeatmap.status.in_((1, 2)))
 
     return query.order_by(DBScore.total_score.desc()).first()

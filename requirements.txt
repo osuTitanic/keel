@@ -13,7 +13,7 @@ uvicorn==0.35.0
 bcrypt==4.3.0
 python-multipart==0.0.20
 pillow==11.3.0
-email-validator==2.2.0
+email-validator==2.3.0
 pyjwt==2.10.1
 regex==2025.7.31
 websockets==15.0.1

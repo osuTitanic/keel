@@ -1,13 +1,13 @@
 
-from fastapi import HTTPException, APIRouter, Request
+from fastapi import HTTPException, APIRouter, Request, Body
 from fastapi.responses import RedirectResponse
 from datetime import datetime
 from typing import List
 
+from app.models import BeatmapsetModel, ErrorResponse, BeatmapsetDescriptionUpdate
 from app.common.database import users, beatmapsets, beatmaps, topics, posts, nominations
 from app.common.constants import DatabaseStatus, UserActivity
 from app.utils import requires, primary_beatmapset_mode
-from app.models import BeatmapsetModel, ErrorResponse
 from app.common.helpers import activity
 
 router = APIRouter()
@@ -154,6 +154,76 @@ def revive_beatmapset(
             "beatmapset_name": beatmapset.full_name
         },
         is_announcement=True,
+        session=request.state.db
+    )
+
+    request.state.db.refresh(beatmapset)
+    return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
+
+@router.patch("/{user_id}/beatmapsets/{beatmapset_id}/description", response_model=BeatmapsetModel, responses=action_responses)
+@requires("beatmaps.upload")
+def update_beatmapset_description(
+    request: Request,
+    user_id: int,
+    beatmapset_id: int,
+    update: BeatmapsetDescriptionUpdate = Body(...)
+) -> BeatmapsetModel:
+    if user_id != request.user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
+    if not (beatmapset := beatmapsets.fetch_one(beatmapset_id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmapset could not be found"
+        )
+    
+    if beatmapset.creator_id != request.user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
+    beatmapsets.update(
+        beatmapset.id,
+        {'description': update.bbcode},
+        request.state.db
+    )
+
+    request.state.logger.info(
+        f'{request.user.name} updated description for "{beatmapset.full_name}".'
+    )
+
+    beatmap_topic = topics.fetch_one(
+        beatmapset.topic_id,
+        session=request.state.db
+    )
+
+    if not beatmap_topic:
+        return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
+
+    initial_post = posts.fetch_initial_post(
+        beatmap_topic.id,
+        session=request.state.db
+    )
+
+    if not initial_post:
+        return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
+
+    if '---------------' not in initial_post.content.splitlines():
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid post format"
+        )
+
+    metadata, _ = initial_post.content.split('---------------', 1)
+
+    # Update forum topic content with new description
+    posts.update(
+        initial_post.id,
+        {'content': f'{metadata}---------------\n{update.bbcode}'},
         session=request.state.db
     )
 

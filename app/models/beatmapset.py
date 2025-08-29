@@ -76,3 +76,6 @@ class BeatmapUpdateRequest(BaseModel):
     download_server: int | None = None
     display_title: str | None = None
     enhanced: bool = False
+
+class BeatmapsetDescriptionUpdate(BaseModel):
+    bbcode: str

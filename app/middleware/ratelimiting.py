@@ -14,8 +14,9 @@ import app
 
 async def ratelimit_middleware(request: Request, call_next: Callable):
     ip_address = ip.resolve_ip_address_fastapi(request)
+    request.state.is_local_ip = ip.is_local_ip(ip_address)
 
-    if ip.is_local_ip(ip_address):
+    if request.state.is_local_ip:
         # Skip rate limiting for local IPs
         return await call_next(request)
 

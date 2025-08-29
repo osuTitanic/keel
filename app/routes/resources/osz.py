@@ -15,7 +15,6 @@ router = APIRouter(
 )
 
 @router.get("/osz/{filename}", response_class=StreamingResponse)
-@requires("beatmaps.download")
 def get_internal_osz(
     request: Request,
     filename: str,

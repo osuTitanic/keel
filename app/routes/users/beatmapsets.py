@@ -179,7 +179,7 @@ def update_beatmapset_description(
             status_code=404,
             detail="The requested beatmapset could not be found"
         )
-    
+
     if beatmapset.creator_id != request.user.id:
         raise HTTPException(
             status_code=403,

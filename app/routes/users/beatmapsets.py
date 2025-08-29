@@ -40,8 +40,8 @@ def get_user_beatmapsets(request: Request, user_id: int) -> List[BeatmapsetModel
         for beatmapset in user_beatmaps
     ]
 
-@router.get("/{user_id}/beatmapsets/{beatmap_id}", response_model=BeatmapsetModel)
-def get_user_beatmapset(request: Request, user_id: int, beatmap_id: int) -> BeatmapsetModel:
+@router.get("/{user_id}/beatmapsets/{beatmapset_id}", response_model=BeatmapsetModel)
+def get_user_beatmapset(request: Request, user_id: int, beatmapset_id: int) -> BeatmapsetModel:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
             status_code=404,
@@ -54,7 +54,7 @@ def get_user_beatmapset(request: Request, user_id: int, beatmap_id: int) -> Beat
             detail='The requested user could not be found'
         )
 
-    if not (beatmapset := beatmapsets.fetch_one(beatmap_id, request.state.db)):
+    if not (beatmapset := beatmapsets.fetch_one(beatmapset_id, request.state.db)):
         raise HTTPException(
             status_code=404,
             detail="The requested beatmapset could not be found"
@@ -75,12 +75,12 @@ def get_user_beatmapset(request: Request, user_id: int, beatmap_id: int) -> Beat
 
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
-@router.post("/{user_id}/beatmapsets/{beatmap_id}/revive", response_model=BeatmapsetModel, responses=action_responses)
+@router.post("/{user_id}/beatmapsets/{beatmapset_id}/revive", response_model=BeatmapsetModel, responses=action_responses)
 @requires("beatmaps.revive")
 def revive_beatmapset(
     request: Request,
     user_id: int,
-    beatmap_id: int
+    beatmapset_id: int
 ) -> BeatmapsetModel:
     if user_id != request.user.id:
         raise HTTPException(
@@ -88,7 +88,7 @@ def revive_beatmapset(
             detail="You are not authorized to perform this action"
         )
 
-    if not (beatmapset := beatmapsets.fetch_one(beatmap_id, request.state.db)):
+    if not (beatmapset := beatmapsets.fetch_one(beatmapset_id, request.state.db)):
         raise HTTPException(
             status_code=404,
             detail="The requested beatmapset could not be found"
@@ -160,12 +160,12 @@ def revive_beatmapset(
     request.state.db.refresh(beatmapset)
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
-@router.delete("/{user_id}/beatmapsets/{beatmap_id}", response_model=BeatmapsetModel, responses=action_responses)
+@router.delete("/{user_id}/beatmapsets/{beatmapset_id}", response_model=BeatmapsetModel, responses=action_responses)
 @requires("beatmaps.delete")
 def delete_beatmapset(
     request: Request,
     user_id: int,
-    beatmap_id: int
+    beatmapset_id: int
 ) -> BeatmapsetModel:
     if user_id != request.user.id:
         raise HTTPException(
@@ -173,7 +173,7 @@ def delete_beatmapset(
             detail="You are not authorized to perform this action"
         )
 
-    if not (beatmapset := beatmapsets.fetch_one(beatmap_id, request.state.db)):
+    if not (beatmapset := beatmapsets.fetch_one(beatmapset_id, request.state.db)):
         raise HTTPException(
             status_code=404,
             detail="The requested beatmapset could not be found"

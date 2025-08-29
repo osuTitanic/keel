@@ -10,8 +10,13 @@ router = APIRouter(
 )
 
 @router.get("/osz2/{filename}", response_class=StreamingResponse)
-@requires("beatmaps.download")
 def get_internal_osz2(request: Request, filename: str):
+    if not request.state.is_local_ip and 'beatmaps.download' not in request.auth.scopes:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
     if not request.state.storage.file_exists(filename, 'osz2'):
         raise HTTPException(
             status_code=404,

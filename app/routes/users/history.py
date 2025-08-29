@@ -55,7 +55,7 @@ def get_plays_history(
     plays_history = histories.fetch_plays_history(
         user.id,
         mode.integer,
-        until=until or datetime.now(),
+        until=until or datetime.now() - timedelta(days=30*24),
         session=request.state.db
     )
 
@@ -80,7 +80,7 @@ def get_replay_views_history(
     replay_history = histories.fetch_replay_history(
         user.id,
         mode.integer,
-        until=until or datetime.now(),
+        until=until or datetime.now() - timedelta(days=30*24),
         session=request.state.db
     )
 

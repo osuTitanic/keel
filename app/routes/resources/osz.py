@@ -4,8 +4,8 @@ from fastapi.responses import StreamingResponse, Response
 from app.common.database import beatmapsets
 from app.common.helpers import permissions
 from app.security import require_login
+from typing import Generator, Tuple
 from app.utils import requires
-from typing import Generator
 from zipfile import ZipFile
 from io import BytesIO
 
@@ -24,7 +24,7 @@ def get_internal_osz(
         raise HTTPException(
             status_code=404,
             detail="The requested resource could not be found"
-        )    
+        )
 
     if not (generator := request.state.storage.get_osz_iterable(filename)):
         raise HTTPException(
@@ -34,12 +34,19 @@ def get_internal_osz(
 
     if no_video:
         # Remove video files from the .osz file
-        generator = remove_video_from_zip(generator)
+        generator, size = remove_video_from_zip(generator)
+        
+    else:
+        # Get regular osz size
+        size = request.state.storage.get_osz_size(filename)
 
     return StreamingResponse(
         generator,
         media_type="application/octet-stream",
-        headers={"Content-Disposition": f'attachment; filename="{filename}.osz"'}
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}.osz"',
+            "Content-Length": f'{size}'
+        }
     )
 
 @router.put("/osz/{set_id}")
@@ -76,7 +83,7 @@ def upload_internal_osz(
         headers={"Location": f'/resources/osz/{beatmapset.id}'}
     )
 
-def remove_video_from_zip(osz: Generator) -> Generator:
+def remove_video_from_zip(osz: Generator) -> Tuple[Generator, int]:
     video_extensions = (
         ".wmv", ".flv", ".mp4",
         ".avi", ".m4v", ".mpg",
@@ -98,5 +105,11 @@ def remove_video_from_zip(osz: Generator) -> Generator:
 
         output.seek(0)
 
-        while chunk := output.read(1024 * 64):
-            yield chunk
+        return (
+            create_chunks_from_io(output),
+            output.getbuffer().nbytes
+        )
+
+def create_chunks_from_io(output: BytesIO) -> Generator:
+    while chunk := output.read(1024 * 64):
+        yield chunk

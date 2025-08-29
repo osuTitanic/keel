@@ -20,7 +20,11 @@ def get_internal_beatmap(request: Request, filename: str):
 
     return PlainTextResponse(
         file,
-        media_type="text/plain"
+        media_type="text/plain",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}.osu"',
+            "Content-Length": f'{len(file)}'
+        }
     )
 
 @router.put("/osu/{beatmap_id}", dependencies=[require_login])

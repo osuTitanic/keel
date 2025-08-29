@@ -19,9 +19,9 @@ def get_performance_records(request: Request):
     mania = top_score_pp(mode=3, session=request.state.db)
 
     return ScoreRecordsModel(
-        osu=ScoreModel.model_validate(standard[0], from_attributes=True),
-        taiko=ScoreModel.model_validate(taiko[0], from_attributes=True),
-        ctb=ScoreModel.model_validate(ctb[0], from_attributes=True),
+        osu=ScoreModel.model_validate(standard, from_attributes=True),
+        taiko=ScoreModel.model_validate(taiko, from_attributes=True),
+        ctb=ScoreModel.model_validate(ctb, from_attributes=True),
         mania=ScoreModel.model_validate(mania, from_attributes=True)
     )
 
@@ -33,9 +33,9 @@ def get_score_records(request: Request):
     mania = top_score_rscore(mode=3, session=request.state.db)
 
     return ScoreRecordsModel(
-        osu=ScoreModel.model_validate(standard[0], from_attributes=True),
-        taiko=ScoreModel.model_validate(taiko[0], from_attributes=True),
-        ctb=ScoreModel.model_validate(ctb[0], from_attributes=True),
+        osu=ScoreModel.model_validate(standard, from_attributes=True),
+        taiko=ScoreModel.model_validate(taiko, from_attributes=True),
+        ctb=ScoreModel.model_validate(ctb, from_attributes=True),
         mania=ScoreModel.model_validate(mania, from_attributes=True)
     )
 

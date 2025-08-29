@@ -19,7 +19,8 @@ def get_internal_background_large(request: Request, filename: str):
 
     return StreamingResponse(
         BytesIO(file),
-        media_type="image/jpeg"
+        media_type="image/jpeg",
+        headers={"Content-Length": f"{len(file)}"}
     )
 
 @router.get("/mt/{filename}/small", response_class=StreamingResponse)
@@ -27,7 +28,8 @@ def get_internal_background_small(request: Request, filename: str):
     if file := request.state.storage.get_from_cache(f'mt:{filename}'):
         return StreamingResponse(
             BytesIO(file),
-            media_type="image/jpeg"
+            media_type="image/jpeg",
+            headers={"Content-Length": f"{len(file)}"}
         )
 
     if not (file := request.state.storage.get_background_internal(filename)):
@@ -48,7 +50,8 @@ def get_internal_background_small(request: Request, filename: str):
 
     return StreamingResponse(
         file_iterator,
-        media_type="image/jpeg"
+        media_type="image/jpeg",
+        headers={"Content-Length": f"{len(file)}"}
     )
 
 @router.put("/mt/{set_id}", dependencies=[require_login])

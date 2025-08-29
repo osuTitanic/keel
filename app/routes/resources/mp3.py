@@ -18,7 +18,8 @@ def get_internal_mp3(request: Request, filename: str):
 
     return StreamingResponse(
         BytesIO(file),
-        media_type="audio/mpeg"
+        media_type="audio/mpeg",
+        headers={"Content-Length": f"{len(file)}"}
     )
 
 @router.put("/mp3/{set_id}", dependencies=[require_login])

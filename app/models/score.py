@@ -92,13 +92,9 @@ class ScoreModelWithoutUser(BaseModel):
     beatmap: BeatmapModel
 
 class ScoreRecordsModel(BaseModel):
-    osu_vanilla: ScoreModel
-    osu_relax: ScoreModel
-    osu_autopilot: ScoreModel
-    taiko_vanilla: ScoreModel
-    taiko_relax: ScoreModel
-    ctb_vanilla: ScoreModel
-    ctb_relax: ScoreModel
+    osu: ScoreModel
+    taiko: ScoreModel
+    ctb: ScoreModel
     mania: ScoreModel
 
 class ScoreCollectionResponse(BaseModel):

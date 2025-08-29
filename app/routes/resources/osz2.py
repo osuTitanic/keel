@@ -32,5 +32,8 @@ def get_internal_osz2(request: Request, filename: str):
     return StreamingResponse(
         generator,
         media_type="application/octet-stream",
-        headers={"Content-Disposition": f'attachment; filename="{filename}.osz2"'}
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}.osz2"',
+            "Content-Length": f"{request.state.storage.get_osz2_size(filename)}"
+        }
     )

@@ -20,6 +20,12 @@ def get_internal_osz(
     filename: str,
     no_video: bool = Query(False)
 ) -> StreamingResponse:
+    if not request.state.is_local_ip and 'beatmaps.download' not in request.auth.scopes:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
     if not request.state.storage.file_exists(filename, 'osz'):
         raise HTTPException(
             status_code=404,

@@ -40,18 +40,19 @@ def get_internal_background_small(request: Request, filename: str):
 
     # Resize image into 80x60
     file_iterator = resize_image(file, 80, 60)
+    file_content = file_iterator.getvalue()
 
     # Save in cache
     request.state.storage.save_to_cache(
         name=f'mt:{filename}',
-        content=file_iterator.getvalue(),
+        content=file_content,
         expiry=timedelta(hours=6)
     )
 
     return StreamingResponse(
         file_iterator,
         media_type="image/jpeg",
-        headers={"Content-Length": f"{len(file)}"}
+        headers={"Content-Length": f"{len(file_content)}"}
     )
 
 @router.put("/mt/{set_id}", dependencies=[require_login])

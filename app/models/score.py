@@ -38,6 +38,7 @@ class ScoreModel(BaseModel):
 class ScoreModelWithoutBeatmap(BaseModel):
     id: int
     user_id: int
+    beatmap_id: int
     submitted_at: datetime
     mode: int
     status_pp: int

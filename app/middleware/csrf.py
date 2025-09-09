@@ -2,6 +2,7 @@
 from fastapi.responses import JSONResponse
 from app.models import ErrorResponse
 from redis.asyncio import Redis
+from config import DOMAIN_NAME
 from typing import Callable
 from fastapi import Request
 from app import api
@@ -11,19 +12,28 @@ async def csrf_middleware(request: Request, call_next: Callable):
     if not request.user.is_authenticated:
         return await call_next(request)
 
+    is_valid = await is_valid_token(request)
+    requires_csrf = f"osu.{DOMAIN_NAME}" in request.headers.get("Origin")
+
+    if requires_csrf and not is_valid:
+        return error_response(403, "Invalid CSRF token")
+
+    return await call_next(request)
+
+async def is_valid_token(request: Request) -> bool:
     if not (csrf_token := request.headers.get("x-csrf-token")):
-        return await call_next(request)
+        return False
 
     redis: Redis = request.state.redis_async
     stored_token = await redis.get(f"csrf:{request.user.id}")
 
     if not stored_token:
-        return await call_next(request)
+        return False
 
     if stored_token != csrf_token:
-        return error_response(403, "Invalid CSRF token")
+        return False
 
-    return await call_next(request)
+    return True
 
 def error_response(status_code: int, detail: str) -> JSONResponse:
     return JSONResponse(

@@ -8,7 +8,7 @@ from app import api
 
 @api.middleware("http")
 async def csrf_middleware(request: Request, call_next: Callable):
-    if not request.user:
+    if not request.user.is_authenticated:
         return await call_next(request)
 
     if not (csrf_token := request.headers.get("x-csrf-token")):

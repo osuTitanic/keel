@@ -12,8 +12,13 @@ async def csrf_middleware(request: Request, call_next: Callable):
     if not request.user.is_authenticated:
         return await call_next(request)
 
+    osu_domain = f"osu.{DOMAIN_NAME}"
+    requires_csrf = osu_domain in request.headers.get("Origin", "")
+
+    if not requires_csrf:
+        return await call_next(request)
+
     is_valid = await is_valid_token(request)
-    requires_csrf = f"osu.{DOMAIN_NAME}" in request.headers.get("Origin", "")
 
     if requires_csrf and not is_valid:
         return error_response(403, "Invalid CSRF token")

@@ -9,7 +9,7 @@ boto3-type-annotations-with-docs==0.3.1
 boto3<2
 psycopg2-binary==2.9.10
 fastapi==0.116.2
-uvicorn==0.35.0
+uvicorn==0.37.0
 bcrypt==4.3.0
 python-multipart==0.0.20
 pillow==11.3.0

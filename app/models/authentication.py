@@ -6,3 +6,6 @@ class TokenResponse(BaseModel):
     refresh_token: str
     expires_in: int
     token_type: str = 'bearer'
+
+class CSRFTokenResponse(BaseModel):
+    token: str

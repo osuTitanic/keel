@@ -11,6 +11,9 @@ from app import api
 async def csrf_middleware(request: Request, call_next: Callable):
     if not request.user.is_authenticated:
         return await call_next(request)
+    
+    if request.method in ("GET", "HEAD", "OPTIONS", "TRACE"):
+        return await call_next(request)
 
     osu_domain = f"osu.{DOMAIN_NAME}"
     requires_csrf = osu_domain in request.headers.get("Origin", "")

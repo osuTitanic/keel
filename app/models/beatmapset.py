@@ -79,3 +79,6 @@ class BeatmapUpdateRequest(BaseModel):
 
 class BeatmapsetDescriptionUpdate(BaseModel):
     bbcode: str
+
+class BeatmapsetOwnerUpdate(BaseModel):
+    user_id: int

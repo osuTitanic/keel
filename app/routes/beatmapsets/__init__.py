@@ -8,10 +8,12 @@ from . import kudosu
 from . import search
 from . import status
 from . import packs
+from . import owner
 from . import nuke
 
 router = APIRouter()
 router.include_router(nuke.router)
+router.include_router(owner.router)
 router.include_router(packs.router)
 router.include_router(status.router)
 router.include_router(search.router)

@@ -109,6 +109,7 @@ def resolve_message_users(messages: List[MessageModel], request: Request) -> Lis
 
         if not sender:
             sender_cache[message.sender] = None
+            message.sender = None
             continue
 
         sender_cache[message.sender] = sender

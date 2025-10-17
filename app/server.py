@@ -1,6 +1,7 @@
 
 from app.routes import router as BaseRouter
 from contextlib import asynccontextmanager
+from fastapi.responses import ORJSONResponse
 from fastapi import FastAPI
 from app import session
 
@@ -38,6 +39,7 @@ api = FastAPI(
     redoc_url="/docs",
     docs_url=None,
     lifespan=lifespan,
+    default_response_class=ORJSONResponse,
     contact={
         "name": "Titanic",
         "url": "https://osu.titanic.sh",

@@ -1,4 +1,4 @@
-FROM python:3.13-slim-bullseye AS builder
+FROM python:3.14-slim AS builder
 
 # Installing build dependencies
 RUN apt update -y && \
@@ -9,13 +9,13 @@ RUN apt update -y && \
         build-essential \
         gcc \
         python3-dev \
-        libpcre3-dev \
         libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install rust toolchain
 RUN curl -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
+ENV PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
 
 # Install python dependencies
 # & gunicorn for deployment
@@ -24,12 +24,12 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir gunicorn
 
-FROM python:3.13-slim-bullseye
+FROM python:3.14-slim
 
 # Installing runtime dependencies
 RUN apt update -y && \
     apt install -y --no-install-recommends \
-        libpcre3-dev libssl-dev tini curl \
+        libssl-dev tini curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy installed Python packages from builder

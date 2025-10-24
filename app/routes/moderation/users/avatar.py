@@ -21,7 +21,10 @@ def remove_user_avatar(
     # Set last avatar update time
     users.update(
         user.id,
-        {"avatar_last_update": datetime.now()},
+        {
+            "avatar_last_update": datetime.now(),
+            "avatar_hash": None
+        },
         request.state.db
     )
     return {}

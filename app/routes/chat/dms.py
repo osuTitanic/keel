@@ -102,7 +102,7 @@ def mark_all_dms_as_read(
 
     user_messages = messages.fetch_dms(
         request.user.id, target.id,
-        limit=15, offset=0,
+        limit=5, offset=0,
         session=request.state.db
     )
 

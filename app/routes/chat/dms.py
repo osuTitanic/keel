@@ -57,7 +57,7 @@ def direct_message_history(
     ]
 
 @router.post("/dms/{target_id}/messages/{message_id}/read", response_model=PrivateMessageModel, responses=responses)
-@requires("chat.messages.private.read")
+@requires("chat.messages.private.view")
 def mark_dm_as_read(
     request: Request,
     target_id: int,

@@ -99,14 +99,16 @@ def post_private_message(
         request.user.id,
         target.id,
         data.message,
-        request.state.db
+        read=False,
+        session=request.state.db
     )
 
     request.state.events.submit(
         'external_dm',
         sender_id=request.user.id,
         target_id=target.id,
-        message=data.message
+        message=data.message,
+        message_id=message.id
     )
 
     return PrivateMessageModel.model_validate(

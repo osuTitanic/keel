@@ -315,7 +315,7 @@ def delete_collaboration_request(
     if beatmap.beatmapset.creator_id != request.user.id:
         notifications.create(
             beatmap.beatmapset.creator_id,
-            NotificationType.Other,
+            NotificationType.Beatmaps,
             header="Collaboration Invite Declined",
             content=(
                 f"{request.user.name} has declined your invite to "
@@ -379,7 +379,7 @@ def accept_collaboration_request(
     if pending.beatmap.beatmapset.creator_id != request.user.id:
         notifications.create(
             pending.beatmap.beatmapset.creator_id,
-            NotificationType.Other,
+            NotificationType.Beatmaps,
             header="Collaboration Invite Accepted",
             content=(
                 f"{request.user.name} has accepted your invite to "

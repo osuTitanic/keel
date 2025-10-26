@@ -177,7 +177,7 @@ def notify_nominatiors(
 
         notifications.create(
             nomination.user_id,
-            NotificationType.Other,
+            NotificationType.Beatmaps,
             header=header,
             content=content,
             link=f'http://{config.DOMAIN_NAME}/s/{beatmapset.id}',

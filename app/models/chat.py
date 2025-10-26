@@ -19,6 +19,7 @@ class PrivateMessageModel(BaseModel):
     time: datetime
     sender_id: int
     target_id: int
+    read: bool
 
 class PrivateMessageSelectionEntry(BaseModel):
     user: UserModelCompact

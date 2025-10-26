@@ -83,3 +83,30 @@ def mark_dm_as_read(
     request.state.db.refresh(message)
 
     return PrivateMessageModel.model_validate(message, from_attributes=True)
+
+@router.post("/dms/{target_id}/messages/read", response_model=List[PrivateMessageModel], responses=responses)
+@requires("chat.messages.private.view")
+def mark_all_dms_as_read(
+    request: Request,
+    target_id: int
+) -> List[PrivateMessageModel]:
+    if not (target := users.fetch_by_id(target_id, session=request.state.db)):
+        raise HTTPException(404, 'The requested user could not be found')
+
+    messages.update_private_all(
+        request.user.id,
+        target.id,
+        {'read': True},
+        request.state.db
+    )
+
+    user_messages = messages.fetch_dms(
+        request.user.id, target.id,
+        limit=15, offset=0,
+        session=request.state.db
+    )
+
+    return [
+        PrivateMessageModel.model_validate(message, from_attributes=True)
+        for message in user_messages
+    ]

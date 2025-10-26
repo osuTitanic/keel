@@ -69,11 +69,11 @@ def mark_dm_as_read(
     if not (message := messages.fetch_dm(message_id, session=request.state.db)):
         raise HTTPException(404, 'The requested message could not be found')
 
-    if target.id not in (message.sender_id, message.target_id):
-        raise HTTPException(404, 'The requested message could not be found')
+    if request.user.id != message.target_id:
+        raise HTTPException(404, 'You cannot mark messages to this user as read')
 
-    if request.user.id not in (message.sender_id, message.target_id):
-        raise HTTPException(404, 'The requested message could not be found')
+    if target.id != message.sender_id:
+        raise HTTPException(404, 'You cannot mark messages from this user as read')
 
     messages.update_private(
         message.id,
@@ -94,8 +94,8 @@ def mark_all_dms_as_read(
         raise HTTPException(404, 'The requested user could not be found')
 
     messages.update_private_all(
-        request.user.id,
         target.id,
+        request.user.id,
         {'read': True},
         request.state.db
     )

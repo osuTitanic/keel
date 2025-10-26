@@ -55,3 +55,31 @@ def direct_message_history(
         PrivateMessageModel.model_validate(message, from_attributes=True)
         for message in user_messages
     ]
+
+@router.post("/dms/{target_id}/messages/{message_id}/read", response_model=PrivateMessageModel, responses=responses)
+@requires("chat.messages.private.read")
+def mark_dm_as_read(
+    request: Request,
+    target_id: int,
+    message_id: int
+) -> PrivateMessageModel:
+    if not (target := users.fetch_by_id(target_id, session=request.state.db)):
+        raise HTTPException(404, 'The requested user could not be found')
+
+    if not (message := messages.fetch_dm(message_id, session=request.state.db)):
+        raise HTTPException(404, 'The requested message could not be found')
+
+    if target.id not in (message.sender_id, message.target_id):
+        raise HTTPException(404, 'The requested message could not be found')
+
+    if request.user.id not in (message.sender_id, message.target_id):
+        raise HTTPException(404, 'The requested message could not be found')
+
+    messages.update_private(
+        message.id,
+        {'read': True},
+        request.state.db
+    )
+    request.state.db.refresh(message)
+
+    return PrivateMessageModel.model_validate(message, from_attributes=True)

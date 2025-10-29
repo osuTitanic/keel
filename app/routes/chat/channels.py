@@ -28,7 +28,7 @@ def channel_selection(
             for channel in channels.fetch_channel_entries(request.user.name, request.state.db)
         ]
 
-    permissions = groups.get_player_permissions(
+    permissions = groups.fetch_bancho_permissions(
         request.user.id,
         request.state.db
     )
@@ -47,7 +47,7 @@ def get_channel(
     if not (channel := channels.fetch_one(target, request.state.db)):
         raise HTTPException(404, 'The requested channel could not be found')
 
-    user_permissions = groups.get_player_permissions(
+    user_permissions = groups.fetch_bancho_permissions(
         request.user.id,
         request.state.db
     )
@@ -71,7 +71,7 @@ def channel_message_history(
     if not (channel := channels.fetch_one(target, request.state.db)):
         raise HTTPException(404, 'The requested channel could not be found')
 
-    user_permissions = groups.get_player_permissions(
+    user_permissions = groups.fetch_bancho_permissions(
         request.user.id,
         request.state.db
     )

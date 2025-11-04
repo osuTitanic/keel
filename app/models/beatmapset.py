@@ -29,6 +29,7 @@ class BeatmapModelWithoutSet(BaseModel):
     count_normal: int
     count_slider: int
     count_spinner: int
+    slider_multiplier: float
 
 class BeatmapsetModel(BaseModel):
     id: int

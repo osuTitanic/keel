@@ -50,6 +50,7 @@ class BeatmapModel(BaseModel):
     count_normal: int
     count_slider: int
     count_spinner: int
+    slider_multiplier: float
     beatmapset: BeatmapsetModelWithoutBeatmaps
 
 class BeatmapPlaysModel(BaseModel):

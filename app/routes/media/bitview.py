@@ -7,6 +7,7 @@ from typing import List
 
 import config
 import json
+import app
 
 router = APIRouter()
 
@@ -15,44 +16,46 @@ def bitview_channel_playlist(request: Request) -> List[BitviewVideoModel]:
     if not config.BITVIEW_ENABLED:
         raise HTTPException(404, "Bitview integration is disabled.")
 
-    return fetch_bitview_video_listing(request, config.BITVIEW_USERNAME).values()
+    if config.BITVIEW_CLOUDFLARE_SOLVER:
+        return fetch_videos_cloudflare(config.BITVIEW_USERNAME).values()
+
+    return fetch_videos(config.BITVIEW_USERNAME).values()
 
 @caching.ttl_cache(ttl=60*5)
-def fetch_bitview_video_listing(request: Request, username: str) -> BitviewVideoListing:
-    response = request.state.requests.get(
+def fetch_videos(username: str) -> BitviewVideoListing:
+    response = app.session.requests.get(
         config.BITVIEW_API_ENDPOINT,
         params={"username": username}
     )
 
     if response.status_code != 200:
-        # Fallback to backup response
-        return BACKUP_RESPONSE
+        raise HTTPException(502, "Failed to fetch Bitview videos.")
 
     return response.json()
 
-BACKUP_RESPONSE = {
-    "1": {
-        "url": "DrY8GIkr",
-        "file_url": "dZKoveKbLwmPjmqyt3xW",
-        "title": "ame | Step on Stage FC!",
-        "uploaded_on": "2025-08-19 18:17:12"
-    },
-    "2": {
-        "url": "ROt56Bpb",
-        "file_url": "UeuUdi8k4p36b2pG8yJz",
-        "title": "nano | Necro Fantasia +NC FC",
-        "uploaded_on": "2025-08-10 01:11:47"
-    },
-    "3": {
-        "url": "t8Zi9nBU",
-        "file_url": "JATcP1oiKAjmk7SZohNj",
-        "title": "EZChamp | Made of Fire +DT FC",
-        "uploaded_on": "2025-06-10 17:43:15"
-    },
-    "4": {
-        "url": "ymBBFzFn",
-        "file_url": "v65K2jY4Im152n20esOT",
-        "title": "EZChamp | FREEDOM DiVE +HR FC",
-        "uploaded_on": "2025-06-10 17:26:17"
-    }
-}
+@caching.ttl_cache(ttl=60*30)
+def fetch_videos_cloudflare(username: str) -> BitviewVideoListing:
+    # NOTE: This requires a FlareSolverr instance to be running
+    # https://github.com/FlareSolverr/FlareSolverr
+    response = app.session.requests.post(
+        config.BITVIEW_CLOUDFLARE_SOLVER,
+        json={
+            "cmd": "request.get",
+            "url": f"{config.BITVIEW_API_ENDPOINT}?username={username}",
+            "maxTimeout": 60000
+        },
+        headers={
+            "Content-Type": "application/json"
+        }
+    )
+
+    if response.status_code != 200:
+        raise HTTPException(502, "Failed to bypass Cloudflare protection.")
+
+    data = response.json()
+    response_json = data["solution"]["response"]
+
+    # For some reason, this can contain HTML, so we'll try to extract the JSON part
+    response_json = response_json[response_json.index('{'):response_json.rindex('}')+1]
+
+    return json.loads(response_json)

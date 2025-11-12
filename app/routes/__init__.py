@@ -17,11 +17,13 @@ from . import forum
 from . import stats
 from . import users
 from . import oauth
+from . import media
 from . import chat
 
 router = APIRouter(responses={500: {"description": "Internal Server Error"}})
 router.include_router(stats.router)
 router.include_router(chat.router, prefix="/chat", tags=["chat"])
+router.include_router(media.router, prefix="/media", tags=["media"])
 router.include_router(forum.router, prefix="/forum", tags=["forum"])
 router.include_router(oauth.router, prefix="/oauth", tags=["oauth"])
 router.include_router(users.router, prefix="/users", tags=["users"])

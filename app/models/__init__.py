@@ -26,3 +26,4 @@ from .score import *
 from .search import *
 from .server import *
 from .user import *
+from .bitview import *

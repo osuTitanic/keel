@@ -5,6 +5,7 @@ from fastapi import HTTPException
 import requests
 import config
 import json
+import time
 
 class BitviewAPI:
     def __init__(
@@ -19,6 +20,7 @@ class BitviewAPI:
         
         self.last_response: BitviewVideoListing | None = None
         self.last_response_time: float | None = None
+        self.last_response_ttl = 60
         self.session = requests.Session()
         self.session.headers.update({
             "User-Agent": f"osuTitanic/keel ({config.DOMAIN_NAME})"
@@ -33,17 +35,24 @@ class BitviewAPI:
         return "cf_clearance" not in self.session.cookies
 
     def fetch_videos(self) -> BitviewVideoListing:
+        last_response_delta = (
+            time.time() - self.last_response_time
+            if self.last_response_time else 0
+        )
+
+        if self.last_response and last_response_delta < self.last_response_ttl:
+            # Use cached response
+            return self.last_response
+
         if self.cloudflare_session_missing:
             # Initialize cloudflare session
             return self.update_cloudflare_session()
 
         response = self.session.get(
             self.endpoint,
-            params={"username": self.username},
-            headers=self.session.headers,
-            cookies=self.session.cookies
+            params={"username": self.username}
         )
-        
+
         if response.status_code == 403 and self.cloudflare_solver:
             # Our cloudflare session expired, try to update it
             return self.update_cloudflare_session()
@@ -51,7 +60,9 @@ class BitviewAPI:
         if response.status_code != 200:
             raise HTTPException(502, "Failed to fetch bitview videos.")
 
-        return response.json()
+        self.last_response = response.json()
+        self.last_response_time = time.time()
+        return self.last_response
 
     def update_cloudflare_session(self) -> BitviewVideoListing:
         if not self.cloudflare_solver:
@@ -96,4 +107,7 @@ class BitviewAPI:
         # For some reason, this can contain HTML, so we'll try to extract the JSON part
         response_json = data["solution"]["response"]
         response_json = response_json[response_json.index('{'):response_json.rindex('}')+1]
-        return json.loads(response_json)
+
+        self.last_response = json.loads(response_json)
+        self.last_response_time = time.time()
+        return self.last_response

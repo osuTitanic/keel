@@ -1,5 +1,7 @@
 
 from app.models import BitviewVideoListing, BitviewVideoModel
+from app.common.helpers import caching
+
 from fastapi import HTTPException, APIRouter, Request
 from typing import List
 
@@ -15,6 +17,7 @@ def bitview_channel_playlist(request: Request) -> List[BitviewVideoModel]:
 
     return fetch_bitview_video_listing(request, config.BITVIEW_USERNAME).values()
 
+@caching.ttl_cache(ttl=60*5)
 def fetch_bitview_video_listing(request: Request, username: str) -> BitviewVideoListing:
     response = request.state.requests.get(
         config.BITVIEW_API_ENDPOINT,

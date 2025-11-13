@@ -2,7 +2,7 @@
 from app.routes.media.api import BitviewAPI
 from app.models import BitviewVideoModel
 
-from fastapi import HTTPException, APIRouter, Request
+from fastapi import BackgroundTasks, HTTPException, APIRouter, Request
 from typing import List
 
 import config
@@ -16,8 +16,8 @@ bitview = BitviewAPI(
 router = APIRouter()
 
 @router.get("/bitview")
-def bitview_channel_playlist(request: Request) -> List[BitviewVideoModel]:
+def bitview_channel_playlist(request: Request, background_tasks: BackgroundTasks) -> List[BitviewVideoModel]:
     if not config.BITVIEW_ENABLED:
         raise HTTPException(404, "Bitview integration is disabled.")
 
-    return bitview.fetch_videos().values()
+    return bitview.fetch_videos(background_tasks).values()

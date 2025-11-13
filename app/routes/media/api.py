@@ -1,6 +1,6 @@
 
+from fastapi import HTTPException, BackgroundTasks
 from app.models import BitviewVideoListing
-from fastapi import HTTPException
 from contextlib import suppress
 
 import requests
@@ -43,16 +43,25 @@ class BitviewAPI:
 
         return "cf_clearance" not in self.session.cookies
 
-    def fetch_videos(self) -> BitviewVideoListing:
+    def fetch_videos(self, background_tasks: BackgroundTasks) -> BitviewVideoListing:
         last_response_delta = (
             time.time() - self.last_response_time
             if self.last_response_time else 0
         )
 
-        if self.last_response and last_response_delta < self.last_response_ttl:
+        if not self.last_response:
+            # No cached response, fetch immediately
+            return self.update_response_data()
+
+        if last_response_delta < self.last_response_ttl:
             # Use cached response
             return self.last_response
 
+        # Fetch new data in the background
+        background_tasks.add_task(self.update_response_data)
+        return self.last_response
+
+    def update_response_data(self) -> BitviewVideoListing:
         # Try to get a cached cloudflare session
         self.load_cloudflare_session()
 

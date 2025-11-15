@@ -8,7 +8,7 @@ from typing import List
 from app.common.database.objects import DBForumPost, DBForumTopic, DBBeatmapset, DBUser
 from app.common.database import topics, posts, notifications, nominations, beatmapsets
 from app.models import PostModel, ErrorResponse, PostCreateRequest, PostUpdateRequest
-from app.common.constants import NotificationType, DatabaseStatus, UserActivity
+from app.common.constants import NotificationType, BeatmapStatus, UserActivity
 from app.common.webhooks import Embed, Image, Author
 from app.common.helpers import activity
 from app.security import require_login
@@ -346,14 +346,14 @@ def update_topic_status_text(
     if not beatmapset.topic_id:
         return
 
-    if beatmapset.status > DatabaseStatus.Pending:
+    if beatmapset.status > BeatmapStatus.Pending:
         topics.update(
             beatmapset.topic_id,
             {'status_text': None},
             session=session
         )
 
-    elif status == DatabaseStatus.Graveyard:
+    elif status == BeatmapStatus.Graveyard:
         topics.update(
             beatmapset.topic_id,
             {'status_text': None},

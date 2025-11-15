@@ -6,7 +6,7 @@ from typing import List
 
 from app.models import BeatmapsetModel, ErrorResponse, BeatmapsetDescriptionUpdate
 from app.common.database import users, beatmapsets, beatmaps, topics, posts, nominations
-from app.common.constants import DatabaseStatus, UserActivity
+from app.common.constants import BeatmapStatus, UserActivity
 from app.utils import requires, primary_beatmapset_mode
 from app.common.helpers import activity
 
@@ -100,7 +100,7 @@ def revive_beatmapset(
             detail="You are not authorized to perform this action"
         )
 
-    if beatmapset.status not in (DatabaseStatus.Graveyard, DatabaseStatus.Inactive):
+    if beatmapset.status not in (BeatmapStatus.Graveyard, BeatmapStatus.Inactive):
         raise HTTPException(
             status_code=400,
             detail="The requested beatmapset is not in the graveyard"
@@ -109,7 +109,7 @@ def revive_beatmapset(
     beatmapsets.update(
         beatmapset.id,
         {
-            'status': DatabaseStatus.WIP.value,
+            'status': BeatmapStatus.WIP.value,
             'last_update': datetime.now()
         },
         request.state.db
@@ -118,7 +118,7 @@ def revive_beatmapset(
     beatmaps.update_by_set_id(
         beatmapset.id,
         {
-            'status': DatabaseStatus.WIP.value,
+            'status': BeatmapStatus.WIP.value,
             'last_update': datetime.now()
         },
         request.state.db
@@ -275,13 +275,13 @@ def delete_beatmapset(
     # Beatmap will be deleted on next bss upload
     beatmapsets.update(
         beatmapset.id,
-        {'status': DatabaseStatus.Inactive.value},
+        {'status': BeatmapStatus.Inactive.value},
         request.state.db
     )
 
     beatmaps.update_by_set_id(
         beatmapset.id,
-        {'status': DatabaseStatus.Inactive.value},
+        {'status': BeatmapStatus.Inactive.value},
         request.state.db
     )
 

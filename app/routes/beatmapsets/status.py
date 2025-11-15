@@ -9,7 +9,7 @@ from fastapi import (
     Body
 )
 
-from app.common.constants import DatabaseStatus, NotificationType, UserActivity
+from app.common.constants import BeatmapStatus, NotificationType, UserActivity
 from app.common.webhooks import Embed, Author, Image, Field
 from app.models import BeatmapsetModel, ErrorResponse
 from app.common.database import DBBeatmapset, DBUser
@@ -45,7 +45,7 @@ def update_beatmapset_status(
     set_id: int,
     status: int = Query(...)
 ) -> BeatmapsetModel:
-    if status not in DatabaseStatus.values():
+    if status not in BeatmapStatus.values():
         raise HTTPException(400, detail="Invalid status value")
 
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
@@ -89,21 +89,21 @@ def update_beatmap_statuses(
     previous_status = beatmapset.status
 
     contains_ranked_status = any(
-        status == DatabaseStatus.Ranked
+        status == BeatmapStatus.Ranked
         for status in status_updates.values()
     )
 
     if contains_ranked_status:
-        if beatmapset.status not in (DatabaseStatus.Ranked, DatabaseStatus.Approved):
+        if beatmapset.status not in (BeatmapStatus.Ranked, BeatmapStatus.Approved):
             raise HTTPException(
                 status_code=400,
                 detail="This beatmap is not yet ranked. Try to qualify it first!"
             )
 
-        set_status = DatabaseStatus.Ranked.value
+        set_status = BeatmapStatus.Ranked.value
 
     contains_approved_status = any(
-        status == DatabaseStatus.Approved
+        status == BeatmapStatus.Approved
         for status in status_updates.values()
     )
 
@@ -114,10 +114,10 @@ def update_beatmap_statuses(
                 detail="This beatmap does not have enough nominations."
             )
         
-        set_status = DatabaseStatus.Approved.value
+        set_status = BeatmapStatus.Approved.value
 
     contains_qualified_status = any(
-        status == DatabaseStatus.Qualified
+        status == BeatmapStatus.Qualified
         for status in status_updates.values()
     )
 
@@ -128,7 +128,7 @@ def update_beatmap_statuses(
                 detail="This beatmap does not have enough nominations."
             )
 
-        set_status = DatabaseStatus.Qualified.value
+        set_status = BeatmapStatus.Qualified.value
 
     for beatmap_id, status in status_updates.items():
         beatmaps.update(
@@ -168,7 +168,7 @@ def update_beatmap_statuses(
         request.state.db
     )
 
-    if set_status > DatabaseStatus.Pending:
+    if set_status > BeatmapStatus.Pending:
         beatmapsets.update(
             beatmapset.id,
             {
@@ -217,7 +217,7 @@ def handle_pending_status(beatmapset: DBBeatmapset, request: Request) -> Beatmap
 
     update_beatmap_icon(
         beatmapset,
-        DatabaseStatus.Pending.value,
+        BeatmapStatus.Pending.value,
         beatmapset.status,
         request.state.db
     )
@@ -225,7 +225,7 @@ def handle_pending_status(beatmapset: DBBeatmapset, request: Request) -> Beatmap
     beatmapsets.update(
         beatmapset.id,
         {
-            'status': DatabaseStatus.Pending.value,
+            'status': BeatmapStatus.Pending.value,
             'approved_at': None,
             'approved_by': None
         },
@@ -234,19 +234,19 @@ def handle_pending_status(beatmapset: DBBeatmapset, request: Request) -> Beatmap
 
     beatmaps.update_by_set_id(
         beatmapset.id,
-        {'status': DatabaseStatus.Pending.value},
+        {'status': BeatmapStatus.Pending.value},
         request.state.db
     )
 
     move_beatmap_topic(
         beatmapset,
-        DatabaseStatus.Pending.value,
+        BeatmapStatus.Pending.value,
         request.state.db
     )
 
     update_topic_status_text(
         beatmapset,
-        DatabaseStatus.Pending.value,
+        BeatmapStatus.Pending.value,
         request.state.db
     )
 
@@ -283,7 +283,7 @@ def handle_approved_status(beatmapset: DBBeatmapset, request: Request) -> Beatma
 
     update_beatmap_icon(
         beatmapset,
-        DatabaseStatus.Approved.value,
+        BeatmapStatus.Approved.value,
         beatmapset.status,
         request.state.db
     )
@@ -291,7 +291,7 @@ def handle_approved_status(beatmapset: DBBeatmapset, request: Request) -> Beatma
     beatmapsets.update(
         beatmapset.id,
         {
-            'status': DatabaseStatus.Approved.value,
+            'status': BeatmapStatus.Approved.value,
             'approved_at': datetime.now(),
             'approved_by': request.user.id
         },
@@ -300,19 +300,19 @@ def handle_approved_status(beatmapset: DBBeatmapset, request: Request) -> Beatma
 
     beatmaps.update_by_set_id(
         beatmapset.id,
-        {'status': DatabaseStatus.Approved.value},
+        {'status': BeatmapStatus.Approved.value},
         request.state.db
     )
 
     move_beatmap_topic(
         beatmapset,
-        DatabaseStatus.Approved.value,
+        BeatmapStatus.Approved.value,
         request.state.db
     )
 
     update_topic_status_text(
         beatmapset,
-        DatabaseStatus.Approved.value,
+        BeatmapStatus.Approved.value,
         request.state.db
     )
 
@@ -338,7 +338,7 @@ def handle_qualified_status(beatmapset: DBBeatmapset, request: Request) -> Beatm
 
     update_beatmap_icon(
         beatmapset,
-        DatabaseStatus.Qualified.value,
+        BeatmapStatus.Qualified.value,
         beatmapset.status,
         request.state.db
     )
@@ -346,7 +346,7 @@ def handle_qualified_status(beatmapset: DBBeatmapset, request: Request) -> Beatm
     beatmapsets.update(
         beatmapset.id,
         {
-            'status': DatabaseStatus.Qualified.value,
+            'status': BeatmapStatus.Qualified.value,
             'approved_at': datetime.now(),
             'approved_by': request.user.id
         },
@@ -355,19 +355,19 @@ def handle_qualified_status(beatmapset: DBBeatmapset, request: Request) -> Beatm
 
     beatmaps.update_by_set_id(
         beatmapset.id,
-        {'status': DatabaseStatus.Qualified.value},
+        {'status': BeatmapStatus.Qualified.value},
         request.state.db
     )
 
     move_beatmap_topic(
         beatmapset,
-        DatabaseStatus.Qualified.value,
+        BeatmapStatus.Qualified.value,
         request.state.db
     )
 
     update_topic_status_text(
         beatmapset,
-        DatabaseStatus.Qualified.value,
+        BeatmapStatus.Qualified.value,
         request.state.db
     )
 
@@ -387,7 +387,7 @@ def handle_qualified_status(beatmapset: DBBeatmapset, request: Request) -> Beatm
 def handle_loved_status(beatmapset: DBBeatmapset, request: Request) -> BeatmapsetModel:
     update_beatmap_icon(
         beatmapset,
-        DatabaseStatus.Loved.value,
+        BeatmapStatus.Loved.value,
         beatmapset.status,
         request.state.db
     )
@@ -395,7 +395,7 @@ def handle_loved_status(beatmapset: DBBeatmapset, request: Request) -> Beatmapse
     beatmapsets.update(
         beatmapset.id,
         {
-            'status': DatabaseStatus.Loved.value,
+            'status': BeatmapStatus.Loved.value,
             'approved_at': datetime.now(),
             'approved_by': request.user.id
         },
@@ -404,19 +404,19 @@ def handle_loved_status(beatmapset: DBBeatmapset, request: Request) -> Beatmapse
 
     beatmaps.update_by_set_id(
         beatmapset.id,
-        {'status': DatabaseStatus.Loved.value},
+        {'status': BeatmapStatus.Loved.value},
         request.state.db
     )
 
     move_beatmap_topic(
         beatmapset,
-        DatabaseStatus.Loved.value,
+        BeatmapStatus.Loved.value,
         request.state.db
     )
 
     update_topic_status_text(
         beatmapset,
-        DatabaseStatus.Loved.value,
+        BeatmapStatus.Loved.value,
         request.state.db
     )
 
@@ -453,18 +453,18 @@ def has_enough_nominations(beatmapset: DBBeatmapset, session: Session) -> bool:
 
     return count >= required_nominations(beatmapset)
 
-def move_beatmap_topic(beatmapset: DBBeatmapset, status: DatabaseStatus, session: Session):
+def move_beatmap_topic(beatmapset: DBBeatmapset, status: BeatmapStatus, session: Session):
     if not beatmapset.topic_id:
         return
 
     forum_id = {
-        DatabaseStatus.Pending: 9,
-        DatabaseStatus.WIP: 10,
-        DatabaseStatus.Graveyard: 12,
-        DatabaseStatus.Approved: 8,
-        DatabaseStatus.Qualified: 8,
-        DatabaseStatus.Ranked: 8,
-        DatabaseStatus.Loved: 8
+        BeatmapStatus.Pending: 9,
+        BeatmapStatus.WIP: 10,
+        BeatmapStatus.Graveyard: 12,
+        BeatmapStatus.Approved: 8,
+        BeatmapStatus.Qualified: 8,
+        BeatmapStatus.Ranked: 8,
+        BeatmapStatus.Loved: 8
     }.get(status, 9)
 
     topics.update(
@@ -484,7 +484,7 @@ def update_beatmap_icon(
     previous_status: int,
     session: Session
 ) -> None:
-    if status in (DatabaseStatus.Ranked, DatabaseStatus.Qualified, DatabaseStatus.Loved):
+    if status in (BeatmapStatus.Ranked, BeatmapStatus.Qualified, BeatmapStatus.Loved):
         # Set icon to heart
         topics.update(
             beatmapset.topic_id,
@@ -493,7 +493,7 @@ def update_beatmap_icon(
         )
         return
 
-    if status == DatabaseStatus.Approved:
+    if status == BeatmapStatus.Approved:
         # Set icon to flame
         topics.update(
             beatmapset.topic_id,
@@ -503,10 +503,10 @@ def update_beatmap_icon(
         return
 
     ranked_statuses = (
-        DatabaseStatus.Qualified,
-        DatabaseStatus.Approved,
-        DatabaseStatus.Ranked,
-        DatabaseStatus.Loved
+        BeatmapStatus.Qualified,
+        BeatmapStatus.Approved,
+        BeatmapStatus.Ranked,
+        BeatmapStatus.Loved
     )
 
     if previous_status in ranked_statuses:
@@ -533,14 +533,14 @@ def update_topic_status_text(
     if not beatmapset.topic_id:
         return
 
-    if beatmapset.status > DatabaseStatus.Pending:
+    if beatmapset.status > BeatmapStatus.Pending:
         topics.update(
             beatmapset.topic_id,
             {'status_text': None},
             session=session
         )
 
-    elif status == DatabaseStatus.Graveyard:
+    elif status == BeatmapStatus.Graveyard:
         topics.update(
             beatmapset.topic_id,
             {'status_text': None},

@@ -5,7 +5,7 @@ from typing import List
 
 from app.models import KudosuModel, KudosuWithoutSetModel, ErrorResponse
 from app.common.database import beatmapsets, modding, posts
-from app.common.constants import DatabaseStatus
+from app.common.constants import BeatmapStatus
 from app.common.cache import leaderboards
 from app.security import require_login
 from app.utils import requires
@@ -91,7 +91,7 @@ def reward_kudosu(request: Request, set_id: int, post_id: int):
             detail="You are not authorized to perform this action"
         )
 
-    if beatmapset.status >= DatabaseStatus.Ranked:
+    if beatmapset.status >= BeatmapStatus.Ranked:
         raise HTTPException(
             status_code=400,
             detail="This beatmapset is already ranked"
@@ -186,7 +186,7 @@ def revoke_kudosu(request: Request, set_id: int, post_id: int):
             detail="This beatmapset is not linked to a forum topic"
         )
 
-    if beatmapset.status >= DatabaseStatus.Ranked:
+    if beatmapset.status >= BeatmapStatus.Ranked:
         raise HTTPException(
             status_code=400,
             detail="This beatmapset is already ranked"

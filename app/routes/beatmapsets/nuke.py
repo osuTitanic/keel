@@ -4,7 +4,7 @@ from fastapi import HTTPException, APIRouter, Request
 from sqlalchemy.orm import Session
 
 from app.common.database import beatmapsets, topics, posts, beatmaps, modding
-from app.common.constants import DatabaseStatus, UserActivity
+from app.common.constants import BeatmapStatus, UserActivity
 from app.models import BeatmapsetModel, ErrorResponse
 from app.common.database import DBUser, DBBeatmapset
 from app.common.helpers import activity
@@ -57,13 +57,13 @@ def nuke_beatmap(request: Request, set_id: int):
 
     beatmapsets.update(
         set_id,
-        {'status': DatabaseStatus.Inactive.value},
+        {'status': BeatmapStatus.Inactive.value},
         request.state.db
     )
 
     beatmaps.update_by_set_id(
         set_id,
-        {'status': DatabaseStatus.Inactive.value},
+        {'status': BeatmapStatus.Inactive.value},
         request.state.db
     )
 

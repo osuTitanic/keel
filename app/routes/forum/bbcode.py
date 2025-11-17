@@ -2,7 +2,7 @@
 from fastapi import Response, APIRouter, Request, Body
 from fastapi.responses import HTMLResponse
 from app.models import BBCodeRenderRequest
-from app import bbcode
+from app.common import bbcode
 
 router = APIRouter()
 

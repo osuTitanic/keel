@@ -5,7 +5,7 @@ redis==7.0.1
 geoip2==5.1.0
 rosu-pp-py==3.1.0
 sendgrid==6.12.5
-boto3-type-annotations-with-docs==0.3.1
+boto3-type-annotations==0.3.1
 boto3<2
 psycopg2-binary==2.9.11
 fastapi==0.121.2

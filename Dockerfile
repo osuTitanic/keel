@@ -42,6 +42,7 @@ RUN apk add --no-cache \
     openjpeg \
     openssl \
     postgresql-libs \
+    curl \
     tini \
     zlib
 

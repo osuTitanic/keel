@@ -1,66 +1,60 @@
 FROM python:3.14-slim AS builder
 
-# Installing build dependencies
-RUN apt update -y && \
-    apt install -y --no-install-recommends \
-        postgresql-client \
-        git \
-        curl \
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
+
+# Install build dependencies only in the builder stage
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
         build-essential \
-        gcc \
-        python3-dev \
+        curl \
+        git \
+        libpq-dev \
         libssl-dev \
+        pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Install rust toolchain
-RUN curl -sSf https://sh.rustup.rs | sh -s -- -y
+# Install rust toolchain for pyo3/orjson wheels
+RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
 ENV PATH="/root/.cargo/bin:${PATH}"
-ENV PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
 
-# Install python dependencies
-# & gunicorn for deployment
-WORKDIR /keel
+WORKDIR /tmp/build
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir gunicorn
+
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --no-compile --root /install -r requirements.txt
 
 FROM python:3.14-slim
 
-# Installing runtime dependencies
-RUN apt update -y && \
-    apt install -y --no-install-recommends \
-        libssl-dev tini curl \
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install runtime-only dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libpq5 \
+        libssl3 \
+        tini \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy installed Python packages from builder
-COPY --from=builder /usr/local /usr/local
+# Copy only the installed site-packages and console scripts from the builder
+COPY --from=builder /install/usr/local /usr/local
 
-# Disable output buffering
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-# Get config for deployment
-ARG API_WORKERS=4
-ENV API_WORKERS $API_WORKERS
+# Runtime configuration
+ARG WEB_WORKERS=4
+ENV WEB_WORKERS=${WEB_WORKERS} \
+    API_WORKERS=${WEB_WORKERS}
 
 # Copy source code
 WORKDIR /keel
 COPY . .
 
-# Generate __pycache__ directories
-ENV PYTHONDONTWRITEBYTECODE=1
+# Precompile python files for faster startup
 RUN python -m compileall -q app
 
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
-CMD gunicorn \
-    --access-logfile - \
-    --preload \
-    -b 0.0.0.0:80 \
-    -w $WEB_WORKERS \
-    -k uvicorn.workers.UvicornWorker \
-    --max-requests 50000 \
-    --max-requests-jitter 10000 \
-    --graceful-timeout 5 \
-    --timeout 10 \
-    app:api
+CMD ["/bin/sh", "-c", "gunicorn --access-logfile - --preload -b 0.0.0.0:80 -w ${WEB_WORKERS} -k uvicorn.workers.UvicornWorker --max-requests 50000 --max-requests-jitter 10000 --graceful-timeout 5 --timeout 10 app:api"]

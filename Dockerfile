@@ -24,7 +24,8 @@ WORKDIR /tmp/build
 COPY requirements.txt ./
 
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir --no-compile --root /install -r requirements.txt
+    pip install --no-cache-dir --no-compile --root /install -r requirements.txt && \
+    pip install --no-cache-dir --no-compile --root /install gunicorn
 
 FROM python:3.14-alpine
 

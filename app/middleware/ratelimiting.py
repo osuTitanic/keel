@@ -61,7 +61,7 @@ def resolve_ratelimit_configuration(request: Request) -> Tuple[int, int]:
             69420 # let's hope that's enough :)
         )
 
-    if "authenticated" in request.auth.scopes:
+    if "users.authenticated" in request.auth.scopes:
         return (
             config.API_RATELIMIT_WINDOW,
             config.API_RATELIMIT_AUTHENTICATED

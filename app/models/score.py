@@ -14,6 +14,7 @@ class ScoreModel(BaseModel):
     status_pp: int
     status_score: int
     client_version: int
+    client_version_string: str
     pp: float
     ppv1: float
     acc: float
@@ -44,6 +45,7 @@ class ScoreModelWithoutBeatmap(BaseModel):
     status_pp: int
     status_score: int
     client_version: int
+    client_version_string: str
     pp: float
     ppv1: float
     acc: float
@@ -72,6 +74,7 @@ class ScoreModelWithoutUser(BaseModel):
     status_pp: int
     status_score: int
     client_version: int
+    client_version_string: str
     pp: float
     ppv1: float
     acc: float

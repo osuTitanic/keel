@@ -19,7 +19,9 @@ def server_stats(request: Request):
 
 def fetch_server_stats(request: Request):
     keys = [
-        "bancho:users",
+        "bancho:activity:osu",
+        "bancho:activity:irc",
+        "bancho:activity:mp",
         "bancho:totalusers",
         "bancho:totalscores",
         "bancho:totalbeatmaps",
@@ -47,15 +49,18 @@ def fetch_server_stats(request: Request):
 
 def parse_stats_response(response: Tuple[Any]) -> ServerStatsModel:
     response = [int(value) if value is not None else 0 for value in response]
-    offset = 5
+    offset = 7
 
     stats = ServerStatsModel(
         uptime=round(time.time() - app.session.startup_time),
-        online_users=response[0],
-        total_users=response[1],
-        total_scores=response[2],
-        total_beatmaps=response[3],
-        total_beatmapsets=response[4],
+        online_users=response[0] + response[1],
+        online_users_osu=response[0],
+        online_users_irc=response[1],
+        online_mp_matches=response[2],
+        total_users=response[3],
+        total_scores=response[4],
+        total_beatmaps=response[5],
+        total_beatmapsets=response[6],
         beatmap_modes={}
     )
 

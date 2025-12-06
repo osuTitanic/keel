@@ -15,6 +15,9 @@ class BeatmapModeStatsModel(BaseModel):
 class ServerStatsModel(BaseModel):
     uptime: int
     online_users: int
+    online_users_osu: int
+    online_users_irc: int
+    online_mp_matches: int
     total_users: int
     total_scores: int
     total_beatmaps: int

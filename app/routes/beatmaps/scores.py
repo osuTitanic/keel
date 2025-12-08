@@ -66,11 +66,48 @@ def get_beatmap_scores(
         ]
     )
 
-@router.get("/{beatmap_id}/scores/users/{user_id}", response_model=ScoreModel, responses=user_responses)
-def get_beatmap_user_score(
+@router.get("/{beatmap_id}/scores/users/{user_id}", response_model=ScoreCollectionResponseWithoutBeatmap, responses=user_responses)
+def get_beatmap_user_scores(
+    request: Request,
+    beatmap_id: int,
+    user_id: int,
+    mode: GameMode | None = Query(None)
+) -> ScoreCollectionResponseWithoutBeatmap:
+    if not (beatmap := beatmaps.fetch_by_id(beatmap_id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+
+    if beatmap.status <= -3:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmap could not be found"
+        )
+
+    # Set to default mode from beatmap if not provided
+    default_mode = GameMode(beatmap.mode)
+    mode_enum = mode or default_mode
+
+    user_scores = scores.fetch_best_by_beatmap(
+        user_id, beatmap_id,
+        mode_enum.value,
+        session=request.state.db
+    )
+
+    return ScoreCollectionResponseWithoutBeatmap(
+        total=len(user_scores),
+        scores=[
+            ScoreModelWithoutBeatmap.model_validate(score, from_attributes=True)
+            for score in user_scores
+        ]
+    )
+
+@router.get("/{beatmap_id}/scores/users/{user_id}/best", response_model=ScoreModel, responses=user_responses)
+def get_beatmap_user_personal_best(
     request: Request,
     beatmap_id: int, user_id: int,
-    mode: str | None = Query(None),
+    mode: GameMode | None = Query(None),
     mods: int | None = Query(None, ge=0)
 ) -> ScoreModel:
     if not (beatmap := beatmaps.fetch_by_id(beatmap_id, request.state.db)):
@@ -86,14 +123,8 @@ def get_beatmap_user_score(
         )
 
     # Set to default mode from beatmap if not provided
-    default_mode = GameMode(beatmap.mode).alias
-    mode = (mode or default_mode).lower()
-
-    if (mode_enum := GameMode.from_alias(mode)) is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid game mode"
-        )
+    default_mode = GameMode(beatmap.mode)
+    mode_enum = mode or default_mode
 
     score = scores.fetch_personal_best_score(
         beatmap_id, user_id,

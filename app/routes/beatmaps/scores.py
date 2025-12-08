@@ -20,7 +20,7 @@ user_responses = {
 @router.get("/{id}/scores", response_model=ScoreCollectionResponseWithoutBeatmap)
 def get_beatmap_scores(
     request: Request, id: int,
-    mode: str = Query(None),
+    mode: GameMode | None = Query(None),
     offset: int = Query(0, ge=0)
 ) -> ScoreCollectionResponseWithoutBeatmap:
     if not (beatmap := beatmaps.fetch_by_id(id, request.state.db)):
@@ -36,14 +36,8 @@ def get_beatmap_scores(
         )
 
     # Set to default mode from beatmap if not provided
-    default_mode = GameMode(beatmap.mode).alias
-    mode = (mode or default_mode).lower()
-
-    if (mode_enum := GameMode.from_alias(mode)) is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid game mode"
-        )
+    default_mode = GameMode(beatmap.mode)
+    mode_enum = mode or default_mode
 
     top_scores = scores.fetch_range_scores(
         id, mode_enum.value,
@@ -106,7 +100,8 @@ def get_beatmap_user_scores(
 @router.get("/{beatmap_id}/scores/users/{user_id}/best", response_model=ScoreModel, responses=user_responses)
 def get_beatmap_user_personal_best(
     request: Request,
-    beatmap_id: int, user_id: int,
+    beatmap_id: int,
+    user_id: int,
     mode: GameMode | None = Query(None),
     mods: int | None = Query(None, ge=0)
 ) -> ScoreModel:

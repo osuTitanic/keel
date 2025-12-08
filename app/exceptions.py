@@ -7,6 +7,7 @@ from fastapi import Request, HTTPException
 from .models import ErrorResponse
 from .server import api
 
+import traceback
 import config
 
 @api.exception_handler(HTTPException)
@@ -33,6 +34,25 @@ async def starlette_exception_handler(request: Request, exc: StarletteHTTPExcept
 async def response_validation_exception_handler(request: Request, exc: ResponseValidationError):
     if config.DEBUG:
         raise exc
+
+    # TODO: Alert officer
+    traceback.print_exc()
+
+    return JSONResponse(
+        ErrorResponse(
+            error=500,
+            details="Internal Server Error"
+        ).model_dump(),
+        status_code=500
+    )
+
+@api.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    if config.DEBUG:
+        raise exc
+
+    # TODO: Alert officer
+    traceback.print_exc()
 
     return JSONResponse(
         ErrorResponse(

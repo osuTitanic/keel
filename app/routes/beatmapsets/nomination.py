@@ -5,12 +5,10 @@ from typing import List
 
 from app.common.database import notifications, beatmapsets, nominations, topics, posts
 from app.common.constants import NotificationType, UserActivity
-from app.models import NominationModel, ErrorResponse
-from app.common.webhooks import Embed, Author, Image
+from app.models import NominationModelWithUser, ErrorResponse
 from app.common.database import DBUser, DBBeatmapset
 from app.common.helpers import activity
 from app.security import require_login
-from app.common import officer
 from app.utils import requires
 
 import config
@@ -24,14 +22,14 @@ responses = {
     400: {'model': ErrorResponse, 'description': 'Invalid request'}
 }
 
-@router.get("/{set_id}/nominations", response_model=List[NominationModel])
+@router.get("/{set_id}/nominations", response_model=List[NominationModelWithUser])
 def beatmap_nominations(request: Request, set_id: int):
     return [
-        NominationModel.model_validate(nom, from_attributes=True)
+        NominationModelWithUser.model_validate(nom, from_attributes=True)
         for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)
     ]
 
-@router.post("/{set_id}/nominations", response_model=List[NominationModel], dependencies=[require_login], responses=responses)
+@router.post("/{set_id}/nominations", response_model=List[NominationModelWithUser], dependencies=[require_login], responses=responses)
 @requires("beatmaps.nominations.create")
 def nominate_beatmap(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
@@ -82,11 +80,11 @@ def nominate_beatmap(request: Request, set_id: int):
     )
 
     return [
-        NominationModel.model_validate(nom, from_attributes=True)
+        NominationModelWithUser.model_validate(nom, from_attributes=True)
         for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)
     ]
 
-@router.delete("/{set_id}/nominations", response_model=List[NominationModel], dependencies=[require_login], responses=responses)
+@router.delete("/{set_id}/nominations", response_model=List[NominationModelWithUser], dependencies=[require_login], responses=responses)
 @requires("beatmaps.nominations.delete")
 def reset_nominations(request: Request, set_id: int):
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):

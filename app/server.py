@@ -31,6 +31,7 @@ async def lifespan(app: FastAPI):
     yield
     session.database.engine.dispose()
     session.redis.close()
+    await session.redis_async.close()
 
 api = FastAPI(
     title='Titanic! API',

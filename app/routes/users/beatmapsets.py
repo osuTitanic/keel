@@ -38,6 +38,7 @@ def get_user_beatmapsets(request: Request, user_id: int) -> List[BeatmapsetModel
     return [
         BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
         for beatmapset in user_beatmaps
+        if beatmapset.status != BeatmapStatus.Inactive
     ]
 
 @router.get("/{user_id}/beatmapsets/{beatmapset_id}", response_model=BeatmapsetModel)
@@ -62,6 +63,12 @@ def get_user_beatmapset(request: Request, user_id: int, beatmapset_id: int) -> B
 
     if beatmapset.server != 1:
         # Beatmap was not uploaded on titanic
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmapset could not be found"
+        )
+
+    if beatmapset.status == BeatmapStatus.Inactive:
         raise HTTPException(
             status_code=404,
             detail="The requested beatmapset could not be found"
@@ -100,7 +107,7 @@ def revive_beatmapset(
             detail="You are not authorized to perform this action"
         )
 
-    if beatmapset.status not in (BeatmapStatus.Graveyard, BeatmapStatus.Inactive):
+    if beatmapset.status != BeatmapStatus.Graveyard:
         raise HTTPException(
             status_code=400,
             detail="The requested beatmapset is not in the graveyard"

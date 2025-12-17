@@ -1,6 +1,7 @@
 FROM python:3.14-alpine AS builder
 
-ENV PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
+ENV PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 RUN apk add --no-cache \
     build-base \
@@ -23,9 +24,10 @@ RUN apk add --no-cache \
 WORKDIR /tmp/build
 COPY requirements.txt ./
 
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir --no-compile --root /install -r requirements.txt && \
-    pip install --no-cache-dir --no-compile --root /install gunicorn
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip setuptools wheel && \
+    pip install --no-compile --root /install -r requirements.txt && \
+    pip install --no-compile --root /install gunicorn
 
 FROM python:3.14-alpine
 

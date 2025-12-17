@@ -1,6 +1,6 @@
 
 from fastapi.middleware.cors import CORSMiddleware
-from config import DOMAIN_NAME
+from app.common.config import config_instance as config
 from app import api
 
 origins = [
@@ -8,12 +8,12 @@ origins = [
     f"http://osu.localhost",
     f"http://localhost:8080",
     f"http://127.0.0.1:8080",
-    f"http://api.{DOMAIN_NAME}",
-    f"https://api.{DOMAIN_NAME}",
-    f"http://osu.{DOMAIN_NAME}",
-    f"https://osu.{DOMAIN_NAME}",
-    f"http://{DOMAIN_NAME}",
-    f"https://{DOMAIN_NAME}",
+    f"http://api.{config.DOMAIN_NAME}",
+    f"https://api.{config.DOMAIN_NAME}",
+    f"http://osu.{config.DOMAIN_NAME}",
+    f"https://osu.{config.DOMAIN_NAME}",
+    f"http://{config.DOMAIN_NAME}",
+    f"https://{config.DOMAIN_NAME}",
 ]
 
 api.add_middleware(

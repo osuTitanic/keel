@@ -2,10 +2,9 @@
 from fastapi.responses import JSONResponse
 from app.models import ErrorResponse
 from redis.asyncio import Redis
-from config import DOMAIN_NAME
 from typing import Callable
 from fastapi import Request
-from app import api
+from app import api, session
 
 @api.middleware("http")
 async def csrf_middleware(request: Request, call_next: Callable):
@@ -15,7 +14,7 @@ async def csrf_middleware(request: Request, call_next: Callable):
     if request.method in ("GET", "HEAD", "OPTIONS", "TRACE"):
         return await call_next(request)
 
-    osu_domain = f"osu.{DOMAIN_NAME}"
+    osu_domain = f"osu.{session.config.DOMAIN_NAME}"
     requires_csrf = osu_domain in request.headers.get("Origin", "")
 
     if not requires_csrf:

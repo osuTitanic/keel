@@ -1,5 +1,5 @@
 
-from config import RECAPTCHA_SECRET_KEY, RECAPTCHA_SITE_KEY
+from app.common.config import config_instance as config
 from pydantic import BaseModel, field_validator
 
 class RegistrationRequest(BaseModel):
@@ -10,7 +10,7 @@ class RegistrationRequest(BaseModel):
 
     @field_validator('recaptcha_response')
     def validate_recaptcha(cls, value: str | None):
-        if not RECAPTCHA_SECRET_KEY or not RECAPTCHA_SITE_KEY:
+        if not config.RECAPTCHA_SECRET_KEY or not config.RECAPTCHA_SITE_KEY:
             return
 
         if not value:

@@ -1,8 +1,8 @@
 
+from fastapi import HTTPException, Request, APIRouter, Query
 from app.models import ScoreCollectionResponse, ScoreModelWithoutUser, ModeAlias
 from app.common.database.repositories import scores, users
-from fastapi import HTTPException, Request, APIRouter, Query
-from config import APPROVED_MAP_REWARDS
+from app.common.config import config_instance as config
 
 router = APIRouter()
 
@@ -30,14 +30,14 @@ def get_top_plays_preferred_mode(
         user.preferred_mode,
         offset=offset,
         limit=limit,
-        exclude_approved=(not APPROVED_MAP_REWARDS),
+        exclude_approved=(not config.APPROVED_MAP_REWARDS),
         session=request.state.db
     )
 
     top_count = scores.fetch_top_scores_count(
         user.id,
         user.preferred_mode,
-        exclude_approved=(not APPROVED_MAP_REWARDS),
+        exclude_approved=(not config.APPROVED_MAP_REWARDS),
         session=request.state.db
     )
 
@@ -74,14 +74,14 @@ def get_top_plays(
         mode.integer,
         offset=offset,
         limit=limit,
-        exclude_approved=(not APPROVED_MAP_REWARDS),
+        exclude_approved=(not config.APPROVED_MAP_REWARDS),
         session=request.state.db
     )
 
     top_count = scores.fetch_top_scores_count(
         user.id,
         mode.integer,
-        exclude_approved=(not APPROVED_MAP_REWARDS),
+        exclude_approved=(not config.APPROVED_MAP_REWARDS),
         session=request.state.db
     )
 

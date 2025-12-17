@@ -3,33 +3,28 @@ from .common.helpers.filter import ChatFilter
 from .common.cache.events import EventQueue
 from .common.database import Postgres
 from .common.storage import Storage
+from .common.config import Config
 
 from redis.asyncio import Redis as RedisAsync
 from requests import Session
 from redis import Redis
 
 import logging
-import config
 import time
 
-database = Postgres(
-    config.POSTGRES_USER,
-    config.POSTGRES_PASSWORD,
-    config.POSTGRES_HOST,
-    config.POSTGRES_PORT
-)
+config = Config()
+database = Postgres(config)
+storage = Storage(config)
 
 redis = Redis(
     config.REDIS_HOST,
     config.REDIS_PORT
 )
-
 redis_async = RedisAsync(
     host=config.REDIS_HOST,
     port=config.REDIS_PORT,
     decode_responses=True
 )
-
 events = EventQueue(
     name='bancho:events',
     connection=redis
@@ -38,7 +33,6 @@ events = EventQueue(
 logger = logging.getLogger('titanic')
 startup_time = time.time()
 
-storage = Storage()
 requests = Session()
 filters = ChatFilter()
 requests.headers = {

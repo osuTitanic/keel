@@ -4,12 +4,12 @@ from fastapi import Request, Response
 from typing import Callable, Tuple
 from redis.asyncio import Redis
 
+from app.common.config import config_instance as config
 from app.models import ErrorResponse
 from app.common.helpers import ip
 from app.common import officer
 from app import utils
 
-import config
 import time
 import app
 

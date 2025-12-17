@@ -7,14 +7,10 @@ from typing import List
 from app.common.database.objects import DBForumTopic, DBUser, DBForumPost
 from app.models import TopicModel, ErrorResponse, TopicCreateRequest
 from app.common.database import forums, topics, posts
-from app.common.webhooks import Embed, Image, Author
 from app.common.constants import UserActivity
 from app.common.helpers import activity
 from app.security import require_login
-from app.common import officer
 from app.utils import requires
-
-import config
 
 router = APIRouter(
     responses={404: {"description": "Forum/Topic not found", "model": ErrorResponse}}

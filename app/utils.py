@@ -1,4 +1,5 @@
 
+from app.common.config import config_instance as config
 from app.common.database.objects import DBUser, DBBeatmap
 from app.common.database.repositories import wrapper
 from app.common.database import stats, histories
@@ -17,7 +18,6 @@ import functools
 import inspect
 import asyncio
 import typing
-import config
 import string
 import random
 import io

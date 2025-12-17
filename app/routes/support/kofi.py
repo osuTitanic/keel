@@ -3,11 +3,9 @@ from fastapi import HTTPException, APIRouter, Request, Form
 from fastapi.responses import JSONResponse
 
 from app.common.database.repositories import groups, users, names
+from app.common.config import config_instance as config
 from app.models.kofi import KofiWebhookData
 from app.common import webhooks, officer
-
-import config
-import json
 
 router = APIRouter()
 donator_group_id = 6

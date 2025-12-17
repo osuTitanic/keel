@@ -5,10 +5,10 @@ from fastapi.responses import JSONResponse
 from fastapi import Request, HTTPException
 
 from .models import ErrorResponse
+from .session import config
 from .server import api
 
 import traceback
-import config
 
 @api.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):

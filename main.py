@@ -1,13 +1,13 @@
 
+import app.session
 import uvicorn
-import config
 
 def run():
     uvicorn.run(
         "app:api",
-        host=config.API_HOST,
-        port=config.API_PORT,
-        reload=config.RELOAD,
+        host=app.session.config.API_HOST,
+        port=app.session.config.API_PORT,
+        reload=app.session.config.RELOAD,
         server_header=False,
         log_config=None,
     )

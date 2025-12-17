@@ -1,13 +1,14 @@
 
 from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import JSONResponse, Response
+
+from app.common.config import config_instance as config
 from app.models import TokenResponse, ErrorResponse
 from app.common.database import DBUser, users
 from app.security import require_login
 from app.utils import requires
 
 import app.security as security
-import config
 import time
 
 router = APIRouter(

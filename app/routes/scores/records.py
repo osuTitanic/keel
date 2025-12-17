@@ -1,4 +1,5 @@
 
+from app.common.config import config_instance as config
 from app.models import ScoreRecordsModel, ScoreModel
 from app.common.database import DBScore, DBBeatmap
 from app.common.constants import Mods
@@ -6,8 +7,6 @@ from app.common.constants import Mods
 from fastapi import Request, APIRouter
 from sqlalchemy.orm import Session
 from typing import List
-
-import config
 
 router = APIRouter()
 

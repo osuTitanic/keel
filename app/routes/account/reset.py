@@ -2,10 +2,9 @@
 from fastapi import HTTPException, APIRouter, Request
 
 from app.models import VerificationResponse, PasswordResetRequest, ErrorResponse
+from app.common.config import config_instance as config
 from app.common.database import users, verifications
 from app.common import mail
-
-import config
 
 router = APIRouter(
     responses={

@@ -9,13 +9,9 @@ from app.common.database.objects import DBForumPost, DBForumTopic, DBBeatmapset,
 from app.common.database import topics, posts, notifications, nominations, beatmapsets
 from app.models import PostModel, ErrorResponse, PostCreateRequest, PostUpdateRequest
 from app.common.constants import NotificationType, BeatmapStatus, UserActivity
-from app.common.webhooks import Embed, Image, Author
 from app.common.helpers import activity
 from app.security import require_login
-from app.common import officer
 from app.utils import requires
-
-import config
 
 router = APIRouter(
     responses={

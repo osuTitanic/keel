@@ -1,12 +1,10 @@
 
+from app.common.config import config_instance as config
 from app.routes.media.api import BitviewAPI
 from app.models import BitviewVideoModel
 
 from fastapi import BackgroundTasks, HTTPException, APIRouter, Request
 from typing import List
-
-import config
-import json
 
 bitview = BitviewAPI(
     config.BITVIEW_API_ENDPOINT,

@@ -10,12 +10,11 @@ from fastapi import (
 )
 
 from app.common.constants import BeatmapStatus, NotificationType, UserActivity
-from app.common.webhooks import Embed, Author, Image, Field
+from app.common.config import config_instance as config
 from app.models import BeatmapsetModel, ErrorResponse
 from app.common.database import DBBeatmapset, DBUser
 from app.common.helpers import activity, permissions
 from app.security import require_login
-from app.common import officer
 from app.utils import requires
 from app.common.database import (
     notifications,
@@ -26,8 +25,6 @@ from app.common.database import (
     scores,
     posts
 )
-
-import config
 
 router = APIRouter(
     dependencies=[require_login],

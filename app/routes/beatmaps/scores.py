@@ -1,10 +1,9 @@
 
 from fastapi import APIRouter, HTTPException, Request, Query
+from app.common.config import config_instance as config
 from app.common.database import scores, beatmaps
 from app.common.constants import GameMode
 from app.models import *
-
-import config
 
 router = APIRouter(
     responses={

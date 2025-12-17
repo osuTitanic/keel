@@ -7,11 +7,10 @@ from app import session
 
 import warnings
 import logging
-import config
 
 logging.basicConfig(
     format='[%(asctime)s] - <%(name)s> %(levelname)s: %(message)s',
-    level=logging.DEBUG if config.DEBUG else logging.INFO,
+    level=logging.DEBUG if session.config.DEBUG else logging.INFO,
 )
 
 description = """\
@@ -36,8 +35,8 @@ async def lifespan(app: FastAPI):
 api = FastAPI(
     title='Titanic! API',
     description=description,
-    version=config.VERSION,
-    debug=config.DEBUG,
+    version='1.0.0', # eternally 1.0.0
+    debug=session.config.DEBUG,
     redoc_url="/docs",
     docs_url=None,
     lifespan=lifespan,
@@ -49,21 +48,21 @@ api = FastAPI(
     },
     servers=[
         {
-            "url": f"https://api.{config.DOMAIN_NAME}",
+            "url": f"https://api.{session.config.DOMAIN_NAME}",
             "description": "Production server"
         }
     ]
 )
 api.include_router(BaseRouter)
 
-if config.DEBUG:
+if session.config.DEBUG:
     # Add development server
     api.servers.append({
-        "url": f"http://localhost:{config.API_PORT}",
+        "url": f"http://localhost:{session.config.API_PORT}",
         "description": "Local server"
     })
 
-if not config.DEBUG:
+if not session.config.DEBUG:
     # Ignore pydantic warnings in production
     warnings.filterwarnings(
         "ignore",

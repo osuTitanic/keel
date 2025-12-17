@@ -6,13 +6,11 @@ from typing import List
 from app.common.database import notifications, beatmapsets, nominations, topics, posts
 from app.common.constants import NotificationType, UserActivity
 from app.models import NominationModelWithUser, ErrorResponse
+from app.common.config import config_instance as config
 from app.common.database import DBUser, DBBeatmapset
 from app.common.helpers import activity
 from app.security import require_login
 from app.utils import requires
-
-import config
-import app
 
 router = APIRouter()
 

@@ -1,11 +1,9 @@
 
 from fastapi import HTTPException, BackgroundTasks
+from app.common.config import config_instance as config
 from app.models import BitviewVideoListing
-from contextlib import suppress
 
 import requests
-import config
-import redis
 import json
 import time
 import app

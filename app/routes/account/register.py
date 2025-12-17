@@ -2,6 +2,7 @@
 from fastapi import HTTPException, APIRouter, Request
 from sqlalchemy.orm import Session
 
+from app.common.config import config_instance as config
 from app.common.constants.notifications import NotificationType
 from app.common.constants.regexes import USERNAME, EMAIL
 from app.common.constants.strings import BAD_WORDS
@@ -25,7 +26,6 @@ from app.common.database import (
 
 import hashlib
 import bcrypt
-import config
 
 router = APIRouter()
 

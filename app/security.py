@@ -1,10 +1,10 @@
 
+from app.common.config import config_instance as config
 from app.common.database import DBUser
 from fastapi import Header, Depends
 from hashlib import md5
 from app import utils
 
-import config
 import bcrypt
 import time
 import jwt

@@ -110,8 +110,8 @@ def add_favourite(
         request.user.id,
         request.state.db
     )
-    
-    if count > 49:
+
+    if count > 99:
         raise HTTPException(
             status_code=400,
             detail="You have too many favourite maps. Please go to your profile and delete some first."

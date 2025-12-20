@@ -1,5 +1,7 @@
 
 from fastapi import APIRouter, HTTPException, Request, Query
+from contextlib import suppress
+
 from app.common.config import config_instance as config
 from app.common.database import scores, beatmaps
 from app.common.constants import GameMode
@@ -19,8 +21,9 @@ user_responses = {
 @router.get("/{id}/scores", response_model=ScoreCollectionResponseWithoutBeatmap)
 def get_beatmap_scores(
     request: Request, id: int,
-    mode: GameMode | None = Query(None),
-    offset: int = Query(0, ge=0)
+    offset: int = Query(0, ge=0),
+    mods: str | None = Query(None),
+    mode: GameMode | None = Query(None)
 ) -> ScoreCollectionResponseWithoutBeatmap:
     if not (beatmap := beatmaps.fetch_by_id(id, request.state.db)):
         raise HTTPException(
@@ -38,18 +41,30 @@ def get_beatmap_scores(
     default_mode = GameMode(beatmap.mode)
     mode_enum = mode or default_mode
 
-    top_scores = scores.fetch_range_scores(
-        id, mode_enum.value,
-        offset=offset,
-        limit=config.SCORE_RESPONSE_LIMIT,
-        session=request.state.db
-    )
-    
-    score_count = scores.fetch_count_beatmap(
-        beatmap.id,
-        mode_enum.value,
-        session=request.state.db
-    )
+    if (resolved_mods := resolve_mods_from_string(mods)) is not None:
+        top_scores = scores.fetch_range_scores_mods(
+            id, mode_enum.value, resolved_mods.value,
+            offset=offset, limit=config.SCORE_RESPONSE_LIMIT,
+            session=request.state.db
+        )
+        score_count = scores.fetch_count_beatmap(
+            beatmap.id,
+            mode_enum.value, resolved_mods.value,
+            session=request.state.db
+        )
+
+    else:
+        top_scores = scores.fetch_range_scores(
+            id, mode_enum.value,
+            offset=offset,
+            limit=config.SCORE_RESPONSE_LIMIT,
+            session=request.state.db
+        )
+        score_count = scores.fetch_count_beatmap(
+            beatmap.id,
+            mode_enum.value,
+            session=request.state.db
+        )
 
     return ScoreCollectionResponseWithoutBeatmap(
         total=score_count,
@@ -102,7 +117,7 @@ def get_beatmap_user_personal_best(
     beatmap_id: int,
     user_id: int,
     mode: GameMode | None = Query(None),
-    mods: int | None = Query(None, ge=0)
+    mods: str | None = Query(None)
 ) -> ScoreModel:
     if not (beatmap := beatmaps.fetch_by_id(beatmap_id, request.state.db)):
         raise HTTPException(
@@ -119,11 +134,12 @@ def get_beatmap_user_personal_best(
     # Set to default mode from beatmap if not provided
     default_mode = GameMode(beatmap.mode)
     mode_enum = mode or default_mode
+    resolved_mods = resolve_mods_from_string(mods)
 
     score = scores.fetch_personal_best_score(
         beatmap_id, user_id,
         mode_enum.value,
-        mods=mods,
+        mods=resolved_mods,
         session=request.state.db
     )
 
@@ -134,3 +150,15 @@ def get_beatmap_user_personal_best(
         )
 
     return ScoreModel.model_validate(score, from_attributes=True)
+
+def resolve_mods_from_string(mods: str) -> Mods | None:
+    if not mods:
+        return None
+
+    with suppress(Exception):
+        if mods.isdigit():
+            return Mods(int(mods))
+        else:
+            return Mods.from_string(mods)
+
+    return None

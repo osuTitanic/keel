@@ -6,7 +6,7 @@ from .beatmap import *
 from .beatmapset import *
 from .benchmark import *
 from .chat import *
-from .client import *
+from .releases import *
 from .collaboration import *
 from .errors import *
 from .favourite import *

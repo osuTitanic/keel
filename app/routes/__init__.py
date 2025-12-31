@@ -9,7 +9,7 @@ from . import rankings
 from . import beatmaps
 from . import support
 from . import account
-from . import clients
+from . import releases
 from . import groups
 from . import scores
 from . import events
@@ -30,11 +30,11 @@ router.include_router(users.router, prefix="/users", tags=["users"])
 router.include_router(groups.router, prefix="/groups", tags=["groups"])
 router.include_router(scores.router, prefix="/scores", tags=["scores"])
 router.include_router(events.router, prefix="/events", tags=["events"])
-router.include_router(clients.router, prefix="/clients", tags=["clients"])
 router.include_router(account.router, prefix="/account", tags=["account"])
 router.include_router(support.router, prefix="/support", tags=["support"])
 router.include_router(beatmaps.router, prefix="/beatmaps", tags=["beatmaps"])
 router.include_router(rankings.router, prefix="/rankings", tags=["rankings"])
+router.include_router(releases.router, prefix="/releases", tags=["releases"])
 router.include_router(benchmarks.router, prefix="/benchmarks", tags=["benchmarks"])
 router.include_router(moderation.router, prefix="/moderation", tags=["moderation"])
 router.include_router(beatmapsets.router, prefix="/beatmapsets", tags=["beatmapsets"])

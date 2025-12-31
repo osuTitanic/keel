@@ -19,6 +19,10 @@ def get_osu_changelog(
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0)
 ) -> List[OsuChangelogModel]:
+    # Ensure we have no timezone set
+    start = start.replace(tzinfo=None)
+
+    # Pretend that its still 2015™
     if start > client_cutoff:
         start = client_cutoff
 

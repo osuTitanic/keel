@@ -6,7 +6,7 @@ from app.utils import requires
 
 router = APIRouter()
 
-@router.post("/", response_model=OsuReleaseModel)
+@router.post("/official", response_model=OsuReleaseModel)
 @requires("clients.upload")
 def create_release(
     request: Request,

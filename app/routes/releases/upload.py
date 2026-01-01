@@ -95,3 +95,36 @@ def upload_modded_release(
         release_object,
         from_attributes=True
     )
+
+@router.delete("/modded/{identifier}/{checksum}")
+@requires("releases.modded.delete")
+def delete_modded_release(
+    request: Request,
+    identifier: str,
+    checksum: str
+) -> dict:
+    release_object = releases.fetch_modded(
+        identifier=identifier,
+        session=request.state.db
+    )
+
+    if not release_object:
+        raise HTTPException(status_code=404, detail="The requested release was not found")
+
+    if request.user.id != release_object.creator_id:
+        raise HTTPException(status_code=403, detail="You do not have permission to delete entries for this release")
+
+    entry = releases.fetch_modded_entry_by_checksum(
+        mod_name=release_object.name,
+        checksum=checksum,
+        session=request.state.db
+    )
+
+    if not entry:
+        raise HTTPException(status_code=404, detail="The requested release entry was not found")
+
+    releases.delete_modded_entry(
+        entry_id=entry.id,
+        session=request.state.db
+    )
+    return {}

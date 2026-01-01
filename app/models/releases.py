@@ -23,6 +23,25 @@ class ModdedReleaseModel(BaseModel):
     client_extension: str
     created_at: datetime
 
+class ModdedReleaseEntryModel(BaseModel):
+    id: int
+    mod_name: str
+    version: str
+    stream: str
+    checksum: str
+    download_url: str | None
+    update_url: str | None
+    post_id: int | None
+    created_at: datetime
+
+class ModdedReleaseUploadRequest(BaseModel):
+    version: str
+    stream: str
+    checksum: str
+    download_url: str | None
+    update_url: str | None
+    post_id: int | None
+
 class OsuChangelogModel(BaseModel):
     id: int
     text: str

@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationInfo, field_validator
 from datetime import datetime
 from typing import List
 
@@ -31,3 +31,46 @@ class OsuChangelogModel(BaseModel):
     author: str
     area: str | None
     created_at: datetime
+
+class OsuReleaseModelCompact(BaseModel):
+    id: int
+    version: int
+    subversion: int
+    stream: str
+    created_at: datetime
+
+class OsuReleaseFile(BaseModel):
+    id: int
+    filename: str
+    file_version: int
+    file_hash: str
+    filesize: int
+    patch_id: str | None
+    url_full: str
+    url_patch: str | None
+    timestamp: datetime
+
+class OsuReleaseModel(OsuReleaseModelCompact):
+    files: List[OsuReleaseFile]
+    
+    @field_validator('files', mode='before')
+    @classmethod
+    def resolve_files(cls, v, info: ValidationInfo) -> List[OsuReleaseFile]:
+        if v:
+            # Files were provided directly
+            return v
+
+        # Get from context if available
+        context = info.context or {}
+        files = context.get(cls.id)
+
+        if not files:
+            return []
+
+        return [
+            OsuReleaseFile.model_validate(file_object)
+            for file_object in files
+        ]
+
+class OsuReleaseUploadRequest(OsuReleaseModelCompact):
+    files: List[int]

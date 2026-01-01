@@ -1,8 +1,8 @@
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Query
 from typing import List
 
-from app.models import TitanicReleaseModel, ModdedReleaseModel
+from app.models import TitanicReleaseModel, ModdedReleaseModel, OsuReleaseModel
 from app.common.database import releases
 
 router = APIRouter()
@@ -19,4 +19,29 @@ def get_modded_releases(request: Request) -> List[ModdedReleaseModel]:
     return [
         ModdedReleaseModel.model_validate(client, from_attributes=True)
         for client in releases.fetch_modded_all(request.state.db)
+    ]
+
+@router.get("/official", response_model=List[OsuReleaseModel])
+def get_official_releases(
+    request: Request,
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0)
+) -> List[OsuReleaseModel]:
+    entries = releases.fetch_official_range(
+        limit=limit,
+        offset=offset,
+        session=request.state.db
+    )
+
+    release_files = {
+        entry.id: releases.fetch_file_entries(
+            release_id=entry.id,
+            session=request.state.db
+        )
+        for entry in entries
+    }
+
+    return [
+        OsuReleaseModel.model_validate(entry, from_attributes=True, context=release_files)
+        for entry in entries
     ]

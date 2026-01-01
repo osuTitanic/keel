@@ -78,6 +78,9 @@ def upload_modded_release(
     if not release_object:
         raise HTTPException(status_code=404, detail="The requested release was not found")
 
+    if request.user.id != release_object.creator_id:
+        raise HTTPException(status_code=403, detail="You do not have permission to upload entries for this release")
+
     release_object = releases.create_modded_entry(
         mod_name=release_object.name,
         version=release.version,

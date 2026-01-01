@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Request, Query
+from fastapi import HTTPException, APIRouter, Request, Query
 from typing import List
 
 from app.models import TitanicReleaseModel, ModdedReleaseModel, OsuReleaseModel
@@ -57,7 +57,7 @@ def get_official_release(
     )
 
     if not release_object:
-        raise HTTPException(status_code=404, detail="Release not found.")
+        raise HTTPException(status_code=404, detail="The requested release was not found")
 
     release_files = {
         release_object.id: releases.fetch_file_entries(

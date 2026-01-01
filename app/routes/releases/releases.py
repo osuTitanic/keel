@@ -45,3 +45,29 @@ def get_official_releases(
         OsuReleaseModel.model_validate(entry, from_attributes=True, context=release_files)
         for entry in entries
     ]
+
+@router.get("/official/{release_id}", response_model=OsuReleaseModel)
+def get_official_release(
+    request: Request,
+    release_id: int
+) -> OsuReleaseModel:
+    release_object = releases.fetch_official_by_id(
+        release_id=release_id,
+        session=request.state.db
+    )
+
+    if not release_object:
+        raise HTTPException(status_code=404, detail="Release not found.")
+
+    release_files = {
+        release_object.id: releases.fetch_file_entries(
+            release_id=release_object.id,
+            session=request.state.db
+        )
+    }
+
+    return OsuReleaseModel.model_validate(
+        release_object,
+        context=release_files,
+        from_attributes=True
+    )

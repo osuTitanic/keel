@@ -21,6 +21,24 @@ def get_modded_releases(request: Request) -> List[ModdedReleaseModel]:
         for client in releases.fetch_modded_all(request.state.db)
     ]
 
+@router.get("/modded/{identifier}", response_model=ModdedReleaseModel)
+def get_modded_release(
+    request: Request,
+    identifier: str
+) -> ModdedReleaseModel:
+    release_object = releases.fetch_modded(
+        identifier=identifier,
+        session=request.state.db
+    )
+
+    if not release_object:
+        raise HTTPException(status_code=404, detail="The requested release was not found")
+
+    return ModdedReleaseModel.model_validate(
+        release_object,
+        from_attributes=True
+    )
+
 @router.get("/official", response_model=List[OsuReleaseModel])
 def get_official_releases(
     request: Request,

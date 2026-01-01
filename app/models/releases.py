@@ -52,7 +52,7 @@ class OsuReleaseFile(BaseModel):
 
 class OsuReleaseModel(OsuReleaseModelCompact):
     files: List[OsuReleaseFile]
-    
+
     @field_validator('files', mode='before')
     @classmethod
     def resolve_files(cls, v, info: ValidationInfo) -> List[OsuReleaseFile]:
@@ -72,5 +72,9 @@ class OsuReleaseModel(OsuReleaseModelCompact):
             for file_object in files
         ]
 
-class OsuReleaseUploadRequest(OsuReleaseModelCompact):
+class OsuReleaseUploadRequest(BaseModel):
+    version: int
+    subversion: int
+    stream: str
+    created_at: datetime
     files: List[int]

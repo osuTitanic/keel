@@ -12,7 +12,7 @@ router = APIRouter()
 client_cutoff = datetime(2015, 12, 30)
 min_date = datetime(2007, 1, 1)
 
-@router.get("/changelog", response_model=List[OsuChangelogModel])
+@router.get("/official/changelog", response_model=List[OsuChangelogModel])
 def get_osu_changelog(
     request: Request,
     start: datetime = Query(client_cutoff, ge=min_date),

@@ -34,6 +34,17 @@ class ModdedReleaseEntryModel(BaseModel):
     post_id: int | None
     created_at: datetime
 
+class ModdedChangelogModel(BaseModel):
+    id: int
+    entry_id: int
+    text: str
+    type: str
+    branch: str
+    author: str
+    author_id: int
+    area: str | None
+    created_at: datetime
+
 class ModdedReleaseUploadRequest(BaseModel):
     version: str
     stream: str

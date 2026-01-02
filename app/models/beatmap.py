@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 from datetime import datetime
 
 class BeatmapsetModelWithoutBeatmaps(BaseModel):
@@ -32,6 +32,12 @@ class BeatmapsetModelWithoutBeatmaps(BaseModel):
     max_diff: float
     osz_filesize: int
     osz_filesize_novideo: int
+
+    @computed_field
+    @property
+    def ratings(self) -> float:
+        # Deprecated: replaced by "rating_average"
+        return self.rating_average
 
 class BeatmapModel(BaseModel):
     id: int

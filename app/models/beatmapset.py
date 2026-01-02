@@ -1,7 +1,7 @@
 
 from app.common.constants import BeatmapLanguage, BeatmapGenre
 from app.common.database import DBRating, DBFavourite
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, computed_field
 from datetime import datetime
 from typing import List
 
@@ -63,6 +63,12 @@ class BeatmapsetModel(BaseModel):
     max_diff: float
     favourites: list # TODO: wtf did i do here
     beatmaps: List[BeatmapModelWithoutSet]
+
+    @computed_field
+    @property
+    def ratings(self) -> float:
+        # Deprecated: replaced by "rating_average"
+        return self.rating_average
 
     @field_validator('favourites')
     def sum_favourites(cls, favourites: List[DBFavourite]) -> int:

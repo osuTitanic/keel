@@ -59,9 +59,9 @@ class BeatmapsetModel(BaseModel):
     osz_filesize_novideo: int
     rating_average: float
     rating_count: int
+    favourite_count: int
     total_playcount: int
     max_diff: float
-    favourites: list # TODO: wtf did i do here
     beatmaps: List[BeatmapModelWithoutSet]
 
     @computed_field
@@ -70,9 +70,11 @@ class BeatmapsetModel(BaseModel):
         # Deprecated: replaced by "rating_average"
         return self.rating_average
 
-    @field_validator('favourites')
-    def sum_favourites(cls, favourites: List[DBFavourite]) -> int:
-        return len(favourites)
+    @computed_field
+    @property
+    def favourites(self) -> float:
+        # Deprecated: replaced by "favourite_count"
+        return self.favourite_count
 
 class BeatmapUpdateRequest(BaseModel):
     offset: int = 0

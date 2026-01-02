@@ -28,6 +28,7 @@ class BeatmapsetModelWithoutBeatmaps(BaseModel):
     approved_by: int | None
     rating_average: float
     rating_count: int
+    favourite_count: int
     total_playcount: int
     max_diff: float
     osz_filesize: int
@@ -38,6 +39,12 @@ class BeatmapsetModelWithoutBeatmaps(BaseModel):
     def ratings(self) -> float:
         # Deprecated: replaced by "rating_average"
         return self.rating_average
+
+    @computed_field
+    @property
+    def favourites(self) -> float:
+        # Deprecated: replaced by "favourite_count"
+        return self.favourite_count
 
 class BeatmapModel(BaseModel):
     id: int

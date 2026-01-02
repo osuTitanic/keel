@@ -43,28 +43,26 @@ class BeatmapsetModel(BaseModel):
     status: int
     has_video: bool
     has_storyboard: bool
+    offset: int
     server: int
+    download_server: int
     available: bool
     enhanced: bool
-    created_at: datetime
-    approved_at: datetime | None
-    last_update: datetime
-    osz_filesize: int
-    osz_filesize_novideo: int
-    display_title: str
     language_id: int
     genre_id: int
-    ratings: list
-    favourites: list
+    display_title: str
+    created_at: datetime
+    last_update: datetime
+    approved_at: datetime | None
+    approved_by: int | None
+    osz_filesize: int
+    osz_filesize_novideo: int
+    rating_average: float
+    rating_count: int
+    total_playcount: int
+    max_diff: float
+    favourites: list # TODO: wtf did i do here
     beatmaps: List[BeatmapModelWithoutSet]
-
-    @field_validator('ratings')
-    def avg_rating(cls, ratings: List[DBRating]) -> float:
-        if not ratings:
-            return 0.0
-
-        ratings = [r.rating for r in ratings]
-        return sum(ratings) / len(ratings)
 
     @field_validator('favourites')
     def sum_favourites(cls, favourites: List[DBFavourite]) -> int:

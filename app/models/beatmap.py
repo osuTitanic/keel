@@ -14,17 +14,24 @@ class BeatmapsetModelWithoutBeatmaps(BaseModel):
     status: int
     has_video: bool
     has_storyboard: bool
+    offset: int
     server: int
+    download_server: int
     available: bool
     enhanced: bool
-    created_at: datetime
-    approved_at: datetime | None
-    last_update: datetime
-    osz_filesize: int
-    osz_filesize_novideo: int
-    display_title: str
     language_id: int
     genre_id: int
+    display_title: str
+    created_at: datetime
+    last_update: datetime
+    approved_at: datetime | None
+    approved_by: int | None
+    rating_average: float
+    rating_count: int
+    total_playcount: int
+    max_diff: float
+    osz_filesize: int
+    osz_filesize_novideo: int
 
 class BeatmapModel(BaseModel):
     id: int

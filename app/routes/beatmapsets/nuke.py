@@ -31,10 +31,10 @@ def nuke_beatmap(request: Request, set_id: int):
 
     if beatmapset.status > 0:
         raise HTTPException(400, 'This beatmap has been approved and cannot be nuked')
-    
+
     if not (topic := topics.fetch_one(beatmapset.topic_id, request.state.db)):
         raise HTTPException(404, 'The forum topic for this beatmap could not be found')
-    
+
     topics.update(
         topic.id,
         {

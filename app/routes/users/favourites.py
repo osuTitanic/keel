@@ -1,6 +1,7 @@
 
 from app.models import ErrorResponse, FavouriteModel, UserModelCompact, BeatmapsetModel, FavouriteCreateRequest
 from app.common.database import favourites, users, beatmapsets
+from app.common.config import config_instance as config
 from app.common.constants import UserActivity
 from app.common.helpers import activity
 from app.utils import requires
@@ -111,7 +112,7 @@ def add_favourite(
         request.state.db
     )
 
-    if count > 99:
+    if count >= config.BEATMAP_FAVOURITES_LIMIT:
         raise HTTPException(
             status_code=400,
             detail="You have too many favourite maps. Please go to your profile and delete some first."

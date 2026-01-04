@@ -63,7 +63,34 @@ def delete_official_release(
     )
     return {}
 
-@router.post("/modded/{identifier}", response_model=ModdedReleaseEntryModel)
+@router.get("/modded/{identifier}/entries", response_model=List[ModdedReleaseEntryModel])
+def get_modded_release_entries(
+    request: Request,
+    identifier: str,
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0)
+) -> List[ModdedReleaseEntryModel]:
+    release_object = releases.fetch_modded(
+        identifier=identifier,
+        session=request.state.db
+    )
+
+    if not release_object:
+        raise HTTPException(status_code=404, detail="The requested release was not found")
+
+    return [
+        ModdedReleaseEntryModel.model_validate(
+            entry,
+            from_attributes=True
+        )
+        for entry in releases.fetch_modded_entries(
+            mod_name=release_object.name,
+            limit=limit, offset=offset,
+            session=request.state.db
+        )
+    ]
+
+@router.post("/modded/{identifier}/entries", response_model=ModdedReleaseEntryModel)
 @requires("releases.modded.upload")
 def upload_modded_release(
     request: Request,
@@ -96,12 +123,12 @@ def upload_modded_release(
         from_attributes=True
     )
 
-@router.delete("/modded/{identifier}/{checksum}")
+@router.delete("/modded/{identifier}/entries/{id}")
 @requires("releases.modded.delete")
 def delete_modded_release(
     request: Request,
     identifier: str,
-    checksum: str
+    id: int
 ) -> dict:
     release_object = releases.fetch_modded(
         identifier=identifier,
@@ -114,9 +141,9 @@ def delete_modded_release(
     if request.user.id != release_object.creator_id:
         raise HTTPException(status_code=403, detail="You do not have permission to delete entries for this release")
 
-    entry = releases.fetch_modded_entry_by_checksum(
+    entry = releases.fetch_modded_entry_by_id(
         mod_name=release_object.name,
-        checksum=checksum,
+        entry_id=id,
         session=request.state.db
     )
 
@@ -128,3 +155,71 @@ def delete_modded_release(
         session=request.state.db
     )
     return {}
+
+@router.get("/modded/{identifier}/entries/{id}", response_model=ModdedReleaseEntryModel)
+def get_modded_release_entry(
+    request: Request,
+    identifier: str,
+    id: int
+) -> ModdedReleaseEntryModel:
+    release_object = releases.fetch_modded(
+        identifier=identifier,
+        session=request.state.db
+    )
+
+    if not release_object:
+        raise HTTPException(status_code=404, detail="The requested release was not found")
+
+    entry_object = releases.fetch_modded_entry_by_id(
+        mod_name=release_object.name,
+        entry_id=id,
+        session=request.state.db
+    )
+
+    if not entry_object:
+        raise HTTPException(status_code=404, detail="The requested release entry was not found")
+
+    return ModdedReleaseEntryModel.model_validate(
+        entry_object,
+        from_attributes=True
+    )
+
+@router.patch("/modded/{identifier}/entries/{id}", response_model=ModdedReleaseEntryModel)
+@requires("releases.modded.upload")
+def update_modded_release_entry(
+    request: Request,
+    identifier: str,
+    id: int,
+    update_data: ModdedReleaseUploadRequest
+) -> ModdedReleaseEntryModel:
+    release_object = releases.fetch_modded(
+        identifier=identifier,
+        session=request.state.db
+    )
+
+    if not release_object:
+        raise HTTPException(status_code=404, detail="The requested release was not found")
+
+    if request.user.id != release_object.creator_id:
+        raise HTTPException(status_code=403, detail="You do not have permission to upload entries for this release")
+
+    entry_object = releases.fetch_modded_entry_by_id(
+        mod_name=release_object.name,
+        entry_id=id,
+        session=request.state.db
+    )
+
+    if not entry_object:
+        raise HTTPException(status_code=404, detail="The requested release entry was not found")
+
+    releases.update_modded_entry(
+        entry_id=id,
+        updates=update_data.model_dump(exclude_unset=True),
+        session=request.state.db
+    )
+    request.state.db.refresh(entry_object)
+
+    return ModdedReleaseEntryModel.model_validate(
+        entry_object,
+        from_attributes=True
+    )

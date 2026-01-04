@@ -4,8 +4,8 @@ from fastapi.responses import JSONResponse, Response
 
 from app.common.config import config_instance as config
 from app.models import TokenResponse, ErrorResponse
+from app.security import require_login, TokenSource
 from app.common.database import DBUser, users
-from app.security import require_login
 from app.utils import requires
 
 import app.security as security
@@ -38,8 +38,8 @@ def generate_access_token(request: Request) -> JSONResponse:
     expiry_refresh = current_time + config.FRONTEND_REFRESH_EXPIRY
 
     # Generate new access & refresh tokens
-    access_token = security.generate_token(user, expiry)
-    refresh_token = security.generate_token(user, expiry_refresh)
+    access_token = security.generate_token(user, expiry, TokenSource.Api)
+    refresh_token = security.generate_token(user, expiry_refresh, TokenSource.Api)
 
     token_response = TokenResponse(
         access_token=access_token,
@@ -94,8 +94,8 @@ def refresh_access_token(request: Request) -> JSONResponse:
     expiry_refresh = current_time + config.FRONTEND_REFRESH_EXPIRY
 
     # Generate new access & refresh tokens
-    access_token = security.generate_token(user, expiry)
-    refresh_token = security.generate_token(user, expiry_refresh)
+    access_token = security.generate_token(user, expiry, TokenSource.Api)
+    refresh_token = security.generate_token(user, expiry_refresh, TokenSource.Api)
 
     token_response = TokenResponse(
         access_token=access_token,

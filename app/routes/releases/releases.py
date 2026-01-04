@@ -2,7 +2,7 @@
 from fastapi import HTTPException, APIRouter, Request, Query
 from typing import List
 
-from app.models import TitanicReleaseModel, ModdedReleaseModel, OsuReleaseModel
+from app.models import TitanicReleaseModel, ModdedReleaseModel, ModdedReleaseEntryModel, OsuReleaseModel
 from app.common.database import releases
 
 router = APIRouter()
@@ -38,6 +38,33 @@ def get_modded_release(
         release_object,
         from_attributes=True
     )
+    
+@router.get("/modded/{identifier}/entries", response_model=List[ModdedReleaseEntryModel])
+def get_modded_release_entries(
+    request: Request,
+    identifier: str,
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0)
+) -> List[ModdedReleaseEntryModel]:
+    release_object = releases.fetch_modded(
+        identifier=identifier,
+        session=request.state.db
+    )
+
+    if not release_object:
+        raise HTTPException(status_code=404, detail="The requested release was not found")
+
+    return [
+        ModdedReleaseEntryModel.model_validate(
+            entry,
+            from_attributes=True
+        )
+        for entry in releases.fetch_modded_entries(
+            mod_name=release_object.name,
+            limit=limit, offset=offset,
+            session=request.state.db
+        )
+    ]
 
 @router.get("/official", response_model=List[OsuReleaseModel])
 def get_official_releases(

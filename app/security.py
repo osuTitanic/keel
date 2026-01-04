@@ -1,19 +1,14 @@
 
 from app.common.config import config_instance as config
+from app.common.constants import TokenSource
 from app.common.database import DBUser
 from fastapi import Header, Depends
-from enum import IntEnum
 from hashlib import md5
 from app import utils
 
 import bcrypt
 import time
 import jwt
-
-class TokenSource(IntEnum):
-    Web = 0
-    Api = 1
-    OAuth2 = 2
 
 def generate_token(user: DBUser, expiry: int, source=TokenSource.Web) -> str:
     return jwt.encode(

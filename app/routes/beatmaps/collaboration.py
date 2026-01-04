@@ -30,7 +30,7 @@ def get_collaborations(request: Request, id: int) -> List[CollaborationModelWith
     ]
 
 @router.patch("/{beatmap_id}/collaborations/{user_id}", response_model=CollaborationModelWithoutBeatmap, dependencies=[require_login])
-@requires("users.authenticated")
+@requires("beatmaps.collaborations.update")
 def update_collaboration(
     request: Request,
     beatmap_id: int,
@@ -89,7 +89,7 @@ def update_collaboration(
     )
 
 @router.get("/{id}/collaborations/requests", response_model=List[CollaborationRequestModelWithoutBeatmap], dependencies=[require_login])
-@requires("users.authenticated")
+@requires("beatmaps.collaborations.view_requests")
 def get_collaboration_requests(request: Request, id: int) -> List[CollaborationRequestModelWithoutBeatmap]:
     if not (beatmap := beatmaps.fetch_by_id(id, request.state.db)):
         raise HTTPException(
@@ -115,7 +115,7 @@ def get_collaboration_requests(request: Request, id: int) -> List[CollaborationR
     ]
 
 @router.post("/{beatmap_id}/collaborations/requests", response_model=CollaborationRequestModelWithoutBeatmap, dependencies=[require_login])
-@requires("users.authenticated")
+@requires("beatmaps.collaborations.create_request")
 def create_collaboration_request(
     request: Request,
     beatmap_id: int,
@@ -199,7 +199,7 @@ def create_collaboration_request(
     )
 
 @router.delete("/{beatmap_id}/collaborations/{user_id}", dependencies=[require_login])
-@requires("users.authenticated")
+@requires("beatmaps.collaborations.delete")
 def delete_collaboration(
     request: Request,
     beatmap_id: int,
@@ -255,7 +255,7 @@ def delete_collaboration(
     return {}
 
 @router.delete("/{beatmap_id}/collaborations/requests/{id}", dependencies=[require_login])
-@requires("users.authenticated")
+@requires("beatmaps.collaborations.delete_request")
 def delete_collaboration_request(
     request: Request,
     beatmap_id: int,
@@ -328,7 +328,7 @@ def delete_collaboration_request(
     return {}
 
 @router.post("/{beatmap_id}/collaborations/requests/{id}/accept", dependencies=[require_login])
-@requires("users.authenticated")
+@requires("beatmaps.collaborations.accept_request")
 def accept_collaboration_request(
     request: Request,
     beatmap_id: int,

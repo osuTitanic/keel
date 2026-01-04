@@ -11,7 +11,7 @@ import app
 router = APIRouter()
 
 @router.websocket("/ws", dependencies=[require_login])
-@requires("users.authenticated")
+@requires("bancho.events.view")
 async def event_websocket(websocket: WebSocket):
     await websocket.accept()
 

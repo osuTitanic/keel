@@ -7,7 +7,7 @@ from app.models import IrcTokenResponse
 router = APIRouter()
 
 @router.get("/irc/token", response_model=IrcTokenResponse)
-@requires("users.authenticated")
+@requires("users.irc.view_token")
 def irc_token(request: Request) -> IrcTokenResponse:        
     return IrcTokenResponse(
         username=request.user.name.replace(' ', '_'),
@@ -15,7 +15,7 @@ def irc_token(request: Request) -> IrcTokenResponse:
     )
 
 @router.post("/irc/token", response_model=IrcTokenResponse)
-@requires("users.authenticated")
+@requires("users.irc.regenerate_token")
 def regenerate_irc_token(request: Request) -> IrcTokenResponse:
     request.user.irc_token = random_string(length=10)
 

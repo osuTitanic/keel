@@ -25,7 +25,7 @@ remove_responses = {
 }
 
 @router.get("/friends", response_model=List[UserModelCompact])
-@requires("users.authenticated")
+@requires("users.friends.view")
 def friends(request: Request):
     """Get a list of friends for the authenticated user"""
     return [

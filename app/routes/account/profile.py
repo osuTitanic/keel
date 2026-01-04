@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 @router.get("/profile", response_model=UserModel)
-@requires("users.authenticated")
+@requires("users.profile.view")
 def profile(request: Request) -> UserModel:
     """Get the authenticated user's profile"""
     return UserModel.model_validate(

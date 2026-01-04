@@ -10,7 +10,7 @@ from app.utils import requires
 router = APIRouter()
 
 @router.get("/notifications", response_model=List[NotificationModel])
-@requires("users.authenticated")
+@requires("users.notifications.view")
 def get_notifications(request: Request) -> List[NotificationModel]:
     """Get a list of unread notifications for the authenticated user"""
     return [

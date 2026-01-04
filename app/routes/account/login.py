@@ -11,6 +11,7 @@ from app.utils import requires
 import app.security as security
 import time
 
+# TODO: Reject endpoints for OAuth2
 router = APIRouter(
     responses={
         403: {'model': ErrorResponse, 'description': 'Invalid token provided'},

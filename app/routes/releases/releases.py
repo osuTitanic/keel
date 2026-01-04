@@ -66,6 +66,33 @@ def get_modded_release_entries(
         )
     ]
 
+@router.get("/modded/{identifier}/entries/{id}", response_model=ModdedReleaseEntryModel)
+def get_modded_release_entry(
+    request: Request,
+    identifier: str,
+    id: int
+) -> ModdedReleaseEntryModel:
+    release_object = releases.fetch_modded(
+        identifier=identifier,
+        session=request.state.db
+    )
+
+    if not release_object:
+        raise HTTPException(status_code=404, detail="The requested release was not found")
+
+    entry_object = releases.fetch_modded_entry_by_id(
+        entry_id=id,
+        session=request.state.db
+    )
+
+    if not entry_object:
+        raise HTTPException(status_code=404, detail="The requested release entry was not found")
+
+    return ModdedReleaseEntryModel.model_validate(
+        entry_object,
+        from_attributes=True
+    )
+
 @router.get("/official", response_model=List[OsuReleaseModel])
 def get_official_releases(
     request: Request,

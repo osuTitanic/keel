@@ -168,7 +168,7 @@ def revive_beatmapset(
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
 @router.patch("/{user_id}/beatmapsets/{beatmapset_id}/description", response_model=BeatmapsetModel, responses=action_responses)
-@requires("beatmaps.upload")
+@requires("beatmaps.update_description")
 def update_beatmapset_description(
     request: Request,
     user_id: int,

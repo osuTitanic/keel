@@ -17,7 +17,7 @@ router = APIRouter(
 )
 
 @router.get("/subscriptions", response_model=List[SubscriptionModel])
-@requires("users.subscriptions.view")
+@requires("forum.subscriptions.view")
 def get_subscriptions(request: Request):
     subscriptions = users.fetch_subscriptions(
         request.user.id,

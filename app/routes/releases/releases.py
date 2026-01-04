@@ -2,8 +2,9 @@
 from fastapi import HTTPException, APIRouter, Request, Query
 from typing import List
 
-from app.models import TitanicReleaseModel, ModdedReleaseModel, ModdedReleaseEntryModel, OsuReleaseModel
+from app.models import TitanicReleaseModel, ModdedReleaseModel, ModdedReleaseEntryModel, ModdedReleaseUploadRequest, OsuReleaseModel
 from app.common.database import releases
+from app.utils import requires
 
 router = APIRouter()
 
@@ -38,7 +39,7 @@ def get_modded_release(
         release_object,
         from_attributes=True
     )
-    
+
 @router.get("/modded/{identifier}/entries", response_model=List[ModdedReleaseEntryModel])
 def get_modded_release_entries(
     request: Request,
@@ -87,6 +88,45 @@ def get_modded_release_entry(
 
     if not entry_object:
         raise HTTPException(status_code=404, detail="The requested release entry was not found")
+
+    return ModdedReleaseEntryModel.model_validate(
+        entry_object,
+        from_attributes=True
+    )
+
+@router.patch("/modded/{identifier}/entries/{id}", response_model=ModdedReleaseEntryModel)
+@requires("releases.modded.upload")
+def update_modded_release_entry(
+    request: Request,
+    identifier: str,
+    id: int,
+    update_data: ModdedReleaseUploadRequest
+) -> ModdedReleaseEntryModel:
+    release_object = releases.fetch_modded(
+        identifier=identifier,
+        session=request.state.db
+    )
+
+    if not release_object:
+        raise HTTPException(status_code=404, detail="The requested release was not found")
+
+    if request.user.id != release_object.creator_id:
+        raise HTTPException(status_code=403, detail="You do not have permission to upload entries for this release")
+
+    entry_object = releases.fetch_modded_entry_by_id(
+        entry_id=id,
+        session=request.state.db
+    )
+
+    if not entry_object:
+        raise HTTPException(status_code=404, detail="The requested release entry was not found")
+
+    releases.update_modded_entry(
+        entry_id=id,
+        updates=update_data.model_dump(exclude_unset=True),
+        session=request.state.db
+    )
+    request.state.db.refresh(entry_object)
 
     return ModdedReleaseEntryModel.model_validate(
         entry_object,

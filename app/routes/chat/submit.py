@@ -65,9 +65,12 @@ def post_message(
         message=data.message
     )
 
-    return MessageModel.model_validate(
-        message,
-        from_attributes=True
+    return MessageModel(
+        id=message.id,
+        sender=request.user,
+        sender_name=request.user.name,
+        message=message.message,
+        time=message.time
     )
 
 @router.post("/dms/{target_id}/messages", response_model=PrivateMessageModel)

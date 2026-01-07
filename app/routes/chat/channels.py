@@ -2,11 +2,11 @@
 from fastapi import HTTPException, APIRouter, Request, Query
 from collections import defaultdict
 from sqlalchemy.orm import Session
-from typing import List
+from typing import Iterable, List
 
 from app.common.database import messages, channels, names, groups, users
 from app.models import MessageModel, ChannelModel, ErrorResponse
-from app.common.database.objects import DBUser
+from app.common.database.objects import DBUser, DBMessage
 from app.security import require_login
 from app.utils import requires
 
@@ -84,22 +84,26 @@ def channel_message_history(
         request.state.db
     )
 
-    channel_messages = resolve_message_users(
+    return resolve_message_users(
         channel_messages,
         request
     )
 
-    return [
-        MessageModel.model_validate(message, from_attributes=True)
-        for message in channel_messages
-    ]
-
-def resolve_message_users(messages: List[MessageModel], request: Request) -> List[MessageModel]:
+def resolve_message_users(messages: List[DBMessage], request: Request) -> Iterable[MessageModel]:
     sender_cache = defaultdict(lambda: None)
 
     for message in messages:
+        response = MessageModel(
+            id=message.id,
+            sender=None,
+            sender_name=message.sender,
+            message=message.message,
+            time=message.time,
+        )
+
         if message.sender in sender_cache:
-            message.sender = sender_cache[message.sender]
+            response.sender = sender_cache[message.sender]
+            yield response
             continue
 
         sender = resolve_user(
@@ -109,14 +113,13 @@ def resolve_message_users(messages: List[MessageModel], request: Request) -> Lis
 
         if not sender:
             sender_cache[message.sender] = None
-            message.sender = None
+            response.sender = None
+            yield response
             continue
 
         sender_cache[message.sender] = sender
-        message.sender = sender
-
-    del sender_cache
-    return messages
+        response.sender = sender
+        yield response
 
 def resolve_user(username: str, session: Session) -> DBUser | None:
     safe_name = username.lower().replace(' ', '_')

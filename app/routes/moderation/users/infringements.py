@@ -56,7 +56,7 @@ def update_user_infringement(
     success = infringements.update(
         record.id,
         {
-            "duration": update.duration,
+            "length": record.time + timedelta(seconds=update.duration),
             "description": update.description,
             "is_permanent": update.is_permanent
         },
@@ -151,6 +151,9 @@ def handle_silence(
 ) -> InfringementModel:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(404, "User not found")
+
+    if data.is_permanent:
+        raise HTTPException(400, "Silences cannot be permanent")
 
     record = infringements_helper.silence_user(
         user,

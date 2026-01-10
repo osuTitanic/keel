@@ -11,20 +11,20 @@ class InfringementModel(BaseModel):
     id: int
     user_id: int
     time: datetime
-    length: datetime
+    length: datetime | None
     action: InfringementAction
     is_permanent: bool
-    description: str
+    description: str | None
 
 class InfringementCreateRequest(BaseModel):
-    duration: int
     action: InfringementAction
-    description: str
+    duration: int
+    description: str | None = None
     is_permanent: bool = False
 
 class InfringementUpdateRequest(BaseModel):
     duration: int
-    description: str
+    description: str | None = None
     is_permanent: bool = False
 
 class NameChangeRequest(BaseModel):

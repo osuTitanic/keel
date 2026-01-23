@@ -3,6 +3,7 @@ from fastapi import HTTPException, APIRouter, Request, Body
 from app.models import ErrorResponse, PlaystyleRequestModel, PlaystyleResponseModel
 from app.common.database.repositories import users
 from app.common.constants import Playstyle
+from app.utils import requires
 
 router = APIRouter(
     responses={403: {"model": ErrorResponse, "description": "Unauthorized action"}}
@@ -25,6 +26,7 @@ def get_user_playstyle(request: Request, user_id: int) -> PlaystyleResponseModel
     return PlaystyleResponseModel(playstyle=user.playstyle)
 
 @router.post("/{user_id}/playstyle", response_model=PlaystyleResponseModel)
+@requires("users.profile.update")
 def add_playstyle(
     request: Request,
     user_id: int,
@@ -55,6 +57,7 @@ def add_playstyle(
     return PlaystyleResponseModel(playstyle=new_playstyle.value)
 
 @router.delete("/{user_id}/playstyle", response_model=PlaystyleResponseModel)
+@requires("users.profile.update")
 def remove_playstyle(
     request: Request,
     user_id: int,

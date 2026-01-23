@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.models import MessagePostRequest, PrivateMessageModel, MessageModel, ErrorResponse
-from app.common.database import channels, groups, messages, users
+from app.common.database import channels, groups, messages, users, relationships
 from app.common.database.objects import DBUser
 from app.security import require_login
 from app.utils import requires
@@ -83,11 +83,29 @@ def post_private_message(
     if not (target := users.fetch_by_id(target_id, session=request.state.db)):
         raise HTTPException(404, 'Target user could not be found')
 
-    if is_user_silenced(target):
-        raise HTTPException(400, 'Target is silenced')
-
     if target.id == request.user.id:
         raise HTTPException(400, 'Cannot send messages to yourself')
+
+    if is_user_silenced(target):
+        raise HTTPException(400, 'Target user is silenced')
+
+    target_blocked_sender = relationships.is_blocked(
+        target.id,
+        request.user.id,
+        session=request.state.db
+    )
+
+    if target_blocked_sender:
+        raise HTTPException(400, 'The target user is not accepting messages from you')
+
+    sender_bocked_target = relationships.is_blocked(
+        request.user.id,
+        target.id,
+        session=request.state.db
+    )
+
+    if sender_bocked_target:
+        raise HTTPException(400, 'You are not accepting messages from the target user')
 
     data.message, timeout = request.state.filters.apply(data.message)
 
@@ -96,7 +114,7 @@ def post_private_message(
         raise HTTPException(400, 'Message contains offensive language')
 
     # TODO: Check for message spamming
-    # TODO: Check if target blocked user / has friend-only dms
+    # TODO: Check if target has friend-only dms
 
     message = messages.create_private(
         request.user.id,

@@ -27,6 +27,9 @@ def post_message(
     data: MessagePostRequest = Body(...)
 ) -> MessageModel:
     if not (channel := channels.fetch_one(target, request.state.db)):
+        request.state.logger.warning(
+            f"'{request.user.name}' attempted to post message to nonexistent channel '{target}'"
+        )
         raise HTTPException(404, 'The requested channel could not be found')
 
     user_permissions = groups.fetch_bancho_permissions(
@@ -35,9 +38,15 @@ def post_message(
     )
 
     if user_permissions < channel.read_permissions:
+        request.state.logger.warning(
+            f"'{request.user.name}' attempted to post message to {channel.name} without read permissions"
+        )
         raise HTTPException(403, 'Insufficient permissions')
 
     if user_permissions < channel.write_permissions:
+        request.state.logger.warning(
+            f"'{request.user.name}' attempted to post message to {channel.name} without write permissions"
+        )
         raise HTTPException(403, 'Insufficient permissions')
 
     data.message, timeout = request.state.filters.apply(data.message)
@@ -64,6 +73,9 @@ def post_message(
         target=channel.name,
         message=data.message
     )
+    request.state.logger.info(
+        f"'{request.user.name}' posted message to channel '{channel.name}'"
+    )
 
     return MessageModel(
         id=message.id,
@@ -81,12 +93,21 @@ def post_private_message(
     data: MessagePostRequest = Body(...)
 ) -> PrivateMessageModel:
     if not (target := users.fetch_by_id(target_id, session=request.state.db)):
+        request.state.logger.warning(
+            f"'{request.user.name}' attempted to send a DM to nonexistent user '{target_id}'"
+        )
         raise HTTPException(404, 'Target user could not be found')
 
     if target.id == request.user.id:
+        request.state.logger.warning(
+            f"'{request.user.name}' attempted to send a DM to themselves"
+        )
         raise HTTPException(400, 'Cannot send messages to yourself')
 
     if is_user_silenced(target):
+        request.state.logger.warning(
+            f"'{request.user.name}' attempted to send a DM to silenced user '{target.name}'"
+        )
         raise HTTPException(400, 'Target user is silenced')
 
     target_blocked_sender = relationships.is_blocked(
@@ -96,6 +117,9 @@ def post_private_message(
     )
 
     if target_blocked_sender:
+        request.state.logger.warning(
+            f"'{request.user.name}' attempted to send a DM to blocked user '{target.name}'"
+        )
         raise HTTPException(400, 'The target user is not accepting messages from you')
 
     sender_bocked_target = relationships.is_blocked(
@@ -105,6 +129,9 @@ def post_private_message(
     )
 
     if sender_bocked_target:
+        request.state.logger.warning(
+            f"'{request.user.name}' attempted to send a DM to user '{target.name}' who they have blocked"
+        )
         raise HTTPException(400, 'You are not accepting messages from the target user')
 
     data.message, timeout = request.state.filters.apply(data.message)
@@ -131,6 +158,9 @@ def post_private_message(
         message=data.message,
         message_id=message.id
     )
+    request.state.logger.info(
+        f"'{request.user.name}' sent a DM to user '{target.name}'"
+    )
 
     return PrivateMessageModel.model_validate(
         message,
@@ -138,6 +168,10 @@ def post_private_message(
     )
 
 def silence_user(user: DBUser, duration: int, request: Request, target: str):
+    request.state.logger.warning(
+        f"Silencing user '{user.name}' for {duration} seconds "
+        f"due to inappropriate discussion in {target}"
+    )
     request.state.events.submit(
         'silence',
         user_id=user.id,

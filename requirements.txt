@@ -9,7 +9,7 @@ psycopg2-binary==2.9.11
 fastapi==0.128.0
 uvicorn==0.40.0
 bcrypt==5.0.0
-python-multipart==0.0.21
+python-multipart==0.0.22
 pillow==12.1.0
 email-validator==2.3.0
 pyjwt==2.10.1

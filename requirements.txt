@@ -15,5 +15,5 @@ email-validator==2.3.0
 pyjwt==2.10.1
 regex==2026.1.15
 websockets==16.0
-orjson==3.11.5
+orjson==3.11.6
 pydantic-settings==2.12.0

@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ValidationInfo
 from datetime import datetime
 from typing import List
 from enum import Enum
@@ -27,6 +27,13 @@ class PostModel(BaseModel):
     edit_locked: bool
     deleted: bool
     user: UserModelCompact
+
+    @field_validator('content', mode='after')
+    def override_deleted_content(cls, value, info: ValidationInfo):
+        if info.data.get('deleted'):
+            return '[ Deleted ]'
+
+        return value
 
 class TopicModel(BaseModel):
     id: int

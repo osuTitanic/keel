@@ -34,14 +34,14 @@ def get_post(
     if post.hidden:
         raise HTTPException(404, "The requested post could not be found")
 
+    if post.topic.hidden:
+        raise HTTPException(404, "The requested post could not be found")
+
     if post.topic_id != topic_id:
         return RedirectResponse(f"/forum/{post.forum_id}/topics/{post.topic_id}/posts/{post.id}")
 
     if post.forum_id != forum_id:
         return RedirectResponse(f"/forum/{post.forum_id}/topics/{post.topic_id}/posts/{post.id}")
-
-    if post.deleted:
-        post.content = '[ Deleted ]'
 
     return PostModel.model_validate(post, from_attributes=True)
 
@@ -92,6 +92,9 @@ def get_topic_posts(
     if topic.forum_id != forum_id:
         return RedirectResponse(f"/forum/{topic.forum_id}/topics/{topic.id}/posts")
 
+    if topic.hidden:
+        raise HTTPException(404, "The requested topic could not be found")
+
     topic_posts = posts.fetch_range_by_topic(
         topic.id,
         range=limit,
@@ -99,16 +102,10 @@ def get_topic_posts(
         session=request.state.db
     )
 
-    for post in topic_posts:
-        if post.hidden:
-            topic_posts.remove(post)
-
-        if post.deleted:
-            post.content = '[ Deleted ]'
-
     return [
         PostModel.model_validate(post, from_attributes=True)
         for post in topic_posts
+        if not post.hidden
     ]
 
 @router.post("/{forum_id}/topics/{topic_id}/posts", response_model=PostModel, dependencies=[require_login])

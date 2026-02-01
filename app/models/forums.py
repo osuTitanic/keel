@@ -79,14 +79,14 @@ class TopicCreateRequest(BaseModel):
     def title_length(cls, value):
         if not value:
             raise ValueError('Title cannot be empty')
-        
+
         return value
     
     @field_validator('content')
     def content_length(cls, value):
         if not value:
             raise ValueError('Content cannot be empty')
-        
+
         return value
 
 class TopicUpdateRequest(BaseModel):
@@ -100,7 +100,7 @@ class TopicUpdateRequest(BaseModel):
     def title_length(cls, value):
         if value is not None and not value:
             raise ValueError('Title cannot be empty')
-        
+
         return value
 
 class PostCreateRequest(BaseModel):
@@ -112,7 +112,7 @@ class PostCreateRequest(BaseModel):
     def content_length(cls, value):
         if not value:
             raise ValueError('Content cannot be empty')
-        
+
         return value
 
 class PostUpdateRequest(BaseModel):
@@ -123,7 +123,7 @@ class PostUpdateRequest(BaseModel):
     def content_length(cls, value):
         if not value:
             raise ValueError('Content cannot be empty')
-        
+
         return value
 
 class BBCodeRenderRequest(BaseModel):

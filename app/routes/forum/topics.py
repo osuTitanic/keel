@@ -72,9 +72,12 @@ def create_topic(
     """
     if not (forum := forums.fetch_by_id(forum_id, request.state.db)):
         raise HTTPException(404, "The requested forum could not be found")
-    
+
     if forum.hidden:
         raise HTTPException(404, "The requested forum could not be found")
+
+    if len(data.content) > 2**14:
+        raise HTTPException(400, "Post content is too long")
 
     can_force_change_icon = permissions.has_permission(
         "forum.moderation.topics.change_icon",

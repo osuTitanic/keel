@@ -7,8 +7,8 @@ from typing import List
 from app.common.database.objects import DBForumTopic, DBUser, DBForumPost
 from app.models import TopicModel, ErrorResponse, TopicCreateRequest
 from app.common.database import forums, topics, posts
+from app.common.helpers import activity, permissions
 from app.common.constants import UserActivity
-from app.common.helpers import activity
 from app.security import require_login
 from app.utils import requires
 
@@ -74,21 +74,32 @@ def create_topic(
     
     if forum.hidden:
         raise HTTPException(404, "The requested forum could not be found")
-    
-    topic_attributes = {}
 
-    if request.user.is_moderator and data.type:
-        # Moderators can set the topic to be pinned or an announcement
-        topic_attributes[data.type] = True
-
+    can_force_change_icon = permissions.has_permission(
+        "forum.moderation.topics.change_icon",
+        request.user.id
+    )
     can_change_icon = (
-        request.user.is_moderator or
-        request.user.is_bat or
+        permissions.has_permission("forum.topics.change_icon", request.user.id) and
         forum.allow_icons
     )
 
+    # BATs are able to change icons of topics that allow icon changes
+    # Moderators can change icons regardless of forum settings
+    can_change_icon = can_change_icon or can_force_change_icon
+
+    # 'Attributes' refers to pinned/announcement status
+    # which moderators and admins are allowed to set
+    can_set_attributes = permissions.has_permission(
+        "forum.moderation.topics.set_attributes",
+        request.user.id
+    )
+    topic_attributes = {}
+
+    if can_set_attributes and data.type:
+        topic_attributes[data.type] = True
+
     if can_change_icon and data.icon:
-        # Moderators, BATs, and forums that allow icons can set an icon
         topic_attributes['icon_id'] = data.icon
 
     topic = topics.create(

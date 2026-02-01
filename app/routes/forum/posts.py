@@ -320,6 +320,9 @@ def resolve_icon(data: PostCreateRequest, request: Request, topic: DBForumTopic)
         "forum.moderation.topics.change_icon",
         request.user.id
     )
+
+    # BATs are able to change icons of topics that allow icon changes
+    # Moderators can change icons regardless of forum settings
     can_change_icon = can_change_icon or can_force_change_icon
 
     if not can_change_icon:

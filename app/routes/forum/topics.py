@@ -159,14 +159,6 @@ def update_topic(
     if topic.forum_id != forum_id:
         return RedirectResponse(f"/forum/{topic.forum_id}/topics/{topic.id}")
 
-    can_edit = permissions.has_permission(
-        "forum.topics.edit",
-        request.user.id
-    )
-    
-    if not can_edit:
-        raise HTTPException(403, "You do not have permission to edit topics")
-
     can_edit_others = permissions.has_permission(
         "forum.moderation.topics.edit",
         request.user.id

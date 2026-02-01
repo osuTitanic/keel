@@ -2,10 +2,11 @@
 from fastapi import HTTPException, APIRouter, Request, Query, Body
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
+from datetime import datetime
 from typing import List
 
 from app.common.database.objects import DBForumTopic, DBUser, DBForumPost
-from app.models import TopicModel, ErrorResponse, TopicCreateRequest
+from app.models import TopicModel, ErrorResponse, TopicCreateRequest, TopicUpdateRequest
 from app.common.database import forums, topics, posts
 from app.common.helpers import activity, permissions
 from app.common.constants import UserActivity
@@ -134,6 +135,104 @@ def create_topic(
 
     request.state.logger.info(
         f'{request.user.name} created a new topic "{topic.title}" ({topic.id}).'
+    )
+
+    return TopicModel.model_validate(topic, from_attributes=True)
+
+@router.patch("/{forum_id}/topics/{topic_id}", response_model=TopicModel, dependencies=[require_login])
+@requires("forum.topics.edit")
+def update_topic(
+    request: Request,
+    forum_id: int,
+    topic_id: int,
+    data: TopicUpdateRequest = Body(...)
+) -> TopicModel:
+    if not (topic := topics.fetch_one(topic_id, request.state.db)):
+        raise HTTPException(404, "The requested topic could not be found")
+
+    if topic.hidden:
+        raise HTTPException(404, "The requested topic could not be found")
+
+    if topic.forum_id != forum_id:
+        return RedirectResponse(f"/forum/{topic.forum_id}/topics/{topic.id}")
+
+    can_edit = permissions.has_permission(
+        "forum.topics.edit",
+        request.user.id
+    )
+    
+    if not can_edit:
+        raise HTTPException(403, "You do not have permission to edit topics")
+
+    can_edit_others = permissions.has_permission(
+        "forum.moderation.topics.edit",
+        request.user.id
+    )
+
+    if topic.creator_id != request.user.id and not can_edit_others:
+        raise HTTPException(403, "You do not have permission to edit this topic")
+
+    if topic.locked_at and not can_edit_others:
+        raise HTTPException(403, "This topic is locked and cannot be edited")
+
+    can_lock_topic = permissions.has_permission(
+        "forum.moderation.topics.lock",
+        request.user.id
+    )
+    can_set_status = permissions.has_permission(
+        "forum.moderation.topics.set_status",
+        request.user.id
+    )
+
+    can_force_change_icon = permissions.has_permission(
+        "forum.moderation.topics.change_icon",
+        request.user.id
+    )
+    can_change_icon = (
+        permissions.has_permission("forum.topics.change_icon", request.user.id) and
+        topic.can_change_icon
+    )
+
+    # BATs are able to change icons of topics that allow icon changes
+    # Moderators can change icons regardless of forum settings
+    can_change_icon = can_change_icon or can_force_change_icon
+
+    # 'Attributes' refers to pinned/announcement status
+    # which moderators and admins are allowed to set
+    can_set_attributes = permissions.has_permission(
+        "forum.moderation.topics.set_attributes",
+        request.user.id
+    )
+
+    updates = {}
+
+    if data.title:
+        updates['title'] = data.title
+
+    if data.icon is not None and can_change_icon:
+        updates['icon_id'] = data.icon if data.icon != -1 else None
+
+    if data.type is not None and can_set_attributes:
+        updates['pinned'] = data.type == 'pinned'
+        updates['announcement'] = data.type == 'announcement'
+
+    if data.status_text is not None and can_set_status:
+        updates['status_text'] = data.status_text if data.status_text else None
+
+    if data.lock_topic is not None and can_lock_topic:
+        updates['locked_at'] = datetime.now() if not topic.locked_at else None
+
+    if not updates:
+        return TopicModel.model_validate(topic, from_attributes=True)
+
+    topics.update(
+        topic.id,
+        updates,
+        session=request.state.db
+    )
+
+    request.state.logger.info(
+        f'{request.user.name} updated topic "{topic.title}" ({topic.id}).'
     )
 
     return TopicModel.model_validate(topic, from_attributes=True)

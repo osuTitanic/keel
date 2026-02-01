@@ -89,6 +89,20 @@ class TopicCreateRequest(BaseModel):
         
         return value
 
+class TopicUpdateRequest(BaseModel):
+    title: str | None = None
+    icon: int | None = None
+    type: TopicType | None = None
+    status_text: str | None = None
+    lock_topic: bool | None = None
+
+    @field_validator('title')
+    def title_length(cls, value):
+        if value is not None and not value:
+            raise ValueError('Title cannot be empty')
+        
+        return value
+
 class PostCreateRequest(BaseModel):
     content: str
     notify: bool = False

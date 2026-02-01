@@ -9,7 +9,7 @@ from app.common.database.objects import DBForumPost, DBForumTopic, DBBeatmapset,
 from app.common.database import topics, posts, notifications, nominations, beatmapsets
 from app.models import PostModel, ErrorResponse, PostCreateRequest, PostUpdateRequest
 from app.common.constants import NotificationType, BeatmapStatus, UserActivity
-from app.common.helpers import activity
+from app.common.helpers import activity, permissions
 from app.security import require_login
 from app.utils import requires
 
@@ -58,8 +58,13 @@ def delete_post(
     
     if post.hidden:
         raise HTTPException(404, "The requested post could not be found")
-    
-    if post.user_id != request.user.id and not request.user.is_moderator:
+
+    can_force_delete = permissions.has_permission(
+        "forum.moderation.posts.delete",
+        request.user.id
+    )
+
+    if post.user_id != request.user.id and not can_force_delete:
         raise HTTPException(403, "You do not have permission to delete this post")
     
     if post.edit_locked:
@@ -214,14 +219,27 @@ def edit_post(
 
     if post.topic_id != topic_id or post.forum_id != forum_id:
         return RedirectResponse(f"/forum/{post.forum_id}/topics/{post.topic_id}/posts/{post.id}")
+    
+    can_bypass_lock = permissions.has_permission(
+        "forum.moderation.posts.bypass_lock",
+        request.user.id
+    )
+    can_create_locks = permissions.has_permission(
+        "forum.moderation.posts.lock",
+        request.user.id
+    )
+    can_edit_others = permissions.has_permission(
+        "forum.moderation.posts.edit",
+        request.user.id
+    )
 
-    if post.edit_locked and not request.user.is_moderator:
+    if post.edit_locked and not can_bypass_lock:
         raise HTTPException(403, "This post is locked and cannot be edited")
 
-    if post.topic.locked_at and not request.user.is_moderator:
+    if post.topic.locked_at and not can_bypass_lock:
         raise HTTPException(403, "This topic is locked and cannot be edited")
 
-    if post.user_id != request.user.id and not request.user.is_moderator:
+    if post.user_id != request.user.id and not can_edit_others:
         raise HTTPException(403, "You are not authorized to perform this action")
 
     if len(data.content) > 2**14:
@@ -231,7 +249,7 @@ def edit_post(
         'content': data.content
     }
 
-    if data.lock and request.user.is_moderator:
+    if data.lock and can_create_locks:
         updates['edit_locked'] = True
 
     if post.user_id == request.user.id:
@@ -294,15 +312,17 @@ def resolve_icon(data: PostCreateRequest, request: Request, topic: DBForumTopic)
     if data.icon is None:
         return
 
-    is_privileged = (
-        request.user.is_bat or
-        request.user.is_moderator
+    can_change_icon = (
+        permissions.has_permission("forum.topics.change_icon", request.user.id) and
+        topic.can_change_icon
     )
+    can_force_change_icon = permissions.has_permission(
+        "forum.moderation.topics.change_icon",
+        request.user.id
+    )
+    can_change_icon = can_change_icon or can_force_change_icon
 
-    if not topic.can_change_icon and not is_privileged:
-        return
-
-    if request.user.id != topic.creator_id and not is_privileged:
+    if not can_change_icon:
         return
 
     if topic.icon_id == data.icon:

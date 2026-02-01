@@ -97,6 +97,7 @@ class TopicCreateRequest(BaseModel):
         return value
 
 class TopicUpdateRequest(BaseModel):
+    forum_id: int | None = None
     title: str | None = None
     icon: int | None = None
     type: TopicType | None = None

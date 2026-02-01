@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import List
 
-from app.common.database.objects import DBForumTopic, DBUser, DBForumPost
 from app.models import TopicModel, ErrorResponse, TopicCreateRequest, TopicUpdateRequest, ForumHideRequest
+from app.common.database.objects import DBForumTopic, DBUser, DBForumPost
 from app.common.database import forums, topics, posts
 from app.common.helpers import activity, permissions
 from app.common.constants import UserActivity
@@ -178,6 +178,10 @@ def update_topic(
         "forum.moderation.topics.set_status",
         request.user.id
     )
+    can_move_topic = permissions.has_permission(
+        "forum.moderation.topics.move",
+        request.user.id
+    )
 
     can_force_change_icon = permissions.has_permission(
         "forum.moderation.topics.change_icon",
@@ -204,6 +208,9 @@ def update_topic(
     if data.title:
         updates['title'] = data.title
 
+    if data.forum_id is not None and can_move_topic:
+        updates['forum_id'] = data.forum_id
+
     if data.icon is not None and can_change_icon:
         updates['icon_id'] = data.icon if data.icon != -1 else None
 
@@ -225,6 +232,14 @@ def update_topic(
         updates,
         session=request.state.db
     )
+    request.state.db.refresh(topic)
+
+    if new_forum_id := updates.get('forum_id'):
+        posts.update_by_topic(
+            topic.id,
+            {'forum_id': new_forum_id},
+            session=request.state.db
+        )
 
     request.state.logger.info(
         f'{request.user.name} updated topic "{topic.title}" ({topic.id}).'

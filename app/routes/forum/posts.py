@@ -7,7 +7,7 @@ from typing import List
 
 from app.common.database.objects import DBForumPost, DBForumTopic, DBBeatmapset, DBUser
 from app.common.database import topics, posts, notifications, nominations, beatmapsets
-from app.models import PostModel, ErrorResponse, PostCreateRequest, PostUpdateRequest
+from app.models import PostModel, ErrorResponse, PostCreateRequest, PostUpdateRequest, ForumHideRequest
 from app.common.constants import NotificationType, BeatmapStatus, UserActivity
 from app.common.helpers import activity, permissions
 from app.security import require_login
@@ -262,6 +262,36 @@ def edit_post(
     request.state.logger.info(
         f'{request.user.name} edited post "{post.id}" on "{post.topic.title}".'
     )
+
+    return PostModel.model_validate(post, from_attributes=True)
+
+@router.patch("/{forum_id}/topics/{topic_id}/posts/{post_id}/hide", response_model=PostModel, dependencies=[require_login])
+@requires("forum.moderation.posts.hide")
+def hide_post(
+    request: Request,
+    forum_id: int,
+    topic_id: int,
+    post_id: int,
+    data: ForumHideRequest = Body(...)
+) -> PostModel:
+    if not (post := posts.fetch_one(post_id, request.state.db)):
+        raise HTTPException(404, "The requested post could not be found")
+
+    if post.topic_id != topic_id or post.forum_id != forum_id:
+        return RedirectResponse(f"/forum/{post.forum_id}/topics/{post.topic_id}/posts/{post.id}")
+
+    if post.hidden != data.hidden:
+        posts.update(
+            post.id,
+            {"hidden": data.hidden},
+            session=request.state.db
+        )
+
+        request.state.logger.info(
+            f'{request.user.name} {"hid" if data.hidden else "unhid"} '
+            f'post "{post.id}" on "{post.topic.title}".'
+        )
+        request.state.db.refresh(post)
 
     return PostModel.model_validate(post, from_attributes=True)
 

@@ -133,6 +133,9 @@ class PostUpdateRequest(BaseModel):
 
         return value
 
+class ForumHideRequest(BaseModel):
+    hidden: bool
+
 class BBCodeRenderRequest(BaseModel):
     input: str
 

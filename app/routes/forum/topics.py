@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import List
 
 from app.common.database.objects import DBForumTopic, DBUser, DBForumPost
-from app.models import TopicModel, ErrorResponse, TopicCreateRequest, TopicUpdateRequest
+from app.models import TopicModel, ErrorResponse, TopicCreateRequest, TopicUpdateRequest, ForumHideRequest
 from app.common.database import forums, topics, posts
 from app.common.helpers import activity, permissions
 from app.common.constants import UserActivity
@@ -229,6 +229,35 @@ def update_topic(
     request.state.logger.info(
         f'{request.user.name} updated topic "{topic.title}" ({topic.id}).'
     )
+
+    return TopicModel.model_validate(topic, from_attributes=True)
+
+@router.patch("/{forum_id}/topics/{topic_id}/hide", response_model=TopicModel, dependencies=[require_login])
+@requires("forum.moderation.topics.hide")
+def hide_topic(
+    request: Request,
+    forum_id: int,
+    topic_id: int,
+    data: ForumHideRequest = Body(...)
+) -> TopicModel:
+    if not (topic := topics.fetch_one(topic_id, request.state.db)):
+        raise HTTPException(404, "The requested topic could not be found")
+
+    if topic.forum_id != forum_id:
+        return RedirectResponse(f"/forum/{topic.forum_id}/topics/{topic.id}")
+
+    if topic.hidden != data.hidden:
+        topics.update(
+            topic.id,
+            {"hidden": data.hidden},
+            session=request.state.db
+        )
+
+        request.state.logger.info(
+            f'{request.user.name} {"hid" if data.hidden else "unhid"} '
+            f'topic "{topic.title}" ({topic.id}).'
+        )
+        request.state.db.refresh(topic)
 
     return TopicModel.model_validate(topic, from_attributes=True)
 

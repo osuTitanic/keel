@@ -89,15 +89,15 @@ def create_topic(
     # Moderators can change icons regardless of forum settings
     can_change_icon = can_change_icon or can_force_change_icon
 
-    # 'Attributes' refers to pinned/announcement status
+    # 'Options' refers to pinned/announcement status
     # which moderators and admins are allowed to set
-    can_set_attributes = permissions.has_permission(
-        "forum.moderation.topics.set_attributes",
+    can_set_options = permissions.has_permission(
+        "forum.moderation.topics.set_options",
         request.user.id
     )
     topic_attributes = {}
 
-    if can_set_attributes and data.type:
+    if can_set_options and data.type:
         topic_attributes[data.type] = True
 
     if can_change_icon and data.icon:
@@ -197,10 +197,10 @@ def update_topic(
     # Moderators can change icons regardless of forum settings
     can_change_icon = can_change_icon or can_force_change_icon
 
-    # 'Attributes' refers to pinned/announcement status
+    # 'Options' refers to pinned/announcement status
     # which moderators and admins are allowed to set
-    can_set_attributes = permissions.has_permission(
-        "forum.moderation.topics.set_attributes",
+    can_set_options = permissions.has_permission(
+        "forum.moderation.topics.set_options",
         request.user.id
     )
 
@@ -212,7 +212,7 @@ def update_topic(
     if data.icon is not None and can_change_icon:
         updates['icon_id'] = data.icon if data.icon != -1 else None
 
-    if data.type is not None and can_set_attributes:
+    if data.type is not None and can_set_options:
         updates['pinned'] = data.type == 'pinned'
         updates['announcement'] = data.type == 'announcement'
 

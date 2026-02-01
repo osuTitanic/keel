@@ -309,7 +309,7 @@ def update_notifications(
     )
 
 def resolve_icon(data: PostCreateRequest, request: Request, topic: DBForumTopic) -> int | None:
-    if data.icon is None:
+    if data.icon_update is None:
         return
 
     can_change_icon = (
@@ -328,11 +328,11 @@ def resolve_icon(data: PostCreateRequest, request: Request, topic: DBForumTopic)
     if not can_change_icon:
         return
 
-    if topic.icon_id == data.icon:
+    if topic.icon_id == data.icon_update:
         return
 
-    if data.icon != -1:
-        return data.icon
+    if data.icon_update != -1:
+        return data.icon_update
 
 def broadcast_post_activity(
     topic: DBForumTopic,

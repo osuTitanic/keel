@@ -92,7 +92,7 @@ class TopicCreateRequest(BaseModel):
 class PostCreateRequest(BaseModel):
     content: str
     notify: bool = False
-    icon: int | None = None
+    icon_update: int | None = None
 
     @field_validator('content')
     def content_length(cls, value):

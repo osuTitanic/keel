@@ -27,3 +27,7 @@ from .search import *
 from .server import *
 from .user import *
 from .bitview import *
+
+# Resolve forward references for circular imports
+BeatmapModel.model_rebuild()
+BeatmapsetModel.model_rebuild()

@@ -1,37 +1,11 @@
 
 from app.common.constants import BeatmapLanguage, BeatmapGenre
-from app.common.database import DBRating, DBFavourite
+from app.models.beatmap import BeatmapModelCompact
 from pydantic import BaseModel, field_validator, computed_field
 from datetime import datetime
 from typing import List
 
-class BeatmapModelWithoutSet(BaseModel):
-    id: int
-    set_id: int
-    mode: int
-    md5: str
-    status: int
-    version: str
-    filename: str
-    created_at: datetime
-    last_update: datetime
-    playcount: int
-    passcount: int
-    total_length: int
-    drain_length: int
-    max_combo: int
-    bpm: float
-    cs: float
-    ar: float
-    od: float
-    hp: float
-    diff: float
-    count_normal: int
-    count_slider: int
-    count_spinner: int
-    slider_multiplier: float
-
-class BeatmapsetModel(BaseModel):
+class BeatmapsetModelCompact(BaseModel):
     id: int
     title: str | None
     artist: str | None
@@ -55,14 +29,13 @@ class BeatmapsetModel(BaseModel):
     last_update: datetime
     approved_at: datetime | None
     approved_by: int | None
-    osz_filesize: int
-    osz_filesize_novideo: int
     rating_average: float
     rating_count: int
     favourite_count: int
     total_playcount: int
     max_diff: float
-    beatmaps: List[BeatmapModelWithoutSet]
+    osz_filesize: int
+    osz_filesize_novideo: int
 
     @computed_field
     @property
@@ -75,6 +48,9 @@ class BeatmapsetModel(BaseModel):
     def favourites(self) -> float:
         # Deprecated: replaced by "favourite_count"
         return self.favourite_count
+
+class BeatmapsetModel(BeatmapsetModelCompact):
+    beatmaps: List[BeatmapModelCompact]
 
 class BeatmapUpdateRequest(BaseModel):
     offset: int = 0

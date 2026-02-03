@@ -29,11 +29,6 @@ class CollaborationRequestModelWithoutBeatmap(BaseModel):
     target: UserModelCompact
     created_at: datetime
 
-class CollaborationBlacklistModel(BaseModel):
-    user: UserModelCompact
-    target: UserModelCompact
-    created_at: datetime
-
 class CollaborationCreateRequest(BaseModel):
     user_id: int
 

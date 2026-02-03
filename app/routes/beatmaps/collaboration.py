@@ -2,7 +2,7 @@
 from fastapi import HTTPException, APIRouter, Request, Body
 from typing import List
 
-from app.common.database import beatmaps, collaborations, notifications
+from app.common.database import beatmaps, collaborations, notifications, relationships
 from app.common.constants import NotificationType
 from app.models.collaboration import *
 from app.security import require_login
@@ -151,16 +151,28 @@ def create_collaboration_request(
             detail="You cannot send an invite to yourself"
         )
 
-    is_blacklisted = collaborations.is_blacklisted(
-        data.user_id,
-        request.user.id,
-        request.state.db
+    target_blocked_user = relationships.is_blocked(
+        user_id=data.user_id,
+        target_id=request.user.id,
+        session=request.state.db
     )
 
-    if is_blacklisted:
+    if target_blocked_user:
         raise HTTPException(
             status_code=403,
-            detail="This user blacklisted you from collaboration invites"
+            detail="You are not allowed to send an invite to this user"
+        )
+
+    user_blocked_target = relationships.is_blocked(
+        user_id=request.user.id,
+        target_id=data.user_id,
+        session=request.state.db
+    )
+
+    if user_blocked_target:
+        raise HTTPException(
+            status_code=403,
+            detail="You have blocked this user"
         )
 
     exists = collaborations.exists(

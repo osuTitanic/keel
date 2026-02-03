@@ -22,6 +22,7 @@ class BeatmapsetModelCompact(BaseModel):
     download_server: int
     available: bool
     enhanced: bool
+    explicit: bool
     language_id: int
     genre_id: int
     display_title: str
@@ -60,6 +61,7 @@ class BeatmapUpdateRequest(BaseModel):
     download_server: int | None = None
     display_title: str | None = None
     enhanced: bool = False
+    explicit: bool = False
 
 class BeatmapsetDescriptionUpdate(BaseModel):
     bbcode: str

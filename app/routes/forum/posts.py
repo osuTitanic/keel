@@ -340,11 +340,11 @@ def resolve_icon(data: PostCreateRequest, request: Request, topic: DBForumTopic)
         return
 
     can_change_icon = (
-        permissions.has_permission("forum.topics.change_icon", request.user.id) and
+        permissions.has_permission("forum.topics.edit_icon", request.user.id) and
         topic.can_change_icon
     )
     can_force_change_icon = permissions.has_permission(
-        "forum.moderation.topics.change_icon",
+        "forum.moderation.topics.edit_icon",
         request.user.id
     )
 

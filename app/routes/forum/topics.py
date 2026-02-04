@@ -80,11 +80,11 @@ def create_topic(
         raise HTTPException(400, "Post content is too long")
 
     can_force_change_icon = permissions.has_permission(
-        "forum.moderation.topics.change_icon",
+        "forum.moderation.topics.edit_icon",
         request.user.id
     )
     can_change_icon = (
-        permissions.has_permission("forum.topics.change_icon", request.user.id) and
+        permissions.has_permission("forum.topics.edit_icon", request.user.id) and
         forum.allow_icons
     )
 
@@ -184,11 +184,11 @@ def update_topic(
     )
 
     can_force_change_icon = permissions.has_permission(
-        "forum.moderation.topics.change_icon",
+        "forum.moderation.topics.edit_icon",
         request.user.id
     )
     can_change_icon = (
-        permissions.has_permission("forum.topics.change_icon", request.user.id) and
+        permissions.has_permission("forum.topics.edit_icon", request.user.id) and
         topic.can_change_icon
     )
 

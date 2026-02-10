@@ -106,4 +106,5 @@ def resolve_iterable_osz(filename: str, request: Request) -> Tuple[Generator, Op
 
 def resolve_iterable_osz_no_video(filename: str, request: Request) -> Tuple[Generator, Optional[int]]:
     osz_path = request.state.storage.get_osz_internal_path(filename)
-    return NoVideoZipIterator(osz_path), None
+    iterator = NoVideoZipIterator(osz_path)
+    return iterator, len(iterator)

@@ -1,14 +1,15 @@
 
 from fastapi import HTTPException, APIRouter, Request, UploadFile, Query, File
 from fastapi.responses import StreamingResponse, Response
+from typing import Generator, Tuple, Optional
+from zipstream import ZipStream, ZIP_DEFLATED
+from pathlib import PurePath
+from zipfile import ZipFile
+
 from app.common.database import beatmapsets
 from app.common.helpers import permissions
 from app.security import require_login
-from typing import Generator, Tuple
 from app.utils import requires
-from zipstream import ZipStream
-from zipfile import ZipFile
-from io import BytesIO
 
 router = APIRouter(
     responses={403: {'description': 'Authentication failure'}},
@@ -49,7 +50,9 @@ def get_internal_osz(
     )
 
     generator, size = resolver(filename, request)
-    headers["Content-Length"] = str(size)
+
+    if size is not None:
+        headers["Content-Length"] = str(size)
 
     return StreamingResponse(
         generator,
@@ -91,7 +94,7 @@ def upload_internal_osz(
         headers={"Location": f'/resources/osz/{beatmapset.id}'}
     )
 
-def resolve_iterable_osz(filename: str, request: Request) -> Tuple[Generator, int]:
+def resolve_iterable_osz(filename: str, request: Request) -> Tuple[Generator, Optional[int]]:
     if not (generator := request.state.storage.get_osz_iterable(filename)):
         raise HTTPException(
             status_code=404,
@@ -103,29 +106,31 @@ def resolve_iterable_osz(filename: str, request: Request) -> Tuple[Generator, in
         request.state.storage.get_osz_size(filename)
     )
 
-def resolve_iterable_osz_no_video(filename: str, request: Request) -> Tuple[Generator, int]:
-    if not (osz := request.state.storage.get_osz_internal(filename)):
-        raise HTTPException(
-            status_code=404,
-            detail="The requested resource could not be found"
-        )
+def resolve_iterable_osz_no_video(filename: str, request: Request) -> Tuple[Generator, Optional[int]]:
+    osz_path = request.state.storage.get_osz_internal_path(filename)
+    source_zip = ZipFile(osz_path, 'r')
 
-    source_zip = ZipFile(BytesIO(osz), 'r')
-    zip_stream = ZipStream(sized=True)
+    # Pre-filter items without reading content
+    items_to_include = [
+        item for item in source_zip.infolist()
+        if PurePath(item.filename).suffix.lower() not in video_file_extensions
+    ]
 
-    for item in source_zip.infolist():
-        if any(item.filename.lower().endswith(ext) for ext in video_file_extensions):
-            continue
-
-        zip_stream.add(
-            source_zip.read(item.filename),
-            arcname=item.filename,
-        )
+    # Create the zip stream & add files later to avoid buffering the entire zip in memory
+    zip_stream = ZipStream(compress_type=ZIP_DEFLATED)
 
     def generate():
         try:
+            # Add files to stream
+            for item in items_to_include:
+                zip_stream.add(
+                    source_zip.read(item.filename),
+                    arcname=item.filename,
+                )
+
+            # Stream the zip data
             yield from zip_stream
         finally:
             source_zip.close()
 
-    return generate(), len(zip_stream)
+    return generate(), None

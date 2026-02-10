@@ -6,6 +6,7 @@ from app.common.helpers import permissions
 from app.security import require_login
 from typing import Generator, Tuple
 from app.utils import requires
+from zipstream import ZipStream
 from zipfile import ZipFile
 from io import BytesIO
 
@@ -13,6 +14,12 @@ router = APIRouter(
     responses={403: {'description': 'Authentication failure'}},
     dependencies=[require_login]
 )
+video_file_extensions = frozenset((
+    ".wmv", ".flv", ".mp4",
+    ".avi", ".m4v", ".mpg",
+    ".mov", ".webm", ".mkv",
+    ".ogv", ".mpeg", ".3gp"
+))
 
 @router.get("/osz/{filename}", response_class=StreamingResponse)
 def get_internal_osz(
@@ -32,27 +39,22 @@ def get_internal_osz(
             detail="The requested resource could not be found"
         )
 
-    if not (generator := request.state.storage.get_osz_iterable(filename)):
-        raise HTTPException(
-            status_code=404,
-            detail="The requested resource could not be found"
-        )
+    headers = {
+        "Content-Disposition": f'attachment; filename="{filename}{"n" if no_video else ""}.osz"'
+    }
 
-    if no_video:
-        # Remove video files from the .osz file
-        generator, size = remove_video_from_zip(generator)
-        
-    else:
-        # Get regular osz size
-        size = request.state.storage.get_osz_size(filename)
+    resolver = (
+        resolve_iterable_osz_no_video if no_video else
+        resolve_iterable_osz
+    )
+
+    generator, size = resolver(filename, request)
+    headers["Content-Length"] = str(size)
 
     return StreamingResponse(
         generator,
         media_type="application/octet-stream",
-        headers={
-            "Content-Disposition": f'attachment; filename="{filename}.osz"',
-            "Content-Length": f'{size}'
-        }
+        headers=headers
     )
 
 @router.put("/osz/{set_id}")
@@ -89,33 +91,41 @@ def upload_internal_osz(
         headers={"Location": f'/resources/osz/{beatmapset.id}'}
     )
 
-def remove_video_from_zip(osz: Generator) -> Tuple[Generator, int]:
-    video_extensions = (
-        ".wmv", ".flv", ".mp4",
-        ".avi", ".m4v", ".mpg",
-        ".mov", ".webm", ".mkv",
-        ".ogv", ".mpeg", ".3gp"
-    )
-
-    with ZipFile(BytesIO(b"".join(osz)), 'r') as zip_file:
-        files_to_keep = [
-            item for item in zip_file.namelist()
-            if not any(item.lower().endswith(ext) for ext in video_extensions)
-        ]
-
-        output = BytesIO()
-
-        with ZipFile(output, 'w') as output_zip:
-            for file in files_to_keep:
-                output_zip.writestr(file, zip_file.read(file))
-
-        output.seek(0)
-
-        return (
-            create_chunks_from_io(output),
-            output.getbuffer().nbytes
+def resolve_iterable_osz(filename: str, request: Request) -> Tuple[Generator, int]:
+    if not (generator := request.state.storage.get_osz_iterable(filename)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested resource could not be found"
         )
 
-def create_chunks_from_io(output: BytesIO) -> Generator:
-    while chunk := output.read(1024 * 64):
-        yield chunk
+    return (
+        generator,
+        request.state.storage.get_osz_size(filename)
+    )
+
+def resolve_iterable_osz_no_video(filename: str, request: Request) -> Tuple[Generator, int]:
+    if not (osz := request.state.storage.get_osz_internal(filename)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested resource could not be found"
+        )
+
+    source_zip = ZipFile(BytesIO(osz), 'r')
+    zip_stream = ZipStream(sized=True)
+
+    for item in source_zip.infolist():
+        if any(item.filename.lower().endswith(ext) for ext in video_file_extensions):
+            continue
+
+        zip_stream.add(
+            source_zip.read(item.filename),
+            arcname=item.filename,
+        )
+
+    def generate():
+        try:
+            yield from zip_stream
+        finally:
+            source_zip.close()
+
+    return generate(), len(zip_stream)

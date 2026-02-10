@@ -16,7 +16,7 @@ video_file_extensions = frozenset((
 class ZipIterator:
     """An iterator that streams a zip file directly"""
 
-    def __init__(self, zip_path: str, chunk_size: int = 1024 * 32) -> None:
+    def __init__(self, zip_path: str, chunk_size: int = 1024 * 64) -> None:
         self.file: BufferedReader = open(zip_path, 'rb')
         self.chunk_size: int = chunk_size
         self.zip_path: str = zip_path

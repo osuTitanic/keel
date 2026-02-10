@@ -27,7 +27,7 @@ COPY requirements.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --upgrade pip setuptools wheel && \
     pip install --no-compile --root /install -r requirements.txt && \
-    pip install --no-compile --root /install gunicorn
+    pip install --no-compile --root /install granian[pname,uvloop]
 
 FROM python:3.14-alpine
 
@@ -53,9 +53,11 @@ RUN apk add --no-cache \
 COPY --from=builder /install/usr/local /usr/local
 
 # Runtime configuration
-ARG WEB_WORKERS=4
-ENV WEB_WORKERS=${WEB_WORKERS} \
-    API_WORKERS=${WEB_WORKERS}
+ARG API_WORKERS=4
+ENV API_WORKERS=${API_WORKERS}
+
+ARG API_THREADS_RUNTIME=2
+ENV API_THREADS_RUNTIME=${API_THREADS_RUNTIME}
 
 WORKDIR /keel
 COPY . .
@@ -65,4 +67,4 @@ RUN python -m compileall -q app
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/sbin/tini", "--"]
 
-CMD ["/bin/sh", "-c", "gunicorn --access-logfile - --preload -b 0.0.0.0:80 -w ${WEB_WORKERS} -k uvicorn.workers.UvicornWorker --max-requests 50000 --max-requests-jitter 10000 --graceful-timeout 5 --timeout 10 app:api"]
+CMD ["/bin/sh", "-c", "granian --host 0.0.0.0 --port 80 --interface asgi --workers ${API_WORKERS} --runtime-threads ${API_THREADS_RUNTIME} --loop uvloop --http 1 --backpressure 128 --respawn-failed-workers --access-log --process-name keel-worker --workers-kill-timeout 5 --workers-lifetime 3600 --workers-max-rss 512 app:api"]

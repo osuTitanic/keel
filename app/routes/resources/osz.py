@@ -1,9 +1,8 @@
 
 from fastapi import HTTPException, APIRouter, Request, UploadFile, Query, File
 from fastapi.responses import StreamingResponse, Response
-from typing import Generator, Tuple, Optional
 
-from app.streaming import NoVideoZipIterator
+from app.streaming import NoVideoZipIterator, ZipIterator
 from app.common.database import beatmapsets
 from app.common.helpers import permissions
 from app.security import require_login
@@ -32,30 +31,37 @@ def get_internal_osz(
             detail="You are not authorized to perform this action"
         )
 
+    if request.state.storage.config.S3_ENABLED:
+        raise HTTPException(
+            status_code=503,
+            detail="S3 storage is currently not implemented"
+        )
+
     if not request.state.storage.file_exists(filename, 'osz'):
         raise HTTPException(
             status_code=404,
             detail="The requested resource could not be found"
         )
 
-    headers = {
-        "Content-Disposition": f'attachment; filename="{filename}{"n" if no_video else ""}.osz"'
-    }
+    if not (filepath := request.state.storage.get_osz_internal_path(filename)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested resource could not be found"
+        )
 
-    resolver = (
-        resolve_iterable_osz_no_video if no_video else
-        resolve_iterable_osz
+    iterator_class = (
+        NoVideoZipIterator if no_video else
+        ZipIterator
     )
-
-    generator, size = resolver(filename, request)
-
-    if size is not None:
-        headers["Content-Length"] = str(size)
+    generator = iterator_class(filepath)
 
     return StreamingResponse(
         generator,
         media_type="application/octet-stream",
-        headers=headers
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}{"n" if no_video else ""}.osz"',
+            "Content-Length": str(len(generator))
+        }
     )
 
 @router.put("/osz/{set_id}")
@@ -91,20 +97,3 @@ def upload_internal_osz(
         status_code=204,
         headers={"Location": f'/resources/osz/{beatmapset.id}'}
     )
-
-def resolve_iterable_osz(filename: str, request: Request) -> Tuple[Generator, Optional[int]]:
-    if not (generator := request.state.storage.get_osz_iterable(filename)):
-        raise HTTPException(
-            status_code=404,
-            detail="The requested resource could not be found"
-        )
-
-    return (
-        generator,
-        request.state.storage.get_osz_size(filename)
-    )
-
-def resolve_iterable_osz_no_video(filename: str, request: Request) -> Tuple[Generator, Optional[int]]:
-    osz_path = request.state.storage.get_osz_internal_path(filename)
-    iterator = NoVideoZipIterator(osz_path)
-    return iterator, len(iterator)

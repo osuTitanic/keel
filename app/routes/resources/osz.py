@@ -2,10 +2,8 @@
 from fastapi import HTTPException, APIRouter, Request, UploadFile, Query, File
 from fastapi.responses import StreamingResponse, Response
 from typing import Generator, Tuple, Optional
-from zipstream import ZipStream, ZIP_DEFLATED
-from pathlib import PurePath
-from zipfile import ZipFile
 
+from app.streaming import NoVideoZipIterator
 from app.common.database import beatmapsets
 from app.common.helpers import permissions
 from app.security import require_login
@@ -108,29 +106,4 @@ def resolve_iterable_osz(filename: str, request: Request) -> Tuple[Generator, Op
 
 def resolve_iterable_osz_no_video(filename: str, request: Request) -> Tuple[Generator, Optional[int]]:
     osz_path = request.state.storage.get_osz_internal_path(filename)
-    source_zip = ZipFile(osz_path, 'r')
-
-    # Pre-filter items without reading content
-    items_to_include = [
-        item for item in source_zip.infolist()
-        if PurePath(item.filename).suffix.lower() not in video_file_extensions
-    ]
-
-    # Create the zip stream & add files later to avoid buffering the entire zip in memory
-    zip_stream = ZipStream(compress_type=ZIP_DEFLATED)
-
-    def generate():
-        try:
-            # Add files to stream
-            for item in items_to_include:
-                zip_stream.add(
-                    source_zip.read(item.filename),
-                    arcname=item.filename,
-                )
-
-            # Stream the zip data
-            yield from zip_stream
-        finally:
-            source_zip.close()
-
-    return generate(), None
+    return NoVideoZipIterator(osz_path), None

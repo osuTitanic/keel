@@ -29,6 +29,9 @@ class NoVideoZipIterator:
     def __iter__(self) -> Generator:
         return self
 
+    def __del__(self) -> None:
+        self.close()
+
     def __next__(self) -> bytes:
         if self.closed:
             raise StopIteration

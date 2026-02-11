@@ -10,7 +10,7 @@ fastapi==0.128.7
 uvicorn==0.40.0
 bcrypt==5.0.0
 python-multipart==0.0.22
-pillow==12.1.0
+pillow==12.1.1
 email-validator==2.3.0
 pyjwt==2.11.0
 regex==2026.1.15

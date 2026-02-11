@@ -43,6 +43,7 @@ class TopicModel(BaseModel):
     title: str
     status_text: str | None
     views: int
+    post_count: int
     announcement: bool
     pinned: bool
     created_at: datetime
@@ -57,6 +58,8 @@ class SubforumModel(BaseModel):
     created_at: datetime
     name: str
     description: str
+    topic_count: int
+    post_count: int
 
 class ForumModel(BaseModel):
     id: int
@@ -64,6 +67,8 @@ class ForumModel(BaseModel):
     created_at: datetime
     name: str
     description: str
+    topic_count: int
+    post_count: int
     subforums: List[SubforumModel]
     parent: SubforumModel | None
 

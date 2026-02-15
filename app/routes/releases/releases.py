@@ -43,12 +43,14 @@ def get_modded_release(
 @router.get("/official", response_model=List[OsuReleaseModel])
 def get_official_releases(
     request: Request,
+    stream: str | None = Query(None),
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ) -> List[OsuReleaseModel]:
     entries = releases.fetch_official_range(
         limit=limit,
         offset=offset,
+        stream=stream,
         session=request.state.db
     )
 

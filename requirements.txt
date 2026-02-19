@@ -16,5 +16,5 @@ pyjwt==2.11.0
 regex==2026.1.15
 websockets==16.0
 orjson==3.11.7
-pydantic-settings==2.13.0
+pydantic-settings==2.13.1
 zipstream-ng==1.9.0

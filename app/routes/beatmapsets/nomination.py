@@ -76,6 +76,7 @@ def nominate_beatmap(request: Request, set_id: int):
     request.state.logger.info(
         f'Beatmap "{beatmapset.full_name}" was nominated by {request.user.name}.'
     )
+    request.state.db.commit()
 
     return [
         NominationModelWithUser.model_validate(nom, from_attributes=True)

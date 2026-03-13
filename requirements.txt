@@ -12,7 +12,7 @@ bcrypt==5.0.0
 python-multipart==0.0.22
 pillow==12.1.1
 email-validator==2.3.0
-pyjwt==2.11.0
+pyjwt==2.12.0
 regex==2026.2.28
 websockets==16.0
 orjson==3.11.7

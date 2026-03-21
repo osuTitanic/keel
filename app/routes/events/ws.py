@@ -41,7 +41,7 @@ async def event_listener(websocket: WebSocket, pubsub: PubSub) -> None:
     while True:
         response = await pubsub.get_message(
             ignore_subscribe_messages=True,
-            timeout=0
+            timeout=None
         )
 
         if response is None:

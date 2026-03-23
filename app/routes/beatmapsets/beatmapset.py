@@ -51,6 +51,12 @@ def update_beatmapset_metadata(
             detail="You are not authorized to perform this action"
         )
 
+    if beatmapset.status > 0 and not full_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="This beatmap is already approved and cannot be modified"
+        )
+
     # Regular users can only update the language, genre & tags
     # BATs can do a little bit more
     updates = {

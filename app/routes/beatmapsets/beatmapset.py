@@ -2,6 +2,7 @@
 from fastapi import HTTPException, APIRouter, Request, Body
 from app.models import BeatmapUpdateRequest, BeatmapsetModel, ErrorResponse
 from app.common.database import beatmapsets
+from app.common.helpers import permissions
 from app.security import require_login
 from app.utils import requires
 
@@ -28,7 +29,6 @@ def get_beatmapset(request: Request, set_id: int) -> BeatmapsetModel:
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
 @router.patch("/{set_id}", response_model=BeatmapsetModel, dependencies=[require_login])
-@requires("beatmaps.metadata.update")
 def update_beatmapset_metadata(
     request: Request,
     set_id: int,
@@ -40,28 +40,47 @@ def update_beatmapset_metadata(
             detail="The requested beatmapset could not be found"
         )
 
-    beatmapsets.update(
-        beatmapset.id,
-        {
-            'tags': update.tags,
-            'offset': update.offset,
-            'enhanced': update.enhanced,
-            'explicit': update.explicit,
-            'genre_id': update.genre.value,
-            'language_id': update.language.value,
-            'download_server': (
+    full_permission = permissions.has_permission(
+        "beatmaps.metadata.update",
+        request.user.id
+    )
+
+    if not full_permission and beatmapset.creator_id != request.user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to perform this action"
+        )
+
+    # Regular users can only update the language, genre & tags
+    # BATs can do a little bit more
+    updates = {
+        "tags": update.tags,
+        "genre_id": update.genre.value,
+        "language_id": update.language.value,
+    }
+
+    if full_permission:
+        updates.update({
+            "offset": update.offset,
+            "enhanced": update.enhanced,
+            "explicit": update.explicit,
+            "download_server": (
                 update.download_server
                 if update.download_server is not None
                 else beatmapset.download_server
             ),
-            'display_title': (
+            "display_title": (
                 update.display_title or
                 f"[bold:0,size:20]{beatmapset.artist}|[]{beatmapset.title}"
             )
-        },
+        })
+
+    beatmapsets.update(
+        beatmapset.id,
+        updates,
         request.state.db
     )
-
+    request.state.db.commit()
     request.state.db.refresh(beatmapset)
     request.state.logger.info(
         f'{request.user.name} updated beatmap metadata for "{beatmapset.full_name}".'

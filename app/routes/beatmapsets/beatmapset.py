@@ -1,6 +1,7 @@
 
 from fastapi import HTTPException, APIRouter, Request, Body
 from app.models import BeatmapUpdateRequest, BeatmapsetModel, ErrorResponse
+from app.common.constants import BeatmapGenre, BeatmapLanguage
 from app.common.database import beatmapsets
 from app.common.helpers import permissions
 from app.security import require_login
@@ -55,6 +56,18 @@ def update_beatmapset_metadata(
         raise HTTPException(
             status_code=403,
             detail="This beatmap is already approved and cannot be modified"
+        )
+
+    if update.genre == BeatmapGenre.Any:
+        raise HTTPException(
+            status_code=400,
+            detail="Genre cannot be set to 'Any'"
+        )
+
+    if update.language == BeatmapLanguage.Any:
+        raise HTTPException(
+            status_code=400,
+            detail="Language cannot be set to 'Any'"
         )
 
     # Regular users can only update the language, genre & tags

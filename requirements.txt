@@ -13,7 +13,7 @@ python-multipart==0.0.22
 pillow==12.1.1
 email-validator==2.3.0
 pyjwt==2.12.1
-regex==2026.2.28
+regex==2026.3.32
 websockets==16.0
 orjson==3.11.7
 pydantic-settings==2.13.1

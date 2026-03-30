@@ -1,5 +1,5 @@
 sqlalchemy==2.0.48
-requests==2.33.0
+requests==2.33.1
 redis==7.4.0
 geoip2==5.2.0
 rosu-pp-py==3.1.0

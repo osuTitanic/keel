@@ -68,3 +68,6 @@ class BeatmapsetDescriptionUpdate(BaseModel):
 
 class BeatmapsetOwnerUpdate(BaseModel):
     user_id: int
+
+class BeatmapsetLinkRequest(BaseModel):
+    topic_id: int

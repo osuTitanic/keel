@@ -10,8 +10,10 @@ from . import status
 from . import packs
 from . import owner
 from . import nuke
+from . import link
 
 router = APIRouter()
+router.include_router(link.router)
 router.include_router(nuke.router)
 router.include_router(owner.router)
 router.include_router(packs.router)

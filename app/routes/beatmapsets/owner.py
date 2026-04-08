@@ -1,5 +1,4 @@
 
-
 from fastapi import HTTPException, APIRouter, Request, Body
 from app.common.database import beatmapsets, users
 from app.security import require_login
@@ -24,7 +23,7 @@ def change_beatmap_owner(
 ) -> BeatmapsetModel:
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(404, 'The requested beatmapset could not be found')
-    
+
     if not (new_owner := users.fetch_by_id(update.user_id, session=request.state.db)):
         raise HTTPException(404, 'The specified user could not be found')
 

@@ -15,7 +15,7 @@ router = APIRouter(
     }
 )
 
-@router.patch('/beatmapsets/{beatmapset_id}/link', response_model=BeatmapsetModel)
+@router.patch('/{beatmapset_id}/link', response_model=BeatmapsetModel)
 @requires('beatmaps.link')
 def link_beatmapset_to_topic(
     request: Request,

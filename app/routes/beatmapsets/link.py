@@ -61,3 +61,24 @@ def link_beatmapset_to_topic(
         beatmapset,
         from_attributes=True
     )
+
+@router.delete('/{beatmapset_id}/link', response_model=BeatmapsetModel)
+@requires('beatmaps.link')
+def unlink_beatmapset_from_topic(request: Request, beatmapset_id: int) -> BeatmapsetModel:
+    if not (beatmapset := beatmapsets.fetch_one(beatmapset_id, request.state.db)):
+        raise HTTPException(404, 'The requested beatmapset could not be found')
+
+    if beatmapset.server != 0:
+        raise HTTPException(400, "This beatmapset was uploaded to titanic and can't be manually unlinked from a topic.")
+
+    beatmapsets.update(
+        beatmapset.id,
+        {'topic_id': None},
+        request.state.db
+    )
+    request.state.db.refresh(beatmapset)
+
+    return BeatmapsetModel.model_validate(
+        beatmapset,
+        from_attributes=True
+    )

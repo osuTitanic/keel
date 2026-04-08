@@ -70,4 +70,4 @@ class BeatmapsetOwnerUpdate(BaseModel):
     user_id: int
 
 class BeatmapsetLinkRequest(BaseModel):
-    topic_id: int | None
+    topic_id: int

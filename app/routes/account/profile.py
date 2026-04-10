@@ -36,7 +36,7 @@ def profile_update(
         )
 
     if update.twitter:
-        handle = update.twitter_handle(update.twitter)
+        handle = twitter_handle(update.twitter)
         update.twitter = f'https://twitter.com/{handle}'
 
     if update.discord:

@@ -18,23 +18,23 @@ def get_notifications(request: Request) -> List[NotificationModel]:
         for notification in notifications.fetch_all(request.user.id, False, session=request.state.db)
     ]
 
-@router.delete("/notifications", response_model=List[NotificationModel])
+@router.delete("/notifications")
 @requires("users.notifications.delete")
-def confirm_all_notifications(request: Request) -> List[NotificationModel]:
+def confirm_all_notifications(request: Request) -> RedirectResponse:
     """Confirm all unread notifications for the authenticated user"""
     notifications.update_by_user_id(request.user.id, {'read': True}, request.state.db)
     return RedirectResponse("/account/notifications", status_code=303)
 
-@router.delete("/notifications/{id}", response_model=List[NotificationModel])
+@router.delete("/notifications/{id}")
 @requires("users.notifications.delete")
-def confirm_notification(request: Request, id: int) -> List[NotificationModel]:
+def confirm_notification(request: Request, id: int) -> RedirectResponse:
     """Confirm a specific notification for the authenticated user"""
     if not (notification := notifications.fetch_one(id, request.state.db)):
         raise HTTPException(
             status_code=404,
             detail="The requested notification could not be found"
         )
-    
+
     if notification.user_id != request.user.id:
         raise HTTPException(
             status_code=403,

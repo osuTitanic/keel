@@ -47,8 +47,8 @@ def fetch_server_stats(request: Request):
         results = pipe.execute()
         return results
 
-def parse_stats_response(response: Tuple[Any]) -> ServerStatsModel:
-    response = [int(value) if value is not None else 0 for value in response]
+def parse_stats_response(raw_response: Tuple[Any]) -> ServerStatsModel:
+    response = [int(value or b'0') for value in raw_response]
     offset = 7
 
     stats = ServerStatsModel(
@@ -76,5 +76,5 @@ def parse_stats_response(response: Tuple[Any]) -> ServerStatsModel:
             count_loved=response[offset + 6]
         )
         offset += 7
-        
+
     return stats

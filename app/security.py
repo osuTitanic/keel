@@ -10,15 +10,18 @@ from fastapi import Header, Depends
 from hashlib import md5
 
 import asyncio
+import secrets
 import bcrypt
 import json
-import secrets
 import time
 import jwt
 
 WEBSITE_SESSION_COOKIE_NAME = "titanic_session"
 TOKEN_TYPE_REFRESH = "refresh"
 TOKEN_TYPE_ACCESS = "access"
+
+def session_key(token_id: str) -> str:
+    return f"authentication:session:{token_id}"
 
 def generate_token(
     user: "DBUser",
@@ -45,7 +48,7 @@ def generate_token(
         algorithm='HS256'
     )
 
-def validate_token(token: str, token_type: str | None = None, allow_legacy: bool = True) -> dict | None:
+def validate_token(token: str, token_type: str | None = None) -> dict | None:
     try:
         data = jwt.decode(
             token,
@@ -59,15 +62,7 @@ def validate_token(token: str, token_type: str | None = None, allow_legacy: bool
     if time.time() > data['exp']:
         return
 
-    if is_legacy_token(data):
-        if token_type is not None and not allow_legacy:
-            return None
-        return data
-
-    if not is_new_token(data):
-        return None
-
-    if data['type'] not in (TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH):
+    if data.get('type') not in (TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH):
         return None
 
     if token_type is not None and data['type'] != token_type:
@@ -95,7 +90,7 @@ async def validate_website_session(session_id: str, redis: RedisAsync) -> dict |
     return data
 
 def session_from_claims(claims: dict | None) -> dict | None:
-    if not claims or not is_new_token(claims):
+    if not claims:
         return None
 
     if claims['type'] not in (TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH):
@@ -132,8 +127,7 @@ def issue_api_token_pair(user: "DBUser", redis: Redis, source=TokenSource.Api, n
 
     refresh_claims = validate_token(
         refresh_token,
-        TOKEN_TYPE_REFRESH,
-        allow_legacy=False
+        TOKEN_TYPE_REFRESH
     )
     if not refresh_claims or not upsert_api_session(refresh_claims, redis, now):
         raise RuntimeError("Failed to persist refresh session")
@@ -224,10 +218,6 @@ def validate_refresh_token(token: str, redis: Redis, now: int | None = None) -> 
     if not claims:
         return None
 
-    # Legacy tokens predate type/jti claims, so they can only be grandfathered here
-    if is_legacy_token(claims):
-        return claims
-
     if claims['type'] != TOKEN_TYPE_REFRESH:
         return None
 
@@ -241,9 +231,6 @@ async def validate_api_token(token: str, redis: RedisAsync, now: int | None = No
     if not claims:
         return None
 
-    if is_legacy_token(claims):
-        return claims
-
     # Refresh tokens are only accepted when the redis session entry still matches
     if claims['type'] != TOKEN_TYPE_REFRESH:
         return claims
@@ -252,21 +239,6 @@ async def validate_api_token(token: str, redis: RedisAsync, now: int | None = No
         return claims
 
     return None
-
-def session_key(token_id: str) -> str:
-    return f"authentication:session:{token_id}"
-
-def is_new_token(data: dict | None) -> bool:
-    if not data:
-        return False
-
-    return all(key in data for key in ('type', 'jti', 'iat'))
-
-def is_legacy_token(data: dict | None) -> bool:
-    if not data:
-        return False
-
-    return not any(key in data for key in ('type', 'jti', 'iat'))
 
 def password_authentication(password: str, bcrypt_hash: str) -> bool:
     return md5_authentication(

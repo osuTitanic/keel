@@ -77,7 +77,10 @@ class AuthBackend(AuthenticationBackend):
         return user
 
     async def token_authentication(self, token: str, request: HTTPConnection) -> DBUser | None:
-        data = security.validate_token(token)
+        data = await security.validate_api_token(
+            token,
+            request.state.redis_async
+        )
 
         if not data:
             return None

@@ -6,10 +6,9 @@ from app.models import CSRFTokenResponse, ErrorResponse
 from app.security import require_login
 from app.utils import requires
 
-# TODO: Reject endpoint for OAuth2
 router = APIRouter(
     responses={
-        403: {'model': ErrorResponse, 'description': 'Invalid token provided'},
+        403: {'model': ErrorResponse, 'description': 'Forbidden'},
         401: {'model': ErrorResponse, 'description': 'Authentication failure'},
     },
     dependencies=[require_login]

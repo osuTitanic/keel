@@ -18,16 +18,14 @@ class AuthBackend(AuthenticationBackend):
         self.logger = logging.getLogger('authentication')
 
     async def authenticate(self, request: HTTPConnection):
-        if (access_token := request.cookies.get('access_token')):
-            # Use access_token cookie to authenticate user
-            user = await self.token_authentication(access_token, request)
+        if (session_id := request.cookies.get(security.WEBSITE_SESSION_COOKIE_NAME)):
+            user = await self.session_authentication(session_id, request)
 
-            if not user:
-                self.logger.warning('Invalid access token')
-                return AuthCredentials([]), UnauthenticatedUser()
+            if user:
+                scopes = await self.resolve_user_scopes(user)
+                return AuthCredentials(scopes), user
 
-            scopes = await self.resolve_user_scopes(user)
-            return AuthCredentials(scopes), user
+            self.logger.warning('Invalid website session')
 
         if not (auth_header := request.headers.get('Authorization')):
             return AuthCredentials([]), UnauthenticatedUser()
@@ -87,6 +85,20 @@ class AuthBackend(AuthenticationBackend):
         return await utils.run_async(
             users.fetch_by_id_no_options,
             data['id'], request.state.db
+        )
+
+    async def session_authentication(self, session_id: str, request: HTTPConnection) -> DBUser | None:
+        data = await security.validate_website_session(
+            session_id,
+            request.state.redis_async
+        )
+
+        if not data:
+            return None
+
+        return await utils.run_async(
+            users.fetch_by_id_no_options,
+            data['user_id'], request.state.db
         )
 
     async def fetch_user_permissions(self, user_id: int) -> Tuple[List[str], List[str]]:

@@ -5,10 +5,14 @@ from app.common.database import DBUser
 from fastapi import Header, Depends
 from hashlib import md5
 from app import utils
+from redis.asyncio import Redis as RedisAsync
 
 import bcrypt
+import json
 import time
 import jwt
+
+WEBSITE_SESSION_COOKIE_NAME = "titanic_session"
 
 def generate_token(user: DBUser, expiry: int, source=TokenSource.Web) -> str:
     return jwt.encode(
@@ -35,6 +39,25 @@ def validate_token(token: str) -> dict | None:
     # Check if the token is expired
     if time.time() > data['exp']:
         return
+
+    return data
+
+async def validate_website_session(session_id: str, redis: RedisAsync) -> dict | None:
+    if not session_id or redis is None:
+        return None
+
+    payload = await redis.get(f"authentication:website:{session_id}")
+
+    if not payload:
+        return None
+
+    try:
+        data = json.loads(payload)
+    except (TypeError, ValueError):
+        return None
+
+    if time.time() > data["expires_at"]:
+        return None
 
     return data
 

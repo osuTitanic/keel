@@ -1,11 +1,11 @@
 
-from fastapi import HTTPException, APIRouter, Request
-from fastapi.responses import JSONResponse, Response
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
 
 from app.common.config import config_instance as config
 from app.models import TokenResponse, ErrorResponse
 from app.security import require_login, TokenSource
-from app.common.database import DBUser, users
+from app.common.database import DBUser
 from app.utils import requires
 
 import app.security as security
@@ -52,42 +52,17 @@ def generate_access_token(request: Request) -> JSONResponse:
         content=token_response.model_dump(),
         media_type='application/json'
     )
-
-    response.set_cookie(
-        key='access_token',
-        value=access_token,
-        max_age=config.FRONTEND_TOKEN_EXPIRY,
-        httponly=False,
-        secure=config.ENABLE_SSL,
-        samesite='strict',
-        domain=f".{config.DOMAIN_NAME}"
-    )
-
-    response.set_cookie(
-        key='refresh_token',
-        value=refresh_token,
-        max_age=config.FRONTEND_REFRESH_EXPIRY,
-        httponly=True,
-        secure=config.ENABLE_SSL,
-        samesite='strict',
-        domain=f".{config.DOMAIN_NAME}"
-    )
-
     return response
 
 @router.post("/refresh", response_model=TokenResponse)
+@requires("users.authenticated")
 def refresh_access_token(request: Request) -> JSONResponse:
     """Request a new access token using the refresh token.
 
-    This endpoint is used to refresh the access token after it has expired.
-    The refresh token can either be provided through the `Authorization` header,
-    or the `refresh_token` cookie.
+    This endpoint is used to refresh the access token after it has expired
+    through an explicit authenticated API request.
     """
     user: DBUser = request.user
-
-    if "users.authenticated" not in request.auth.scopes:
-        # Try to authenticate the user using the refresh token
-        user = validate_refresh_token(request)
 
     current_time = round(time.time())
     expiry = current_time + config.FRONTEND_TOKEN_EXPIRY
@@ -108,39 +83,4 @@ def refresh_access_token(request: Request) -> JSONResponse:
         content=token_response.model_dump(),
         media_type='application/json'
     )
-
-    response.set_cookie(
-        key='access_token',
-        value=access_token,
-        max_age=config.FRONTEND_TOKEN_EXPIRY,
-        httponly=False,
-        secure=config.ENABLE_SSL,
-        samesite='strict',
-        domain=f".{config.DOMAIN_NAME}"
-    )
-
-    response.set_cookie(
-        key='refresh_token',
-        value=refresh_token,
-        max_age=config.FRONTEND_REFRESH_EXPIRY,
-        httponly=True,
-        secure=config.ENABLE_SSL,
-        samesite='strict',
-        domain=f".{config.DOMAIN_NAME}"
-    )
-
     return response
-
-def validate_refresh_token(request: Request) -> DBUser:
-    """Authenticate the user through the refresh token cookie"""
-    refresh_token = request.cookies.get('refresh_token')
-
-    if not refresh_token:
-        raise HTTPException(status_code=403, detail='No refresh token provided')
-
-    data = security.validate_token(refresh_token)
-
-    if not data:
-        raise HTTPException(status_code=401, detail='Invalid refresh token')
-
-    return users.fetch_by_id(data['id'])

@@ -18,7 +18,12 @@ class AuthBackend(AuthenticationBackend):
         self.logger = logging.getLogger('authentication')
 
     async def authenticate(self, request: HTTPConnection):
-        if (session_id := request.cookies.get(security.WEBSITE_SESSION_COOKIE_NAME)):
+        session_id = (
+            request.cookies.get(security.WEBSITE_SESSION_COOKIE_NAME) or
+            request.headers.get('X-Session-ID')
+        )
+
+        if session_id:
             user = await self.session_authentication(session_id, request)
 
             if user:

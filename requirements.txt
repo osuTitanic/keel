@@ -7,7 +7,7 @@ sendgrid==6.12.5
 boto3<2
 psycopg2-binary==2.9.11
 fastapi==0.136.0
-uvicorn==0.44.0
+uvicorn==0.45.0
 bcrypt==5.0.0
 python-multipart==0.0.26
 pillow==12.2.0

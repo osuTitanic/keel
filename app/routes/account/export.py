@@ -28,7 +28,7 @@ router = APIRouter(
 @requires("users.authenticated")
 def data_export(request: Request, data: DataExportRequest) -> dict:
     if not password_authentication(data.password, request.user.bcrypt):
-        raise HTTPException(status_code=401, detail="Authentication failure")
+        raise HTTPException(status_code=401, detail="Authentication failure. Please check your password and try again!")
 
     ip_address = ip.resolve_ip_address_fastapi(request)
     export_lock = int(request.state.redis.get(f'export_lock:{request.user.id}') or b'0')
@@ -50,10 +50,10 @@ def data_export(request: Request, data: DataExportRequest) -> dict:
         )
 
         if not response.ok:
-            raise HTTPException(400, 'Failed to verify captcha response')
+            raise HTTPException(400, 'Failed to verify captcha response.')
 
         if not response.json().get('success', False):
-            raise HTTPException(400, 'Captcha verification failed')
+            raise HTTPException(400, 'Captcha verification failed.')
 
     # Passed all steps for verification, set export lock for 24 hours
     request.state.redis.set(f'export_lock:{request.user.id}', '1', ex=60*60*60*24)

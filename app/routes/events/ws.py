@@ -3,9 +3,11 @@ from fastapi.websockets import WebSocketDisconnect, WebSocketState
 from fastapi import APIRouter, WebSocket
 from redis.asyncio.client import PubSub
 from app.security import require_login
+from typing import Any, Tuple, Dict
 from app.utils import requires
 
 import logging
+import json
 import app
 
 router = APIRouter()
@@ -47,7 +49,12 @@ async def event_listener(websocket: WebSocket, pubsub: PubSub) -> None:
         if response is None:
             continue
 
-        event_name, args, kwargs = eval(response["data"])
+        decoded = decode_event(response["data"])
+
+        if decoded is None:
+            continue
+
+        event_name, args, kwargs = decoded
 
         if event_name != "bancho_event":
             continue
@@ -68,3 +75,28 @@ async def handle_response(
         "type": type,
         "data": data
     })
+
+def decode_event(data: Any) -> Tuple[str, Tuple, Dict] | None:
+    """Decode an event payload from pubsub safely."""
+    try:
+        payload = json.loads(data)
+    except (TypeError, json.JSONDecodeError) as e:
+        return None
+
+    if not isinstance(payload, dict):
+        return None
+
+    name = payload.get('event')
+    args = payload.get('args', [])
+    kwargs = payload.get('kwargs', {})
+
+    if not isinstance(name, str):
+        return None
+
+    if not isinstance(args, (list, tuple)):
+        return None
+
+    if not isinstance(kwargs, dict):
+        return None
+
+    return name, tuple(args), kwargs

@@ -27,12 +27,17 @@ router = APIRouter(
 @router.post("/export")
 @requires("users.authenticated")
 def data_export(request: Request, data: DataExportRequest) -> dict:
-    # TODO: Rate-limit data exports to once a day
-
     if not password_authentication(data.password, request.user.bcrypt):
         raise HTTPException(status_code=401, detail="Authentication failure")
 
     ip_address = ip.resolve_ip_address_fastapi(request)
+    export_lock = int(request.state.redis.get(f'export_lock:{request.user.id}') or b'0')
+
+    if export_lock:
+        raise HTTPException(
+            status_code=429,
+            detail="You can only export your data once every 24 hours. Please try again later."
+        )
 
     if config.RECAPTCHA_SECRET_KEY and config.RECAPTCHA_SITE_KEY:
         response = request.state.requests.post(
@@ -49,6 +54,9 @@ def data_export(request: Request, data: DataExportRequest) -> dict:
 
         if not response.json().get('success', False):
             raise HTTPException(400, 'Captcha verification failed')
+
+    # Passed all steps for verification, set export lock for 24 hours
+    request.state.redis.set(f'export_lock:{request.user.id}', '1', ex=60*60*60*24)
 
     name_history = names.fetch_all(
         request.user.id,

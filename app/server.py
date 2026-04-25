@@ -1,7 +1,6 @@
 
 from app.routes import router as BaseRouter
 from contextlib import asynccontextmanager
-from fastapi.responses import ORJSONResponse
 from fastapi import FastAPI
 from app import session
 
@@ -14,10 +13,10 @@ logging.basicConfig(
 )
 
 description = """\
-Welcome to the documentation for the Titanic! API.  
+Welcome to the documentation for the Titanic! API.
 This service lets you access & interact with (almost) everything Titanic! has to offer.
 
-Note that this documentation may contain parts that are incorrect and contain errors.  
+Note that this documentation may contain parts that are incorrect and contain errors.
 Don't be afraid to report them on our GitHub repository.
 """
 
@@ -39,7 +38,6 @@ api = FastAPI(
     redoc_url="/docs",
     docs_url=None,
     lifespan=lifespan,
-    default_response_class=ORJSONResponse,
     contact={
         "name": "Titanic",
         "url": "https://osu.titanic.sh",

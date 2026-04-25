@@ -2,8 +2,10 @@
 from fastapi import HTTPException, APIRouter, Request
 from redis.asyncio import Redis
 
+from app.common.config import config_instance as config
 from app.security import require_login, password_authentication
 from app.models import ErrorResponse, DataExportRequest
+from app.common.helpers import ip
 from app.utils import requires
 from app.common.database import (
     comments,
@@ -26,10 +28,27 @@ router = APIRouter(
 @requires("users.authenticated")
 def data_export(request: Request, data: DataExportRequest) -> dict:
     # TODO: Rate-limit data exports to once a day
-    # TODO: reCAPTCHA integration
 
     if not password_authentication(data.password, request.user.bcrypt):
         raise HTTPException(status_code=401, detail="Authentication failure")
+
+    ip_address = ip.resolve_ip_address_fastapi(request)
+
+    if config.RECAPTCHA_SECRET_KEY and config.RECAPTCHA_SITE_KEY:
+        response = request.state.requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+                'secret': config.RECAPTCHA_SECRET_KEY,
+                'response': data.recaptcha_response,
+                'remoteip': ip_address
+            }
+        )
+
+        if not response.ok:
+            raise HTTPException(400, 'Failed to verify captcha response')
+
+        if not response.json().get('success', False):
+            raise HTTPException(400, 'Captcha verification failed')
 
     name_history = names.fetch_all(
         request.user.id,

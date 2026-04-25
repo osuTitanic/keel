@@ -2,8 +2,8 @@
 from fastapi import HTTPException, APIRouter, Request
 from redis.asyncio import Redis
 
-from app.security import require_login
-from app.models import ErrorResponse
+from app.security import require_login, password_authentication
+from app.models import ErrorResponse, DataExportRequest
 from app.utils import requires
 from app.common.database import (
     comments,
@@ -22,12 +22,14 @@ router = APIRouter(
     dependencies=[require_login]
 )
 
-@router.get("/export")
+@router.post("/export")
 @requires("users.authenticated")
-def data_export(request: Request) -> dict:
+def data_export(request: Request, data: DataExportRequest) -> dict:
     # TODO: Rate-limit data exports to once a day
-    # TODO: Re-validate password
     # TODO: reCAPTCHA integration
+
+    if not password_authentication(data.password, request.user.bcrypt):
+        raise HTTPException(status_code=401, detail="Authentication failure")
 
     name_history = names.fetch_all(
         request.user.id,

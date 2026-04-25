@@ -39,3 +39,7 @@ class ValidationRequest(BaseModel):
 class IrcTokenResponse(BaseModel):
     username: str
     token: str
+
+class DataExportRequest(BaseModel):
+    password: str
+    recaptcha_response: str | None = None

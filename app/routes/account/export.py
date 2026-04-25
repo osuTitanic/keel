@@ -217,7 +217,6 @@ def data_export(request: Request, data: DataExportRequest) -> dict:
                     "mode": score.mode,
                     "client_version": score.client_version,
                     "client_string": score.client_string,
-                    "client_hash": score.client_hash,
                     "pp": score.pp,
                     "ppv1": score.ppv1,
                     "acc": score.acc,

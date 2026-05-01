@@ -57,7 +57,7 @@ class ModdedReleaseUpdatePath(BaseModel):
     client: ModdedReleaseModel
     stream: str
     source_release: ModdedReleaseEntryModel
-    target_release: ModdedReleaseEntryModel
+    target_release: ModdedReleaseEntryModel | None
     path: List[ModdedReleaseEntryModel]
     # TODO: add changelog
 

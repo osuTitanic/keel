@@ -48,9 +48,12 @@ def get_modded_release_update_path(
         )
 
     if source_release.id == target_release.id:
-        raise HTTPException(
-            status_code=404,
-            detail="Already on the latest version"
+        return ModdedReleaseUpdatePath(
+            client=ModdedReleaseModel.model_validate(release_object, from_attributes=True),
+            source_release=ModdedReleaseEntryModel.model_validate(source_release, from_attributes=True),
+            target_release=None,
+            stream=source_release.stream,
+            path=[]
         )
 
     path = releases.fetch_modded_entries_between(
@@ -63,9 +66,9 @@ def get_modded_release_update_path(
 
     return ModdedReleaseUpdatePath(
         client=ModdedReleaseModel.model_validate(release_object, from_attributes=True),
-        stream=source_release.stream,
         source_release=ModdedReleaseEntryModel.model_validate(source_release, from_attributes=True),
         target_release=ModdedReleaseEntryModel.model_validate(target_release, from_attributes=True),
+        stream=source_release.stream,
         path=[
             ModdedReleaseEntryModel.model_validate(entry, from_attributes=True)
             for entry in path

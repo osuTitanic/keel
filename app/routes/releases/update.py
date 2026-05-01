@@ -49,7 +49,7 @@ def get_modded_release_update_path(
 
     if source_release.id == target_release.id:
         raise HTTPException(
-            status_code=400,
+            status_code=404,
             detail="Already on the latest version"
         )
 

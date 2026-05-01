@@ -78,7 +78,7 @@ def resolve_source_release(
     version: str | None,
     stream: str | None,
     request: Request
-) -> DBModdedReleaseEntries | None:
+) -> releases.DBModdedReleaseEntries | None:
     if checksum:
         entry = releases.fetch_modded_entry_by_checksum(
             mod_name,

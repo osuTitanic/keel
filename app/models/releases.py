@@ -53,6 +53,14 @@ class ModdedReleaseUploadRequest(BaseModel):
     update_url: str | None
     post_id: int | None
 
+class ModdedReleaseUpdatePath(BaseModel):
+    client: ModdedReleaseModel
+    stream: str
+    source_release: ModdedReleaseEntryModel
+    target_release: ModdedReleaseEntryModel
+    path: List[ModdedReleaseEntryModel]
+    # TODO: add changelog
+
 class OsuChangelogModel(BaseModel):
     id: int
     text: str

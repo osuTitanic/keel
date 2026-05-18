@@ -5,6 +5,7 @@ from typing import List
 
 from app.models import KudosuModel, KudosuWithoutSetModel, ErrorResponse
 from app.common.database import beatmapsets, modding, posts
+from app.common.helpers import permissions
 from app.common.constants import BeatmapStatus
 from app.common.cache import leaderboards
 from app.security import require_login
@@ -80,9 +81,14 @@ def reward_kudosu(request: Request, set_id: int, post_id: int):
             detail="This beatmapset is not linked to a forum topic"
         )
 
+    can_force_reward = permissions.has_permission(
+        "forum.kudosu.force_reward",
+        request.user.id
+    )
+
     is_authorized = (
         request.user.id == beatmapset.creator_id or
-        request.user.is_bat
+        can_force_reward
     )
 
     if not is_authorized:
@@ -91,7 +97,7 @@ def reward_kudosu(request: Request, set_id: int, post_id: int):
             detail="You are not authorized to perform this action"
         )
 
-    if beatmapset.status >= BeatmapStatus.Ranked:
+    if beatmapset.status >= BeatmapStatus.Ranked and not can_force_reward:
         raise HTTPException(
             status_code=400,
             detail="This beatmapset is already ranked"
@@ -282,7 +288,7 @@ def reset_kudosu(request: Request, set_id: int, post_id: int):
             status_code=400,
             detail="You cannot reset kudosu on your own post"
         )
-    
+
     if post.user_id == beatmapset.creator_id:
         raise HTTPException(
             status_code=400,
@@ -299,7 +305,7 @@ def reset_kudosu(request: Request, set_id: int, post_id: int):
             status_code=404,
             detail="This post has no kudosu exchanges"
         )
-    
+
     total_kudosu = modding.total_amount(
         post_id,
         request.state.db

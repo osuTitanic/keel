@@ -192,7 +192,12 @@ def revoke_kudosu(request: Request, set_id: int, post_id: int):
             detail="This beatmapset is not linked to a forum topic"
         )
 
-    if beatmapset.status >= BeatmapStatus.Ranked:
+    can_force_reward = permissions.has_permission(
+        "forum.kudosu.force_reward",
+        request.user.id
+    )
+
+    if beatmapset.status >= BeatmapStatus.Ranked and not can_force_reward:
         raise HTTPException(
             status_code=400,
             detail="This beatmapset is already ranked"

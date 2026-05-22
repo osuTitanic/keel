@@ -15,6 +15,8 @@ from fastapi import Request, APIRouter, Query
 from sqlalchemy.orm import Session
 from typing import List
 
+import app.session
+
 router = APIRouter()
 
 @router.get("/{order}/{mode}", response_model=List[RankingEntryModel])
@@ -38,22 +40,24 @@ def get_rankings(
 
     # Fetch user info from database
     user_objects = users.fetch_many(
-        tuple([user_id for user_id, _ in top_players]),
+        tuple([user_id for user_id, score in top_players]),
         DBUser.stats,
         session=request.state.db
     )
+    users_by_id = {
+        user.id: user
+        for user in user_objects
+    }
 
     # Sort players based on redis leaderboard
     sorted_players = [
-        next(filter(lambda entry: entry.id == user_id, user_objects))
-        for user_id, _ in top_players
+        users_by_id[user_id]
+        for user_id, score in top_players
     ]
 
-    # Ensure every player has their rank
-    # synced with the database
-    ensure_synced_ranks(
+    stats_by_user_id = resolve_stats_models(
         sorted_players,
-        request.state.db
+        mode.integer
     )
 
     return [
@@ -61,33 +65,46 @@ def get_rankings(
             index=index + offset + 1,
             score=score,
             user=UserModelWithStats.model_validate(sorted_players[index], from_attributes=True),
-            stats=resolve_stats_model(sorted_players[index], mode.integer)
+            stats=stats_by_user_id[sorted_players[index].id]
         )
         for index, (user_id, score) in enumerate(top_players)
     ]
 
-def resolve_stats_model(user: DBUser, mode: int) -> RankingStatsModel:
-    return RankingStatsModel(
-        global_rank=leaderboards.global_rank(user.id, mode),
-        country_rank=leaderboards.country_rank(user.id, mode, user.country),
-        score_rank=leaderboards.score_rank(user.id, mode),
-        score_rank_country=leaderboards.score_rank_country(user.id, mode, user.country),
-        total_score_rank=leaderboards.total_score_rank(user.id, mode),
-        total_score_rank_country=leaderboards.total_score_rank_country(user.id, mode, user.country),
-        ppv1_rank=leaderboards.ppv1_rank(user.id, mode),
-        ppv1_rank_country=leaderboards.ppv1_country_rank(user.id, mode, user.country),
+def resolve_stats_models(users: List[DBUser], mode: int) -> dict[int, RankingStatsModel]:
+    if not users:
+        return {}
+
+    rank_keys = (
+        ('global_rank', lambda user: f'bancho:performance:{mode}'),
+        ('country_rank', lambda user: f'bancho:performance:{mode}:{user.country.lower()}'),
+        ('score_rank', lambda user: f'bancho:rscore:{mode}'),
+        ('score_rank_country', lambda user: f'bancho:rscore:{mode}:{user.country.lower()}'),
+        ('total_score_rank', lambda user: f'bancho:tscore:{mode}'),
+        ('total_score_rank_country', lambda user: f'bancho:tscore:{mode}:{user.country.lower()}'),
+        ('ppv1_rank', lambda user: f'bancho:ppv1:{mode}'),
+        ('ppv1_rank_country', lambda user: f'bancho:ppv1:{mode}:{user.country.lower()}')
     )
+    requests = []
 
-def ensure_synced_ranks(users: List[DBUser], session: Session) -> None:
-    for user in users:
-        if not user.stats:
-            # Create stats if they don't exist
-            user.stats = [
-                stats.create(user.id, 0, session=session),
-                stats.create(user.id, 1, session=session),
-                stats.create(user.id, 2, session=session),
-                stats.create(user.id, 3, session=session)
-            ]
+    with app.session.redis.pipeline() as pipe:
+        for user in users:
+            for field, key_factory in rank_keys:
+                pipe.zrevrank(key_factory(user), user.id)
+                requests.append((user.id, field))
 
-        user.stats.sort(key=lambda s:s.mode)
-        utils.sync_ranks(user, session=session)
+        results = pipe.execute()
+
+    rank_values = {
+        user.id: {}
+        for user in users
+    }
+
+    for (user_id, field), rank in zip(requests, results):
+        rank_values[user_id][field] = (
+            rank + 1 if rank is not None else 0
+        )
+
+    return {
+        user_id: RankingStatsModel(**values)
+        for user_id, values in rank_values.items()
+    }

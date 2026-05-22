@@ -3,7 +3,7 @@ from fastapi import HTTPException, APIRouter, Request
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.common.database import notifications, beatmapsets, nominations, topics, posts
+from app.common.database import notifications, beatmapsets, nominations, topics, posts, users
 from app.common.constants import NotificationType, UserActivity
 from app.models import NominationModelWithUser, ErrorResponse
 from app.common.config import config_instance as config
@@ -136,6 +136,62 @@ def reset_nominations(request: Request, set_id: int):
     )
 
     return []
+
+@router.post("/{set_id}/nominations/{user_id}", response_model=List[NominationModelWithUser], dependencies=[require_login], responses=responses)
+@requires("beatmaps.moderation.force_nominate")
+def force_nominate(request: Request, set_id: int, user_id: int):
+    if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
+        raise HTTPException(404, "The requested beatmapset could not be found")
+
+    if not (user := users.fetch_by_id(user_id, session=request.state.db)):
+        raise HTTPException(404, "The specified user could not be found")
+
+    if nominations.fetch_one(set_id, user_id, request.state.db):
+        raise HTTPException(400, "This user has already nominated this beatmap")
+
+    nominations.create(
+        beatmapset.id,
+        user_id,
+        request.state.db
+    )
+
+    request.state.logger.info(
+        f'Beatmap "{beatmapset.full_name}" was force-nominated by {request.user.name} for {user.name}.'
+    )
+    request.state.db.commit()
+
+    return [
+        NominationModelWithUser.model_validate(nom, from_attributes=True)
+        for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)
+    ]
+
+@router.delete("/{set_id}/nominations/{user_id}", response_model=List[NominationModelWithUser], dependencies=[require_login], responses=responses)
+@requires("beatmaps.moderation.force_nominate")
+def force_remove_nomination(request: Request, set_id: int, user_id: int):
+    if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
+        raise HTTPException(404, "The requested beatmapset could not be found")
+
+    if not (user := users.fetch_by_id(user_id, session=request.state.db)):
+        raise HTTPException(404, "The specified user could not be found")
+
+    if not nominations.fetch_one(set_id, user_id, request.state.db):
+        raise HTTPException(400, "This user has not nominated this beatmap")
+
+    nominations.delete(
+        set_id,
+        user_id,
+        request.state.db
+    )
+
+    request.state.logger.info(
+        f'{request.user.name} removed the nomination of {user.name} from "{beatmapset.full_name}".'
+    )
+    request.state.db.commit()
+
+    return [
+        NominationModelWithUser.model_validate(nom, from_attributes=True)
+        for nom in nominations.fetch_by_beatmapset(set_id, request.state.db)
+    ]
 
 def broadcast_nomination(
     beatmapset: DBBeatmapset,

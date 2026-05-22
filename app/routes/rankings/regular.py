@@ -40,7 +40,7 @@ def get_rankings(
 
     # Fetch user info from database
     user_objects = users.fetch_many(
-        tuple([user_id for user_id, score in top_players]),
+        (user_id for user_id, score in top_players),
         DBUser.stats,
         session=request.state.db
     )

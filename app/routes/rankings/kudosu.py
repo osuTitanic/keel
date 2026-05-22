@@ -24,15 +24,19 @@ def get_kudosu_rankings(
 
     # Fetch user info from database
     user_objects = users.fetch_many(
-        tuple([user_id for user_id, _ in top_players]),
+        (user_id for user_id, score in top_players),
         DBUser.stats,
         session=request.state.db
     )
+    users_by_id = {
+        user.id: user
+        for user in user_objects
+    }
 
     # Sort players based on redis leaderboard
     sorted_players = [
-        next(filter(lambda entry: entry.id == user_id, user_objects))
-        for user_id, _ in top_players
+        users_by_id[user_id]
+        for user_id, score in top_players
     ]
 
     return [

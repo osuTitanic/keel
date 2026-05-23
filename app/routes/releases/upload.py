@@ -67,6 +67,7 @@ def delete_official_release(
 def get_modded_release_entries(
     request: Request,
     identifier: str,
+    version: str | None = Query(None),
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ) -> List[ModdedReleaseEntryModel]:
@@ -85,6 +86,7 @@ def get_modded_release_entries(
         )
         for entry in releases.fetch_modded_entries(
             mod_name=release_object.name,
+            version=version,
             limit=limit, offset=offset,
             session=request.state.db
         )

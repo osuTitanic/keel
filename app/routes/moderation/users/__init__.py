@@ -9,6 +9,7 @@ from . import badges
 from . import logins
 from . import avatar
 from . import scores
+from . import stamps
 from . import names
 
 router = APIRouter(dependencies=[require_login])
@@ -19,4 +20,5 @@ router.include_router(badges.router)
 router.include_router(logins.router)
 router.include_router(avatar.router)
 router.include_router(scores.router)
+router.include_router(stamps.router)
 router.include_router(names.router)

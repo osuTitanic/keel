@@ -34,6 +34,14 @@ class BadgeModel(BaseModel):
     badge_url: str | None
     badge_description: str | None
 
+class StampModel(BaseModel):
+    id: int
+    user_id: int
+    created: datetime
+    icon: str
+    url: str | None
+    description: str | None
+
 class NameHistoryModel(BaseModel):
     id: int
     user_id: int
@@ -85,6 +93,7 @@ class UserModel(UserModelCompact):
     achievements: List[AchievementModel]
     names: List[NameHistoryModel]
     badges: List[BadgeModel]
+    stamps: List[StampModel]
     stats: List[StatsModel]
     groups: List[GroupEntryModel]
     rankings: Dict[int, Dict[str, dict]]

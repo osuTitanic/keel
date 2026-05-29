@@ -39,6 +39,11 @@ class BadgeUpdateRequest(BaseModel):
     icon_url: str
     badge_url: str | None = None
 
+class StampUpdateRequest(BaseModel):
+    description: str
+    icon_url: str
+    stamp_url: str | None = None
+
 class LoginModel(BaseModel):
     user_id: int
     time: datetime

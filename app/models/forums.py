@@ -72,6 +72,11 @@ class ForumModel(BaseModel):
     subforums: List[SubforumModel]
     parent: SubforumModel | None
 
+class ForumSearchResponse(BaseModel):
+    query: str
+    posts: list[PostModel]
+    topics: list[TopicModel]
+
 class BookmarkModel(BaseModel):
     user: UserModelCompact
     topic: TopicModel
@@ -93,7 +98,7 @@ class TopicCreateRequest(BaseModel):
             raise ValueError('Title cannot be empty')
 
         return value
-    
+
     @field_validator('content')
     def content_length(cls, value):
         if not value:

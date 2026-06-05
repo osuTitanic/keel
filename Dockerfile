@@ -62,7 +62,7 @@ ENV API_THREADS_RUNTIME=${API_THREADS_RUNTIME}
 WORKDIR /keel
 COPY . .
 
-RUN python -m compileall -q app
+RUN python -m compileall -q /usr/local/lib/python3.14/site-packages app
 
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/sbin/tini", "--"]

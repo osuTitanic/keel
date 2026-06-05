@@ -64,7 +64,7 @@ COPY . .
 
 RUN python -m compileall -q /usr/local/lib/python3.14/site-packages app
 
-STOPSIGNAL SIGTERM
+STOPSIGNAL SIGINT
 ENTRYPOINT ["/sbin/tini", "--"]
 
 CMD ["/bin/sh", "-c", "granian --host 0.0.0.0 --port 80 --interface asgi --workers ${API_WORKERS} --runtime-threads ${API_THREADS_RUNTIME} --loop uvloop --http 1 --backpressure 128 --respawn-failed-workers --access-log --process-name keel-worker --workers-kill-timeout 5 --workers-lifetime 43200 --workers-max-rss 512 app:api"]

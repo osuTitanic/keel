@@ -5,6 +5,7 @@ from typing import List
 
 from app.models import OsuReleaseUploadRequest, OsuChangelogModel, OsuReleaseModel
 from app.common.database import releases, changelog
+from app.common.constants.regexes import OSU_VERSION
 from app.utils import requires
 
 router = APIRouter()
@@ -19,7 +20,7 @@ def get_official_releases(
     stream: str | None = Query(None),
     before: datetime | None = Query(None),
     after: datetime | None = Query(None),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=50),
     offset: int = Query(0, ge=0)
 ) -> List[OsuReleaseModel]:
     entries = releases.fetch_official_range(
@@ -28,6 +29,38 @@ def get_official_releases(
         stream=stream,
         before=before,
         after=after,
+        session=request.state.db
+    )
+
+    release_files = {
+        entry.id: releases.fetch_file_entries(
+            release_id=entry.id,
+            session=request.state.db
+        )
+        for entry in entries
+    }
+
+    return [
+        OsuReleaseModel.model_validate(entry, from_attributes=True, context=release_files)
+        for entry in entries
+    ]
+
+@router.get("/official/lookup/{criteria}", response_model=List[OsuReleaseModel])
+def lookup_official_releases(request: Request, criteria: str) -> List[OsuReleaseModel]:
+    match = OSU_VERSION.match(criteria)
+
+    if not match:
+        raise HTTPException(status_code=400, detail="Invalid version string")
+
+    groups = match.groupdict()
+    version = int(groups["date"])
+    subversion = int(groups["revision"]) if groups.get("revision") else None
+    stream = groups.get("stream") or groups.get("name")
+
+    entries = releases.fetch_official_by_lookup(
+        version=version,
+        subversion=subversion,
+        stream=stream,
         session=request.state.db
     )
 

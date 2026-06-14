@@ -17,6 +17,8 @@ min_date = datetime(2007, 1, 1)
 def get_official_releases(
     request: Request,
     stream: str | None = Query(None),
+    before: datetime | None = Query(None),
+    after: datetime | None = Query(None),
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ) -> List[OsuReleaseModel]:
@@ -24,6 +26,8 @@ def get_official_releases(
         limit=limit,
         offset=offset,
         stream=stream,
+        before=before,
+        after=after,
         session=request.state.db
     )
 

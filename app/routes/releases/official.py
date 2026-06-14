@@ -45,38 +45,6 @@ def get_official_releases(
         for entry in entries
     ]
 
-@router.get("/official/lookup/{criteria}", response_model=List[OsuReleaseModel])
-def lookup_official_releases(request: Request, criteria: str) -> List[OsuReleaseModel]:
-    match = OSU_VERSION.match(criteria)
-
-    if not match:
-        raise HTTPException(status_code=400, detail="Invalid version string")
-
-    groups = match.groupdict()
-    version = int(groups["date"])
-    subversion = int(groups["revision"]) if groups.get("revision") else None
-    stream = groups.get("stream") or groups.get("name")
-
-    entries = releases.fetch_official_by_lookup(
-        version=version,
-        subversion=subversion,
-        stream=stream,
-        session=request.state.db
-    )
-
-    release_files = {
-        entry.id: releases.fetch_file_entries(
-            release_id=entry.id,
-            session=request.state.db
-        )
-        for entry in entries
-    }
-
-    return [
-        OsuReleaseModel.model_validate(entry, from_attributes=True, context=release_files)
-        for entry in entries
-    ]
-
 @router.post("/official", response_model=OsuReleaseModel)
 @requires("releases.upload")
 def create_official_release(
@@ -113,6 +81,64 @@ def create_official_release(
         context=release_files,
         from_attributes=True
     )
+
+@router.get("/official/lookup/{criteria}", response_model=List[OsuReleaseModel])
+def lookup_official_releases(request: Request, criteria: str) -> List[OsuReleaseModel]:
+    match = OSU_VERSION.match(criteria)
+
+    if not match:
+        raise HTTPException(status_code=400, detail="Invalid version string")
+
+    groups = match.groupdict()
+    version = int(groups["date"])
+    subversion = int(groups["revision"]) if groups.get("revision") else None
+    stream = groups.get("stream") or groups.get("name")
+
+    entries = releases.fetch_official_by_lookup(
+        version=version,
+        subversion=subversion,
+        stream=stream,
+        session=request.state.db
+    )
+
+    release_files = {
+        entry.id: releases.fetch_file_entries(
+            release_id=entry.id,
+            session=request.state.db
+        )
+        for entry in entries
+    }
+
+    return [
+        OsuReleaseModel.model_validate(entry, from_attributes=True, context=release_files)
+        for entry in entries
+    ]
+
+@router.get("/official/changelog", response_model=List[OsuChangelogModel])
+def get_osu_changelog(
+    request: Request,
+    start: datetime = Query(client_cutoff, ge=min_date),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0)
+) -> List[OsuChangelogModel]:
+    # Ensure we have no timezone set
+    start = start.replace(tzinfo=None)
+
+    # Pretend that its still 2015™
+    if start > client_cutoff:
+        start = client_cutoff
+
+    return [
+        OsuChangelogModel.model_validate(
+            entry,
+            from_attributes=True
+        )
+        for entry in changelog.fetch_range_desc(
+            start_date=start,
+            limit=limit, offset=offset,
+            session=request.state.db
+        )
+    ]
 
 @router.get("/official/{release_id}", response_model=OsuReleaseModel)
 def get_official_release(
@@ -159,29 +185,3 @@ def delete_official_release(
         session=request.state.db
     )
     return {}
-
-@router.get("/official/changelog", response_model=List[OsuChangelogModel])
-def get_osu_changelog(
-    request: Request,
-    start: datetime = Query(client_cutoff, ge=min_date),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0)
-) -> List[OsuChangelogModel]:
-    # Ensure we have no timezone set
-    start = start.replace(tzinfo=None)
-
-    # Pretend that its still 2015™
-    if start > client_cutoff:
-        start = client_cutoff
-
-    return [
-        OsuChangelogModel.model_validate(
-            entry,
-            from_attributes=True
-        )
-        for entry in changelog.fetch_range_desc(
-            start_date=start,
-            limit=limit, offset=offset,
-            session=request.state.db
-        )
-    ]

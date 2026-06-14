@@ -1,67 +1,37 @@
 
 from fastapi import HTTPException, APIRouter, Request, Query, Body
+from typing import List
+
+from app.models import ModdedReleaseModel, ModdedReleaseUploadRequest, ModdedReleaseUpdatePath, ModdedReleaseEntryModel
 from app.common.database import releases
-from app.models.releases import *
 from app.utils import requires
 
 router = APIRouter()
 
-@router.post("/official", response_model=OsuReleaseModel)
-@requires("releases.upload")
-def create_official_release(
-    request: Request,
-    release: OsuReleaseUploadRequest = Body(...)
-) -> OsuReleaseModel:
-    file_ids = [
-        releases.fetch_file_id_from_version(file_version, request.state.db)
-        for file_version in release.files
+@router.get("/modded", response_model=List[ModdedReleaseModel])
+def get_modded_releases(request: Request) -> List[ModdedReleaseModel]:
+    return [
+        ModdedReleaseModel.model_validate(client, from_attributes=True)
+        for client in releases.fetch_modded_all(request.state.db)
     ]
 
-    if any(file_id is None for file_id in file_ids):
-        raise HTTPException(status_code=400, detail="One or more file versions were not found")
-
-    release_object = releases.create_official(
-        version=release.version,
-        subversion=release.subversion,
-        created_at=release.created_at,
-        stream=release.stream,
-        session=request.state.db
-    )
-    release_files = {release_object.id: []}
-
-    for file_id in file_ids:
-        file = releases.create_official_file_entry(
-            release_id=release_object.id,
-            file_id=file_id,
-            session=request.state.db
-        )
-        release_files[release_object.id].append(file)
-
-    return OsuReleaseModel.model_validate(
-        release_object,
-        context=release_files,
-        from_attributes=True
-    )
-
-@router.delete("/official/{release_id}")
-@requires("releases.delete")
-def delete_official_release(
+@router.get("/modded/{identifier}", response_model=ModdedReleaseModel)
+def get_modded_release(
     request: Request,
-    release_id: int
-) -> dict:
-    release_object = releases.fetch_official_by_id(
-        release_id=release_id,
+    identifier: str
+) -> ModdedReleaseModel:
+    release_object = releases.fetch_modded(
+        identifier=identifier,
         session=request.state.db
     )
 
     if not release_object:
         raise HTTPException(status_code=404, detail="The requested release was not found")
 
-    releases.delete_official(
-        release_id=release_id,
-        session=request.state.db
+    return ModdedReleaseModel.model_validate(
+        release_object,
+        from_attributes=True
     )
-    return {}
 
 @router.get("/modded/{identifier}/entries", response_model=List[ModdedReleaseEntryModel])
 def get_modded_release_entries(
@@ -225,3 +195,100 @@ def update_modded_release_entry(
         entry_object,
         from_attributes=True
     )
+
+@router.get("/modded/{identifier}/update", response_model=ModdedReleaseUpdatePath)
+def get_modded_release_update_path(
+    request: Request,
+    identifier: str,
+    # Any one of these has to be provided to identify the source release
+    checksum: str | None = Query(None),
+    version: str | None = Query(None),
+    stream: str | None = Query(None)
+) -> ModdedReleaseUpdatePath:
+    release_object = releases.fetch_modded(
+        identifier=identifier,
+        session=request.state.db
+    )
+
+    if not release_object:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested release was not found"
+        )
+
+    source_release = resolve_source_release(
+        release_object.name, checksum,
+        version, stream, request
+    )
+    if not source_release:
+        raise HTTPException(
+            status_code=404,
+            detail="Source release not found"
+        )
+
+    target_release = releases.fetch_modded_entry_latest(
+        release_object.name,
+        source_release.stream,
+        request.state.db
+    )
+    if not target_release:
+        raise HTTPException(
+            status_code=404,
+            detail="Target release not found"
+        )
+
+    if source_release.id == target_release.id:
+        return ModdedReleaseUpdatePath(
+            client=ModdedReleaseModel.model_validate(release_object, from_attributes=True),
+            source_release=ModdedReleaseEntryModel.model_validate(source_release, from_attributes=True),
+            target_release=None,
+            stream=source_release.stream,
+            path=[]
+        )
+
+    path = releases.fetch_modded_entries_between(
+        release_object.name,
+        source_release.id,
+        target_release.id,
+        source_release.stream,
+        request.state.db
+    )
+
+    return ModdedReleaseUpdatePath(
+        client=ModdedReleaseModel.model_validate(release_object, from_attributes=True),
+        source_release=ModdedReleaseEntryModel.model_validate(source_release, from_attributes=True),
+        target_release=ModdedReleaseEntryModel.model_validate(target_release, from_attributes=True),
+        stream=source_release.stream,
+        path=[
+            ModdedReleaseEntryModel.model_validate(entry, from_attributes=True)
+            for entry in path
+        ]
+    )
+
+def resolve_source_release(
+    mod_name: str,
+    checksum: str | None,
+    version: str | None,
+    stream: str | None,
+    request: Request
+) -> releases.DBModdedReleaseEntries | None:
+    if checksum:
+        entry = releases.fetch_modded_entry_by_checksum(
+            mod_name,
+            checksum,
+            request.state.db
+        )
+        if entry:
+            return entry
+
+    if version and stream:
+        entry = releases.fetch_modded_entry_by_version(
+            mod_name,
+            version,
+            stream,
+            request.state.db
+        )
+        if entry:
+            return entry
+
+    return None

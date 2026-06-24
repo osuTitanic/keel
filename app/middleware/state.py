@@ -18,6 +18,7 @@ class StateMiddleware:
             state["events"] = session.events
             state["filters"] = session.filters
             state["storage"] = session.storage
+            state["beatmaps"] = session.beatmaps
             state["requests"] = session.requests
             state["redis_async"] = session.redis_async
             await self.app(scope, receive, send)

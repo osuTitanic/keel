@@ -1,23 +1,18 @@
 
 from fastapi import HTTPException, APIRouter, Request, UploadFile, Query, File
 from fastapi.responses import StreamingResponse, Response
+from .helpers import validate_beatmapset_for_upload
 
-from app.streaming import NoVideoZipIterator, ZipIterator
-from app.common.database import beatmapsets
-from app.common.helpers import permissions
+from app.common.helpers.streaming import NoVideoZipIterator
 from app.security import require_login
 from app.utils import requires
+from typing import Iterable
+from io import BytesIO
 
 router = APIRouter(
     responses={403: {'description': 'Authentication failure'}},
     dependencies=[require_login]
 )
-video_file_extensions = frozenset((
-    ".wmv", ".flv", ".mp4",
-    ".avi", ".m4v", ".mpg",
-    ".mov", ".webm", ".mkv",
-    ".ogv", ".mpeg", ".3gp"
-))
 
 @router.get("/osz/{filename}", response_class=StreamingResponse)
 def get_internal_osz(
@@ -31,36 +26,22 @@ def get_internal_osz(
             detail="You are not authorized to perform this action"
         )
 
-    if request.state.storage.config.S3_ENABLED:
-        raise HTTPException(
-            status_code=503,
-            detail="S3 storage is currently not implemented"
-        )
-
     if not request.state.storage.file_exists(filename, 'osz'):
         raise HTTPException(
             status_code=404,
             detail="The requested resource could not be found"
         )
 
-    if not (filepath := request.state.storage.get_osz_internal_path(filename)):
-        raise HTTPException(
-            status_code=404,
-            detail="The requested resource could not be found"
-        )
-
-    iterator_class = (
-        NoVideoZipIterator if no_video else
-        ZipIterator
+    generator, content_length = resolve_osz_iterator(
+        filename, no_video, request
     )
-    generator = iterator_class(filepath)
 
     return StreamingResponse(
         generator,
         media_type="application/octet-stream",
         headers={
             "Content-Disposition": f'attachment; filename="{filename}{"n" if no_video else ""}.osz"',
-            "Content-Length": str(len(generator))
+            "Content-Length": str(content_length)
         }
     )
 
@@ -71,29 +52,34 @@ def upload_internal_osz(
     set_id: int,
     osz: UploadFile = File(...)
 ) -> Response:
-    if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
-        raise HTTPException(
-            status_code=404,
-            detail="The requested beatmap set could not be found"
-        )
-
-    can_force_replace = permissions.has_permission(
-        'beatmaps.moderation.resources',
-        request.user.id
+    beatmapset = validate_beatmapset_for_upload(
+        set_id,
+        request.state.db,
+        user_id=request.user.id,
+        require_unranked=True,
     )
 
-    if beatmapset.status > 0 and not can_force_replace:
-        raise HTTPException(
-            status_code=400,
-            detail="This beatmap is already approved and cannot be modified"
-        )
-
-    request.state.storage.upload_osz(
-        beatmapset.id,
-        osz.file.read(),
-    )
+    request.state.storage.upload_osz(beatmapset.id, osz.file.read())
 
     return Response(
         status_code=204,
         headers={"Location": f'/resources/osz/{beatmapset.id}'}
     )
+
+def resolve_osz_iterator(filename: str, no_video: bool, request: Request) -> Iterable:
+    if not no_video:
+        generator = request.state.storage.get_osz_iterable(filename)
+        content_length = request.state.storage.get_osz_size(filename)
+        return generator, content_length
+
+    osz = request.state.storage.get_osz_internal(filename)
+
+    if not osz:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested resource could not be found"
+        )
+
+    generator = NoVideoZipIterator(BytesIO(osz))
+    content_length = len(generator)
+    return generator, content_length

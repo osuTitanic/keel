@@ -1,4 +1,5 @@
 
+from .common.helpers.beatmaps import BeatmapResources
 from .common.helpers.filter import ChatFilter
 from .common.cache.events import EventQueue
 from .common.database import Postgres
@@ -12,7 +13,7 @@ from redis import Redis
 import logging
 import time
 
-config = Config()
+config = Config() # type: ignore
 database = Postgres(config)
 storage = Storage(config)
 
@@ -29,12 +30,13 @@ events = EventQueue(
     name='bancho:events',
     connection=redis
 )
+beatmaps = BeatmapResources(storage, redis)
 
 logger = logging.getLogger('titanic')
 startup_time = time.time()
 
 requests = Session()
 filters = ChatFilter()
-requests.headers = {
+requests.headers.update({
     'User-Agent': f'osuTitanic ({config.DOMAIN_NAME})'
-}
+})

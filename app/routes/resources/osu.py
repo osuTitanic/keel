@@ -1,12 +1,14 @@
 
+from .helpers import validate_beatmap_for_upload
+
 from fastapi import HTTPException, APIRouter, Request, UploadFile, File
 from fastapi.responses import PlainTextResponse, Response
-from app.common.helpers import permissions
-from app.common.database import beatmaps
-from app.security import require_login
-from app.utils import requires
 from datetime import datetime
 from hashlib import md5
+
+from app.common.database.repositories import beatmaps
+from app.security import require_login
+from app.utils import requires
 
 router = APIRouter()
 
@@ -34,35 +36,17 @@ def upload_internal_beatmap(
     beatmap_id: int,
     osu: UploadFile = File(...)
 ) -> Response:
-    if not (beatmap := beatmaps.fetch_by_id(beatmap_id, request.state.db)):
-        raise HTTPException(
-            status_code=404,
-            detail="The requested beatmap set could not be found"
-        )
-
-    can_force_replace = permissions.has_permission(
-        'beatmaps.moderation.resources',
-        request.user.id
-    )
-
-    if beatmap.status > 0 and not can_force_replace:
-        raise HTTPException(
-            status_code=400,
-            detail="This beatmap is already approved and cannot be modified"
-        )
-
+    beatmap = validate_beatmap_for_upload(beatmap_id, request.user.id, request.state.db)
     beatmap_data = osu.file.read()
-    beatmap_hash = md5(beatmap_data).hexdigest()
 
     request.state.storage.upload_beatmap_file(
         beatmap.id,
-        beatmap_data,
+        beatmap_data
     )
-
     beatmaps.update(
         beatmap.id,
         {
-            "md5": beatmap_hash,
+            "md5": md5(beatmap_data).hexdigest(),
             "last_update": datetime.now()
         },
         request.state.db

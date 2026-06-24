@@ -22,11 +22,11 @@ def get_osz(request: Request, set_id: int, no_video: bool = Query(False)) -> Str
     if not beatmapset.available:
         raise HTTPException(status_code=451)
 
-    if not (response := request.state.storage.api.osz(set_id, no_video)):
+    if not (response := request.state.beatmaps.osz(set_id, no_video)):
         raise HTTPException(404)
 
     return StreamingResponse(
-        response.iter_content(65536),
+        response,
         media_type='application/octet-stream',
         headers={
             'Content-Disposition': f'attachment; filename="{set_id} {beatmapset.artist} - {beatmapset.title}.osz"',
@@ -37,7 +37,7 @@ def get_osz(request: Request, set_id: int, no_video: bool = Query(False)) -> Str
 
 @router.get("/{set_id}/background", response_class=Response)
 def get_background_large(request: Request, set_id: int) -> Response:
-    if not (file := request.state.storage.get_background(f'{set_id}l')):
+    if not (file := request.state.beatmaps.background(set_id, large=True)):
         raise HTTPException(404)
 
     return Response(
@@ -47,7 +47,7 @@ def get_background_large(request: Request, set_id: int) -> Response:
 
 @router.get("/{set_id}/background/small", response_class=Response)
 def get_background_small(request: Request, set_id: int) -> Response:
-    if not (file := request.state.storage.get_background(f'{set_id}')):
+    if not (file := request.state.beatmaps.background(set_id, large=False)):
         raise HTTPException(404)
 
     return Response(
@@ -57,7 +57,7 @@ def get_background_small(request: Request, set_id: int) -> Response:
 
 @router.get("/{set_id}/audio", response_class=Response)
 def get_audio_preview(request: Request, set_id: int) -> Response:
-    if not (file := request.state.storage.get_mp3(set_id)):
+    if not (file := request.state.beatmaps.preview(set_id)):
         raise HTTPException(404)
 
     return Response(

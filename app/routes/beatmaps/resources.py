@@ -19,7 +19,7 @@ def get_beatmap_file(request: Request, id: int):
             detail="The requested beatmap could not be found"
         )
 
-    if not (osu := request.state.storage.get_beatmap(id)):
+    if not (osu := request.state.beatmaps.osu(id)):
         raise HTTPException(
             status_code=404,
             detail="The requested beatmap could not be found"
@@ -38,7 +38,7 @@ def get_beatmap_background_large(request: Request, id: int):
             detail="The requested beatmap could not be found"
         )
 
-    if not (file := request.state.storage.get_background(f'{beatmap.set_id}l')):
+    if not (file := request.state.beatmaps.background(beatmap.set_id, large=True)):
         raise HTTPException(404)
 
     return Response(
@@ -54,7 +54,7 @@ def get_beatmap_background_small(request: Request, id: int):
             detail="The requested beatmap could not be found"
         )
 
-    if not (file := request.state.storage.get_background(f'{beatmap.set_id}')):
+    if not (file := request.state.beatmaps.background(beatmap.set_id, large=False)):
         raise HTTPException(404)
 
     return Response(

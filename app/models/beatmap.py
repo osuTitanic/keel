@@ -1,10 +1,11 @@
 
 from pydantic import BaseModel, computed_field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from datetime import datetime
 
 if TYPE_CHECKING:
     from app.models.beatmapset import BeatmapsetModelCompact
+    from app.models.collaboration import CollaborationModelWithoutBeatmap
 
 class BeatmapModelCompact(BaseModel):
     id: int
@@ -34,6 +35,9 @@ class BeatmapModelCompact(BaseModel):
 
 class BeatmapModel(BeatmapModelCompact):
     beatmapset: "BeatmapsetModelCompact"
+
+class BeatmapModelWithCollaborations(BeatmapModel):
+    collaborations: List["CollaborationModelWithoutBeatmap"]
 
 class BeatmapPlaysModel(BaseModel):
     beatmap: BeatmapModel

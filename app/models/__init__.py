@@ -30,3 +30,4 @@ from .user import *
 # Resolve forward references for circular imports
 BeatmapModel.model_rebuild()
 BeatmapsetModel.model_rebuild()
+BeatmapModelWithCollaborations.model_rebuild()

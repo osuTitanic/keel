@@ -72,7 +72,7 @@ def resolve_osz_iterator(filename: str, no_video: bool, request: Request) -> Ite
         content_length = request.state.storage.get_osz_size(filename)
         return generator, content_length
 
-    osz = request.state.storage.get_osz_internal(filename)
+    osz = request.state.storage.get_osz(filename)
 
     if not osz:
         raise HTTPException(

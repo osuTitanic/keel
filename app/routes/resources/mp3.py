@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/mp3/{filename}", response_class=StreamingResponse)
 def get_internal_mp3(request: Request, filename: str):
-    if not (file := request.state.storage.get_mp3_internal(filename)):
+    if not (file := request.state.storage.get_mp3(filename)):
         raise HTTPException(
             status_code=404,
             detail="The requested resource could not be found"

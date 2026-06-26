@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.get("/mt/{filename}", response_class=StreamingResponse)
 def get_internal_background_large(request: Request, filename: str):
-    if not (file := request.state.storage.get_background_internal(filename)):
+    if not (file := request.state.storage.get_background(filename)):
         raise HTTPException(
             status_code=404,
             detail="The requested resource could not be found"
@@ -64,7 +64,7 @@ def get_small_background(storage: BaseStorage, filename: str) -> bytes | None:
     if (cached := storage.get_from_cache(f'mt:{filename}')):
         return cached
 
-    if not (large := storage.get_background_internal(filename)):
+    if not (large := storage.get_background(filename)):
         return None
 
     resized = resize_image(large, 80, 60).getvalue()

@@ -21,7 +21,7 @@ def submit_benchmark_score(
         score=body.raw_score,
         grade=body.grade,
         client=body.client,
-        hardware=body.hardware.model_dump(),
+        hardware=body.hardware.model_dump(exclude_none=True),
         session=request.state.db
     )
 

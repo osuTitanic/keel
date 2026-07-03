@@ -38,17 +38,22 @@ class BenchmarkHardware(BaseModel):
         if len(value) > 12:
             raise ValueError("Renderer must be a string of a maximum of 12 characters")
 
-        return value
+        return value.strip()
 
     @field_validator('resolution', mode='before')
     def validate_resolution(cls, value):
         if value is None:
             return value
 
-        if not isinstance(value, str) or len(value) <= 0 or len(value) > 32:
+        if not isinstance(value, str) or len(value) <= 0:
             raise ValueError("Resolution must be a valid string")
 
-        parts = value.lower().split('x')
+        if len(value) > 32:
+            raise ValueError("Resolution must be a string of a maximum of 32 characters")
+
+        value = value.lower().strip()
+        parts = value.split('x')
+
         if len(parts) != 2 or not parts[0].isdigit() or not parts[1].isdigit():
             raise ValueError("Resolution must use WIDTHxHEIGHT format")
 

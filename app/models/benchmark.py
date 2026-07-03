@@ -18,14 +18,17 @@ class BenchmarkModel(BaseModel):
 
 class BenchmarkHardware(BaseModel):
     renderer: str
-    cpu: str
-    cores: int
-    threads: int
-    gpu: str
-    ram: int
-    os: str
-    motherboard_manufacturer: str
-    motherboard: str
+    resolution: str | None = None
+    fullscreen: bool | None = None
+    letterboxing: bool | None = None
+    cpu: str | None = None
+    cores: int | None = None
+    threads: int | None = None
+    gpu: str | None = None
+    ram: int | None = None
+    os: str | None = None
+    motherboard_manufacturer: str | None = None
+    motherboard: str | None = None
 
     @field_validator('renderer', mode='before')
     def validate_renderer(cls, value, field):
@@ -35,18 +38,45 @@ class BenchmarkHardware(BaseModel):
         if len(value) > 12:
             raise ValueError("Renderer must be a string of a maximum of 12 characters")
 
+        return value.strip()
+
+    @field_validator('resolution', mode='before')
+    def validate_resolution(cls, value):
+        if value is None:
+            return value
+
+        if not isinstance(value, str) or len(value) <= 0:
+            raise ValueError("Resolution must be a valid string")
+
+        if len(value) > 32:
+            raise ValueError("Resolution must be a string of a maximum of 32 characters")
+
+        value = value.lower().strip()
+        parts = value.split('x')
+
+        if len(parts) != 2 or not parts[0].isdigit() or not parts[1].isdigit():
+            raise ValueError("Resolution must use WIDTHxHEIGHT format")
+
         return value
 
     @field_validator('cores', 'threads', mode='before')
     def validate_cores_and_threads(cls, value, field):
+        if value is None:
+            return value
+
         if not isinstance(value, int) or value <= 0:
             raise ValueError("Cores/Threads must be positive integers")
+
         return value
-    
+
     @field_validator('ram', mode='before')
     def validate_ram(cls, value):
+        if value is None:
+            return value
+
         if not isinstance(value, int) or value < 0:
             raise ValueError("RAM must be a non-negative integer")
+
         return value
 
 class BenchmarkSubmissionRequest(BaseModel):

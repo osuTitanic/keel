@@ -21,6 +21,9 @@ class BenchmarkHardware(BaseModel):
     resolution: str | None = None
     fullscreen: bool | None = None
     letterboxing: bool | None = None
+    dotnet_version: str | None = None
+    client_architecture: str | None = None
+
     cpu: str | None = None
     cores: int | None = None
     threads: int | None = None
@@ -39,6 +42,36 @@ class BenchmarkHardware(BaseModel):
             raise ValueError("Renderer must be a string of a maximum of 12 characters")
 
         return value.strip()
+
+    @field_validator('dotnet_version', mode='before')
+    def validate_dotnet_version(cls, value):
+        if value is None:
+            return value
+
+        if not isinstance(value, str) or len(value.strip()) <= 0:
+            raise ValueError(".NET version must be a valid string")
+
+        value = value.strip()
+
+        if len(value) > 64:
+            raise ValueError(".NET version must be a string of a maximum of 64 characters")
+
+        return value
+
+    @field_validator('client_architecture', mode='before')
+    def validate_client_architecture(cls, value):
+        if value is None:
+            return value
+
+        if not isinstance(value, str):
+            raise ValueError("Client architecture must be a string")
+
+        value = value.strip().lower()
+
+        if value not in ("32 bit", "64 bit"):
+            raise ValueError("Client architecture must be 32 bit or 64 bit")
+
+        return value
 
     @field_validator('resolution', mode='before')
     def validate_resolution(cls, value):

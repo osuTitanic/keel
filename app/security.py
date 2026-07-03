@@ -135,7 +135,7 @@ def issue_api_token_pair(user: "DBUser", redis: Redis, source=TokenSource.Api, n
     return {
         'access_token': access_token,
         'refresh_token': refresh_token,
-        'expires_in': expiry,
+        'expires_in': config.FRONTEND_TOKEN_EXPIRY,
         'token_type': 'Bearer'
     }
 

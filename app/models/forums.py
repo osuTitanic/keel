@@ -144,6 +144,16 @@ class PostUpdateRequest(BaseModel):
 
         return value
 
+class DraftCreateRequest(BaseModel):
+    content: str
+
+    @field_validator('content')
+    def content_length(cls, value):
+        if not value:
+            raise ValueError('Content cannot be empty')
+
+        return value
+
 class ForumHideRequest(BaseModel):
     hidden: bool
 

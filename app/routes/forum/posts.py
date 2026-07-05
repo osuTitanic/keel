@@ -7,7 +7,7 @@ from typing import List
 
 from app.common.database.objects import DBForumPost, DBForumTopic, DBBeatmapset, DBUser
 from app.common.database import topics, posts, notifications, nominations, beatmapsets
-from app.models import PostModel, ErrorResponse, PostCreateRequest, PostUpdateRequest, ForumHideRequest
+from app.models import PostModel, ErrorResponse, PostCreateRequest, PostUpdateRequest, ForumHideRequest, DraftCreateRequest
 from app.common.constants import NotificationType, BeatmapStatus, UserActivity
 from app.common.helpers import activity, permissions
 from app.security import require_login
@@ -55,7 +55,7 @@ def delete_post(
 ) -> dict:
     if not (post := posts.fetch_one(post_id, request.state.db)):
         raise HTTPException(404, "The requested post could not be found")
-    
+
     if post.hidden:
         raise HTTPException(404, "The requested post could not be found")
 
@@ -66,7 +66,7 @@ def delete_post(
 
     if post.user_id != request.user.id and not can_force_delete:
         raise HTTPException(403, "You do not have permission to delete this post")
-    
+
     if post.edit_locked:
         raise HTTPException(403, "This post is locked and cannot be deleted")
 
@@ -117,12 +117,12 @@ def create_post(
     data: PostCreateRequest = Body(...)
 ) -> PostModel:
     """
-    Create a post in a specified topic.  
+    Create a post in a specified topic.
     If you are a moderator, you can use the `icon` parameter to change the topic icon.
     """
     if not (topic := topics.fetch_one(topic_id, request.state.db)):
         raise HTTPException(404, "The requested topic could not be found")
-    
+
     if topic.hidden:
         raise HTTPException(404, "The requested topic could not be found")
 
@@ -144,6 +144,13 @@ def create_post(
         request.user.id,
         data.content,
         icon_id=new_icon,
+        session=request.state.db
+    )
+
+    # Any drafts the user saved for this topic are now obsolete
+    clear_drafts(
+        request.user.id,
+        topic.id,
         session=request.state.db
     )
 
@@ -195,6 +202,47 @@ def create_post(
 
     return PostModel.model_validate(post, from_attributes=True)
 
+@router.post("/{forum_id}/topics/{topic_id}/drafts", response_model=PostModel, dependencies=[require_login])
+@requires("forum.posts.create")
+def create_draft(
+    request: Request,
+    forum_id: int,
+    topic_id: int,
+    data: DraftCreateRequest = Body(...)
+) -> PostModel:
+    if not (topic := topics.fetch_one(topic_id, request.state.db)):
+        raise HTTPException(404, "The requested topic could not be found")
+
+    if topic.hidden:
+        raise HTTPException(404, "The requested topic could not be found")
+
+    if topic.forum_id != forum_id:
+        raise HTTPException(404, "The requested topic could not be found")
+
+    if len(data.content) > 2**14:
+        raise HTTPException(400, "Post content is too long")
+
+    # Only a single draft is kept per user & topic
+    clear_drafts(
+        request.user.id,
+        topic.id,
+        session=request.state.db
+    )
+
+    draft = posts.create(
+        topic.id,
+        topic.forum_id,
+        request.user.id,
+        data.content,
+        draft=True,
+        hidden=True,
+        session=request.state.db
+    )
+    request.state.logger.info(
+        f'{request.user.name} saved a draft on "{topic.title}" ({draft.id}).'
+    )
+    return PostModel.model_validate(draft, from_attributes=True)
+
 @router.patch("/{forum_id}/topics/{topic_id}/posts/{post_id}", response_model=PostModel, dependencies=[require_login])
 @requires("forum.posts.edit")
 def edit_post(
@@ -205,7 +253,7 @@ def edit_post(
     data: PostUpdateRequest = Body(...)
 ) -> PostModel:
     """
-    Edit a post in a specified topic.  
+    Edit a post in a specified topic.
     If you are a moderator, you can use the `lock` parameter to lock the post.
     """
     if not (post := posts.fetch_one(post_id, request.state.db)):
@@ -216,7 +264,7 @@ def edit_post(
 
     if post.topic_id != topic_id or post.forum_id != forum_id:
         return RedirectResponse(f"/forum/{post.forum_id}/topics/{post.topic_id}/posts/{post.id}")
-    
+
     can_bypass_lock = permissions.has_permission(
         "forum.moderation.posts.bypass_lock",
         request.user.id
@@ -294,6 +342,19 @@ def hide_post(
         request.state.db.refresh(post)
 
     return PostModel.model_validate(post, from_attributes=True)
+
+def clear_drafts(user_id: int, topic_id: int, session: Session) -> None:
+    drafts = posts.fetch_drafts(
+        user_id,
+        topic_id,
+        session=session
+    )
+
+    for draft in drafts:
+        posts.delete(
+            draft.id,
+            session=session
+        )
 
 def notify_subscribers(post: DBForumPost, topic: DBForumTopic, session: Session):
     subscribers = topics.fetch_subscribers(
@@ -438,7 +499,7 @@ def update_topic_status_text(
             beatmapset.creator_id,
             session=session
         )
-        
+
         if not last_creator_post:
             topics.update(
                 beatmapset.topic_id,

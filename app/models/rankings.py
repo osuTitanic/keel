@@ -10,6 +10,7 @@ class ModeAlias(str, Enum):
     Osu = 'osu'
     Taiko = 'taiko'
     CatchTheBeat = 'fruits'
+    CatchTheBeatAlt = 'catch'
     OsuMania = 'mania'
 
     @cached_property

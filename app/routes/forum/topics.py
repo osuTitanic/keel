@@ -120,6 +120,7 @@ def create_topic(
         forum.id,
         request.user.id,
         data.content,
+        smilies_disabled=not data.enable_smilies,
         session=request.state.db
     )
 

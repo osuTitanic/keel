@@ -25,6 +25,7 @@ class PostModel(BaseModel):
     edit_time: datetime
     edit_count: int
     edit_locked: bool
+    enable_smilies: bool
     deleted: bool
     user: UserModelCompact
 
@@ -89,6 +90,7 @@ class TopicCreateRequest(BaseModel):
     title: str
     content: str
     notify: bool = False
+    enable_smilies: bool = True
     icon: int | None = None
     type: TopicType | None = None
 
@@ -124,6 +126,7 @@ class TopicUpdateRequest(BaseModel):
 class PostCreateRequest(BaseModel):
     content: str
     notify: bool = False
+    enable_smilies: bool = True
     icon_update: int | None = None
 
     @field_validator('content')
@@ -136,6 +139,7 @@ class PostCreateRequest(BaseModel):
 class PostUpdateRequest(BaseModel):
     content: str
     lock: bool = False
+    enable_smilies: bool = True
 
     @field_validator('content')
     def content_length(cls, value):
@@ -146,6 +150,7 @@ class PostUpdateRequest(BaseModel):
 
 class DraftCreateRequest(BaseModel):
     content: str
+    enable_smilies: bool = True
 
     @field_validator('content')
     def content_length(cls, value):
@@ -159,6 +164,7 @@ class ForumHideRequest(BaseModel):
 
 class BBCodeRenderRequest(BaseModel):
     input: str
+    enable_smilies: bool = True
 
 class SubscriptionRequest(BaseModel):
     topic_id: int

@@ -144,6 +144,7 @@ def create_post(
         request.user.id,
         data.content,
         icon_id=new_icon,
+        smilies_disabled=not data.enable_smilies,
         session=request.state.db
     )
 
@@ -236,6 +237,7 @@ def create_draft(
         data.content,
         draft=True,
         hidden=True,
+        smilies_disabled=not data.enable_smilies,
         session=request.state.db
     )
     request.state.logger.info(
@@ -291,7 +293,8 @@ def edit_post(
         raise HTTPException(400, "Post content is too long")
 
     updates = {
-        'content': data.content
+        'content': data.content,
+        'smilies_disabled': not data.enable_smilies
     }
 
     if data.lock and can_create_locks:

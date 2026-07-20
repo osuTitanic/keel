@@ -6,6 +6,7 @@ from . import security
 from . import register
 from . import profile
 from . import friends
+from . import foes
 from . import export
 from . import reset
 from . import login
@@ -18,6 +19,7 @@ router.include_router(security.router)
 router.include_router(register.router)
 router.include_router(profile.router)
 router.include_router(friends.router)
+router.include_router(foes.router)
 router.include_router(export.router)
 router.include_router(reset.router)
 router.include_router(login.router)

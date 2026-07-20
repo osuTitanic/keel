@@ -56,13 +56,28 @@ def add_friend(request: Request, id: int):
             detail='The requested user could not be found'
         )
 
-    current_friends = relationships.fetch_target_ids(
+    is_blocked = relationships.is_blocked(
         request.user.id,
-        request.state.db
+        target.id,
+        session=request.state.db
     )
 
-    if target.id not in current_friends:
-        # Create relationship
+    # Remove block if the user is blocked before adding them as a friend
+    if is_blocked:
+        relationships.delete(
+            request.user.id,
+            target.id,
+            status=1,
+            session=request.state.db
+        )
+
+    current_is_friend = relationships.is_friend(
+        request.user.id,
+        target.id,
+        session=request.state.db
+    )
+
+    if not current_is_friend:
         relationships.create(
             request.user.id,
             target.id,
@@ -86,12 +101,13 @@ def add_friend(request: Request, id: int):
         session=request.state.db
     )
 
-    target_friends = relationships.fetch_target_ids(
+    target_is_friend = relationships.is_friend(
         target.id,
-        request.state.db
+        request.user.id,
+        session=request.state.db
     )
 
-    if request.user.id in target_friends:
+    if target_is_friend:
         return RelationshipResponse(status='mutual')
 
     return RelationshipResponse(status='friends')
@@ -106,17 +122,18 @@ def remove_friend(request: Request, id: int):
             detail='The requested user could not be found'
         )
 
-    current_friends = relationships.fetch_target_ids(
+    current_is_friend = relationships.is_friend(
         request.user.id,
-        request.state.db
+        target.id,
+        session=request.state.db
     )
 
-    if target.id not in current_friends:
+    if not current_is_friend:
         raise HTTPException(
             status_code=400,
             detail='You are not friends with this user'
         )
-    
+
     relationships.delete(
         request.user.id,
         target.id,
@@ -140,12 +157,13 @@ def remove_friend(request: Request, id: int):
         session=request.state.db
     )
 
-    target_friends = relationships.fetch_target_ids(
+    target_is_friend = relationships.is_friend(
         target.id,
-        request.state.db
+        request.user.id,
+        session=request.state.db
     )
 
-    if request.user.id in target_friends:
+    if target_is_friend:
         return RelationshipResponse(status='mutual')
 
     return RelationshipResponse(status='friends')

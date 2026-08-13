@@ -2,6 +2,7 @@
 from fastapi import Response, APIRouter, Request, Body
 from fastapi.responses import HTMLResponse
 from app.models import BBCodeRenderRequest
+from app.common.database import users
 from app.common import bbcode
 from .smileys import normalize_smileys
 
@@ -14,7 +15,13 @@ def render_bbcode(request: Request, data: BBCodeRenderRequest = Body(...)):
         data.input
     )
     return Response(
-        bbcode.render_html(input_text),
+        bbcode.render_html(
+            input_text,
+            resolve_user_id=lambda username: users.fetch_user_id(
+                username,
+                request.state.db
+            )
+        ),
         status_code=200,
         media_type='text/html'
     )

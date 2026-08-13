@@ -5,8 +5,8 @@ from app.common.database import scores, users
 
 router = APIRouter()
 
-@router.get("/{user_id}/most-watched", response_model=ScoreCollectionResponse)
-def get_most_watched_scores_preferred_mode(
+@router.get("/{user_id}/most-viewed", response_model=ScoreCollectionResponse)
+def get_most_viewed_scores_preferred_mode(
     request: Request,
     user_id: int,
     offset: int = Query(0, ge=0),
@@ -24,7 +24,7 @@ def get_most_watched_scores_preferred_mode(
             detail="The requested user could not be found"
         )
 
-    most_watched_scores = scores.fetch_most_watched_scores(
+    most_viewed_scores = scores.fetch_most_viewed_by_user(
         user.id,
         user.preferred_mode,
         offset=offset,
@@ -32,22 +32,22 @@ def get_most_watched_scores_preferred_mode(
         session=request.state.db
     )
 
-    most_watched_count = scores.fetch_most_watched_scores_count(
+    most_viewed_count = scores.fetch_most_viewed_by_user_count(
         user.id,
         user.preferred_mode,
         session=request.state.db
     )
 
     return ScoreCollectionResponse(
-        total=most_watched_count,
+        total=most_viewed_count,
         scores=[
             ScoreModelWithoutUser.model_validate(score, from_attributes=True)
-            for score in most_watched_scores
+            for score in most_viewed_scores
         ]
     )
 
-@router.get("/{user_id}/most-watched/{mode}", response_model=ScoreCollectionResponse)
-def get_most_watched_scores(
+@router.get("/{user_id}/most-viewed/{mode}", response_model=ScoreCollectionResponse)
+def get_most_viewed_scores(
     request: Request,
     mode: ModeAlias,
     user_id: int,
@@ -66,7 +66,7 @@ def get_most_watched_scores(
             detail="The requested user could not be found"
         )
 
-    most_watched_scores = scores.fetch_most_watched_scores(
+    most_viewed_scores = scores.fetch_most_viewed_by_user(
         user.id,
         mode.integer,
         offset=offset,
@@ -74,16 +74,16 @@ def get_most_watched_scores(
         session=request.state.db
     )
 
-    most_watched_count = scores.fetch_most_watched_scores_count(
+    most_viewed_count = scores.fetch_most_viewed_by_user_count(
         user.id,
         mode.integer,
         session=request.state.db
     )
 
     return ScoreCollectionResponse(
-        total=most_watched_count,
+        total=most_viewed_count,
         scores=[
             ScoreModelWithoutUser.model_validate(score, from_attributes=True)
-            for score in most_watched_scores
+            for score in most_viewed_scores
         ]
     )

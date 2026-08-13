@@ -12,6 +12,7 @@ from . import friends
 from . import profile
 from . import history
 from . import lookup
+from . import most_watched
 from . import pinned
 from . import recent
 from . import status
@@ -30,6 +31,7 @@ router.include_router(friends.router)
 router.include_router(profile.router)
 router.include_router(history.router)
 router.include_router(lookup.router)
+router.include_router(most_watched.router)
 router.include_router(pinned.router)
 router.include_router(recent.router)
 router.include_router(status.router)

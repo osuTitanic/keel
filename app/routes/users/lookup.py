@@ -25,12 +25,6 @@ def user_lookup(request: Request, input: str) -> UserModel:
     return UserModel.model_validate(user, from_attributes=True)
 
 def resolve_user_profile(input: str, session: Session) -> DBUser | None:
-    if input.isdigit():
-        return users.fetch_by_id(
-            int(input),
-            session=session
-        )
-
     return users.fetch_by_name_extended(
         input,
         session

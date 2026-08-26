@@ -1,6 +1,7 @@
 
 from fastapi import HTTPException, Request, APIRouter, Query
 from app.models import ScoreCollectionResponse, ScoreModelWithoutUser, ModeAlias
+from app.common.constants import ScoreSortBy
 from app.common.database.repositories import scores, users
 from app.common.config import config_instance as config
 
@@ -11,7 +12,8 @@ def get_top_plays_preferred_mode(
     request: Request,
     user_id: int,
     offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=50)
+    limit: int = Query(50, ge=1, le=50),
+    sort: ScoreSortBy = Query(ScoreSortBy.Performance)
 ) -> ScoreCollectionResponse:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
@@ -30,6 +32,7 @@ def get_top_plays_preferred_mode(
         user.preferred_mode,
         offset=offset,
         limit=limit,
+        sort=sort,
         exclude_approved=(not config.APPROVED_MAP_REWARDS),
         session=request.state.db
     )
@@ -55,7 +58,8 @@ def get_top_plays(
     mode: ModeAlias,
     user_id: int,
     offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=50)
+    limit: int = Query(50, ge=1, le=50),
+    sort: ScoreSortBy = Query(ScoreSortBy.Performance)
 ) -> ScoreCollectionResponse:
     if not (user := users.fetch_by_id(user_id, session=request.state.db)):
         raise HTTPException(
@@ -74,6 +78,7 @@ def get_top_plays(
         mode.integer,
         offset=offset,
         limit=limit,
+        sort=sort,
         exclude_approved=(not config.APPROVED_MAP_REWARDS),
         session=request.state.db
     )

@@ -28,6 +28,7 @@ class BeatmapModelCompact(BaseModel):
     od: float
     hp: float
     diff: float
+    diff_eyup: float
     count_normal: int
     count_slider: int
     count_spinner: int

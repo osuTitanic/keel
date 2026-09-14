@@ -1,12 +1,12 @@
 
 from fastapi import APIRouter, HTTPException, Request
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import List
 
-from app.models import KudosuModel, KudosuWithoutSetModel, ErrorResponse
-from app.common.database import beatmapsets, modding, posts
-from app.common.helpers import permissions
+from app.models import KudosuModel, KudosuSpendResponse, KudosuWithoutSetModel, ErrorResponse
+from app.common.database import beatmapsets, beatmapset_stars, modding, posts, topics
 from app.common.constants import BeatmapStatus
+from app.common.helpers import permissions
 from app.common.cache import leaderboards
 from app.security import require_login
 from app.utils import requires
@@ -334,3 +334,75 @@ def reset_kudosu(request: Request, set_id: int, post_id: int):
     )
 
     return {}
+
+@router.post("/{set_id}/kudosu/spend", response_model=KudosuSpendResponse, dependencies=[require_login])
+def spend_kudosu(request: Request, set_id: int) -> KudosuSpendResponse:
+    if not request.user.is_authenticated:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required"
+        )
+
+    beatmapset = beatmapsets.fetch_one(set_id, request.state.db)
+    if not beatmapset:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested beatmapset could not be found"
+        )
+
+    if beatmapset.topic_id is None:
+        raise HTTPException(
+            status_code=400,
+            detail="This beatmapset is not linked to a forum topic"
+        )
+
+    topic = topics.fetch_one(
+        beatmapset.topic_id,
+        request.state.db,
+    )
+    eligible = topic and not topic.hidden and (
+        (
+            beatmapset.status == BeatmapStatus.Pending and
+            topic.forum_id == 9
+        ) or (
+            beatmapset.status == BeatmapStatus.WIP and
+            topic.forum_id == 10
+        )
+    )
+
+    if not eligible:
+        raise HTTPException(
+            status_code=400,
+            detail="This beatmapset cannot receive kudosu stars"
+        )
+
+    request.state.db.refresh(
+        request.user,
+        ["kudosu", "silence_end"],
+        with_for_update=True
+    )
+
+    if request.user.silence_end and request.user.silence_end > datetime.now():
+        raise HTTPException(
+            status_code=403,
+            detail="Silenced users cannot spend kudosu"
+        )
+
+    if request.user.kudosu < 1:
+        raise HTTPException(
+            status_code=400,
+            detail="You do not have enough kudosu"
+        )
+
+    beatmapset_stars.create(
+        set_id=beatmapset.id,
+        user_id=request.user.id,
+        session=request.state.db
+    )
+    request.state.db.refresh(request.user, ["kudosu"])
+    request.state.db.refresh(beatmapset, ["star_priority"])
+
+    return KudosuSpendResponse(
+        star_priority=beatmapset.star_priority,
+        kudosu=request.user.kudosu
+    )

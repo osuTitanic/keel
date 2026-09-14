@@ -22,3 +22,7 @@ class KudosuWithoutSetModel(BaseModel):
     post: PostModel
     amount: int
     time: datetime
+
+class KudosuSpendResponse(BaseModel):
+    star_priority: int
+    kudosu: int

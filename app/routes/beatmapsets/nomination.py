@@ -102,8 +102,16 @@ def reset_nominations(request: Request, set_id: int):
         request
     )
 
-    nominations.delete_all(
+    deleted_nominations = nominations.delete_all(
         set_id,
+        request.state.db
+    )
+    if deleted_nominations == 0:
+        raise HTTPException(400, "This beatmap has no nominations to reset")
+
+    beatmapsets.update(
+        beatmapset.id,
+        {'star_priority': beatmapset.star_priority + 5},
         request.state.db
     )
 
@@ -117,7 +125,6 @@ def reset_nominations(request: Request, set_id: int):
         },
         request.state.db
     )
-
     posts.update_by_topic(
         beatmapset.topic_id,
         {'forum_id': 10},
@@ -134,7 +141,6 @@ def reset_nominations(request: Request, set_id: int):
     request.state.logger.info(
         f'{request.user.name} removed all nominations from "{beatmapset.full_name}".'
     )
-
     return []
 
 @router.post("/{set_id}/nominations/{user_id}", response_model=List[NominationModelWithUser], dependencies=[require_login], responses=responses)

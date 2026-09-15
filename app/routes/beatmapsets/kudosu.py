@@ -360,17 +360,8 @@ def spend_kudosu(request: Request, set_id: int) -> KudosuSpendResponse:
         beatmapset.topic_id,
         request.state.db,
     )
-    eligible = topic and not topic.hidden and (
-        (
-            beatmapset.status == BeatmapStatus.Pending and
-            topic.forum_id == 9
-        ) or (
-            beatmapset.status == BeatmapStatus.WIP and
-            topic.forum_id == 10
-        )
-    )
 
-    if not eligible:
+    if not can_receive_kudosu_stars(beatmapset, topic):
         raise HTTPException(
             status_code=400,
             detail="This beatmapset cannot receive kudosu stars"
@@ -405,4 +396,26 @@ def spend_kudosu(request: Request, set_id: int) -> KudosuSpendResponse:
     return KudosuSpendResponse(
         star_priority=beatmapset.star_priority,
         kudosu=request.user.kudosu
+    )
+
+def can_receive_kudosu_stars(beatmapset, topic) -> bool:
+    if not topic or topic.hidden:
+        return False
+
+    if beatmapset.topic_id is None or beatmapset.topic_id != topic.id:
+        return False
+
+    return (
+        (
+            # Pending Forum
+            beatmapset.status == BeatmapStatus.Pending and
+            topic.forum_id == 9
+        ) or (
+            # WIP Forum
+            beatmapset.status == BeatmapStatus.WIP and
+            topic.forum_id == 10
+        ) or (
+            # Map Requests Forum
+            topic.forum_id == 11
+        )
     )

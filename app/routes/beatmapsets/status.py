@@ -547,6 +547,9 @@ def update_topic_status_text(
     if not beatmapset.topic_id:
         return
 
+    if beatmapset.server != 1:
+        return
+
     if beatmapset.status > BeatmapStatus.Pending:
         topics.update(
             beatmapset.topic_id,

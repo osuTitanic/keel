@@ -85,9 +85,14 @@ def reward_kudosu(request: Request, set_id: int, post_id: int):
         "forum.kudosu.force_reward",
         request.user.id
     )
+    can_revoke_kudosu = permissions.has_permission(
+        "forum.kudosu.revoke",
+        request.user.id
+    )
 
     is_authorized = (
         request.user.id == beatmapset.creator_id or
+        can_revoke_kudosu or
         can_force_reward
     )
 
@@ -103,11 +108,8 @@ def reward_kudosu(request: Request, set_id: int, post_id: int):
             detail="This beatmapset is already ranked"
         )
 
-    if not (post := posts.fetch_one(post_id, request.state.db)):
-        raise HTTPException(
-            status_code=404,
-            detail="The requested post could not be found"
-        )
+    post = fetch_kudosu_post(request, beatmapset, post_id)
+    ensure_not_silenced(request)
 
     if post.user_id == request.user.id:
         raise HTTPException(
@@ -121,16 +123,26 @@ def reward_kudosu(request: Request, set_id: int, post_id: int):
             detail="You cannot reward kudosu to the beatmapset creator"
         )
 
-    existing_mod = modding.fetch_by_post_and_sender(
+    post_too_old = (
+        datetime.now(post.created_at.tzinfo) - post.created_at >
+        timedelta(weeks=12)
+    )
+
+    if post_too_old:
+        raise HTTPException(
+            status_code=400,
+            detail="It has been too long since this post was made"
+        )
+
+    existing_mod = modding.fetch_one_by_post(
         post_id,
-        request.user.id,
         request.state.db
     )
 
     if existing_mod:
         raise HTTPException(
             status_code=400,
-            detail="Kudosu was already rewarded to this post"
+            detail="This post already has a kudosu state"
         )
 
     previous_post = posts.fetch_previous(
@@ -148,9 +160,8 @@ def reward_kudosu(request: Request, set_id: int, post_id: int):
     delta = (
         post.created_at - previous_post.created_at
     )
-
     kudosu_amount = (
-        1 if delta < timedelta(days=7)
+        1 if delta <= timedelta(days=7)
         else 2
     )
 
@@ -192,28 +203,8 @@ def revoke_kudosu(request: Request, set_id: int, post_id: int):
             detail="This beatmapset is not linked to a forum topic"
         )
 
-    can_force_reward = permissions.has_permission(
-        "forum.kudosu.force_reward",
-        request.user.id
-    )
-
-    if beatmapset.status >= BeatmapStatus.Ranked and not can_force_reward:
-        raise HTTPException(
-            status_code=400,
-            detail="This beatmapset is already ranked"
-        )
-
-    if not (post := posts.fetch_one(post_id, request.state.db)):
-        raise HTTPException(
-            status_code=404,
-            detail="The requested post could not be found"
-        )
-
-    if post.user_id == request.user.id:
-        raise HTTPException(
-            status_code=400,
-            detail="You cannot revoke kudosu on your own post"
-        )
+    post = fetch_kudosu_post(request, beatmapset, post_id)
+    ensure_not_silenced(request)
 
     if post.user_id == beatmapset.creator_id:
         raise HTTPException(
@@ -221,43 +212,36 @@ def revoke_kudosu(request: Request, set_id: int, post_id: int):
             detail="You cannot revoke kudosu from the beatmapset creator"
         )
 
-    total_kudosu = modding.total_amount(
-        post_id=post.id,
-        session=request.state.db
+    latest_mod = modding.fetch_one_by_post(
+        post.id,
+        request.state.db
     )
 
-    if total_kudosu < 0:
+    if latest_mod and latest_mod.amount <= 0:
         raise HTTPException(
             status_code=400,
             detail="This post has already been revoked"
         )
 
-    existing_mod = modding.fetch_by_post_and_sender(
-        post_id,
-        beatmapset.creator_id,
-        request.state.db
+    total_kudosu = modding.total_amount(
+        post_id=post.id,
+        session=request.state.db
     )
-
-    if existing_mod:
-        modding.delete(
-            existing_mod.id,
-            request.state.db
-        )
-
     kudosu = modding.create(
         target_id=post.user_id,
         sender_id=request.user.id,
         set_id=set_id,
         post_id=post_id,
-        amount=min(-1, -total_kudosu),
+        amount=-max(total_kudosu, 0),
         session=request.state.db
     )
 
-    beatmapsets.update(
-        beatmapset.id,
-        {'star_priority': max(beatmapset.star_priority + kudosu.amount, 0)},
-        session=request.state.db
-    )
+    if kudosu.amount:
+        beatmapsets.update(
+            beatmapset.id,
+            {'star_priority': max(beatmapset.star_priority + kudosu.amount, 0)},
+            session=request.state.db
+        )
 
     leaderboards.update_kudosu(
         post.user_id,
@@ -282,11 +266,8 @@ def reset_kudosu(request: Request, set_id: int, post_id: int):
             detail="This beatmapset is not linked to a forum topic"
         )
 
-    if not (post := posts.fetch_one(post_id, request.state.db)):
-        raise HTTPException(
-            status_code=404,
-            detail="The requested post could not be found"
-        )
+    post = fetch_kudosu_post(request, beatmapset, post_id)
+    ensure_not_silenced(request)
 
     if post.user_id == request.user.id:
         raise HTTPException(
@@ -300,30 +281,25 @@ def reset_kudosu(request: Request, set_id: int, post_id: int):
             detail="You cannot reset kudosu from the beatmapset creator"
         )
 
-    total_entries = modding.total_entries(
-        post_id,
-        request.state.db
+    latest_mod = modding.fetch_one_by_post(
+        post.id,
+        request.state.db,
     )
 
-    if total_entries == 0:
+    if not latest_mod:
         raise HTTPException(
             status_code=404,
             detail="This post has no kudosu exchanges"
         )
 
-    total_kudosu = modding.total_amount(
-        post_id,
-        request.state.db
-    )
+    if latest_mod.amount > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="This post has positive kudosu; revoke it first"
+        )
 
     modding.delete_by_post(
         post_id,
-        request.state.db
-    )
-
-    beatmapsets.update(
-        beatmapset.id,
-        {'star_priority': max(beatmapset.star_priority - total_kudosu, 0)},
         request.state.db
     )
 
@@ -398,6 +374,23 @@ def spend_kudosu(request: Request, set_id: int) -> KudosuSpendResponse:
         kudosu=request.user.kudosu
     )
 
+def fetch_kudosu_post(request: Request, beatmapset, post_id: int):
+    if not (post := posts.fetch_one(post_id, request.state.db)):
+        raise HTTPException(
+            status_code=404,
+            detail="The requested post could not be found"
+        )
+
+    request.state.db.refresh(post, with_for_update=True)
+
+    if post.topic_id != beatmapset.topic_id:
+        raise HTTPException(
+            status_code=404,
+            detail="The requested post could not be found"
+        )
+
+    return post
+
 def can_receive_kudosu_stars(beatmapset, topic) -> bool:
     if not topic or topic.hidden:
         return False
@@ -419,3 +412,19 @@ def can_receive_kudosu_stars(beatmapset, topic) -> bool:
             topic.forum_id == 11
         )
     )
+
+def ensure_not_silenced(request: Request) -> None:
+    request.state.db.refresh(
+        request.user,
+        ["silence_end"],
+    )
+    is_silenced = (
+        request.user.silence_end and
+        request.user.silence_end > datetime.now(request.user.silence_end.tzinfo)
+    )
+
+    if is_silenced:
+        raise HTTPException(
+            status_code=403,
+            detail="Silenced users cannot manage kudosu"
+        )

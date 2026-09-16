@@ -454,7 +454,18 @@ def move_beatmap_topic(beatmapset: DBBeatmapset, status: BeatmapStatus, session:
     if not beatmapset.topic_id:
         return
 
-    forum_id = {
+    if beatmapset.server != 1:
+        return
+
+    topic = topics.fetch_one(
+        beatmapset.topic_id,
+        session=session
+    )
+
+    if not topic:
+        return
+
+    forum_id_mapping = {
         BeatmapStatus.Pending: 9,
         BeatmapStatus.WIP: 10,
         BeatmapStatus.Graveyard: 12,
@@ -462,16 +473,22 @@ def move_beatmap_topic(beatmapset: DBBeatmapset, status: BeatmapStatus, session:
         BeatmapStatus.Qualified: 8,
         BeatmapStatus.Ranked: 8,
         BeatmapStatus.Loved: 8
-    }.get(status, 9)
+    }
+    updated_forum_id = forum_id_mapping.get(status, 9)
+    beatmap_forum_ids = set(forum_id_mapping.values())
+
+    if topic.forum_id not in beatmap_forum_ids:
+        # Manually linked maps keep their forum
+        return
 
     topics.update(
         beatmapset.topic_id,
-        {'forum_id': forum_id},
+        {'forum_id': updated_forum_id},
         session=session
     )
     posts.update_by_topic(
         beatmapset.topic_id,
-        {'forum_id': forum_id},
+        {'forum_id': updated_forum_id},
         session=session
     )
 

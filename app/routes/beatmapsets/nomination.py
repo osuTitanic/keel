@@ -48,23 +48,29 @@ def nominate_beatmap(request: Request, set_id: int):
         request.state.db
     )
 
-    # Set icon to bubble
+    can_move_topic = can_automove_topic(
+        beatmapset,
+        request
+    )
+    topic_updates = {
+        'icon_id': 3, # Set icon to bubble
+        'status_text': 'Waiting for approval...'
+    }
+    if can_move_topic:
+        topic_updates['forum_id'] = 9 # Switch to pending forum
+
     topics.update(
         beatmapset.topic_id,
-        {
-            'icon_id': 3,
-            'forum_id': 9,
-            'status_text': 'Waiting for approval...'
-        },
+        topic_updates,
         request.state.db
     )
 
-    # Change to "ranked" forum
-    posts.update_by_topic(
-        beatmapset.topic_id,
-        {'forum_id': 9},
-        request.state.db
-    )
+    if can_move_topic:
+        posts.update_by_topic(
+            beatmapset.topic_id,
+            {'forum_id': 9}, # Switch to pending forum, if allowed
+            request.state.db
+        )
 
     broadcast_nomination(
         beatmapset,
@@ -115,21 +121,28 @@ def reset_nominations(request: Request, set_id: int):
         request.state.db
     )
 
-    # Set icon to popped bubble
+    can_move_topic = can_automove_topic(
+        beatmapset,
+        request
+    )
+    topic_updates = {
+        'icon_id': 4, # Set icon to popped bubble
+        'status_text': 'Waiting for further modding...'
+    }
+    if can_move_topic:
+        topic_updates['forum_id'] = 10 # Set forum to WIP
+    
     topics.update(
         beatmapset.topic_id,
-        {
-            'forum_id': 10,
-            'icon_id': 4,
-            'status_text': 'Waiting for further modding...'
-        },
+        topic_updates,
         request.state.db
     )
-    posts.update_by_topic(
-        beatmapset.topic_id,
-        {'forum_id': 10},
-        request.state.db
-    )
+    if can_move_topic:
+        posts.update_by_topic(
+            beatmapset.topic_id,
+            {'forum_id': 10}, # Switch to WIP forum, if allowed
+            request.state.db
+        )
 
     broadcast_nomination(
         beatmapset,
@@ -242,3 +255,14 @@ def notify_nominatiors(
             link=f'http://{config.DOMAIN_NAME}/s/{beatmapset.id}',
             session=request.state.db
         )
+
+def can_automove_topic(beatmapset: DBBeatmapset, request: Request):
+    topic = topics.fetch_one(
+        beatmapset.topic_id,
+        session=request.state.db
+    )
+    return (
+        topic is not None
+        and beatmapset.server == 1
+        and topic.forum_id in (8, 9, 10, 12)
+    )

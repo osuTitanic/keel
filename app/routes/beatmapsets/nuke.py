@@ -35,23 +35,31 @@ def nuke_beatmap(request: Request, set_id: int):
     if not (topic := topics.fetch_one(beatmapset.topic_id, request.state.db)):
         raise HTTPException(404, 'The forum topic for this beatmap could not be found')
 
+    can_move_topic = (
+        topic is not None
+        and beatmapset.server == 1
+        and topic.forum_id in (8, 9, 10, 12)
+    )
+    topic_updates = {
+        'icon_id': 7, # Set to nuke icon
+        'status_text': None,
+        'hidden': True
+    }
+    post_updates = {'hidden': True}
+
+    if can_move_topic:
+        # Move to graveyard forum, if allowed
+        topic_updates['forum_id'] = 12
+        post_updates['forum_id'] = 12
+
     topics.update(
         topic.id,
-        {
-            'icon_id': 7,
-            'forum_id': 12,
-            'status_text': None,
-            'hidden': True
-        },
+        topic_updates,
         request.state.db
     )
-
     posts.update_by_topic(
         topic.id,
-        {
-            'forum_id': 12,
-            'hidden': True
-        },
+        post_updates,
         request.state.db
     )
 
@@ -60,7 +68,6 @@ def nuke_beatmap(request: Request, set_id: int):
         {'status': BeatmapStatus.Inactive.value},
         request.state.db
     )
-
     beatmaps.update_by_set_id(
         set_id,
         {'status': BeatmapStatus.Inactive.value},

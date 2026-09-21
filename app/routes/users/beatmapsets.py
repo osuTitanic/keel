@@ -8,6 +8,7 @@ from app.models import BeatmapsetModel, ErrorResponse, BeatmapsetDescriptionUpda
 from app.common.database import users, beatmapsets, beatmaps, topics, posts, nominations
 from app.common.constants import BeatmapStatus, UserActivity
 from app.utils import requires, primary_beatmapset_mode
+from app.common.database.objects import DBBeatmapset
 from app.common.helpers import activity
 
 router = APIRouter()
@@ -131,23 +132,30 @@ def revive_beatmapset(
         request.state.db
     )
 
+    can_move_topic = can_automove_topic(
+        beatmapset,
+        request
+    )
+    topic_updates = {
+        'status_text': 'Needs modding',
+        'icon_id': None,
+        'hidden': False
+    }
+    post_updates = {'hidden': False}
+
+    if can_move_topic:
+        # Move to WIP forum, if allowed
+        topic_updates['forum_id'] = 10
+        post_updates['forum_id'] = 10
+
     topics.update(
         beatmapset.topic_id,
-        {
-            'status_text': 'Needs modding',
-            'icon_id': None,
-            'hidden': False,
-            'forum_id': 10
-        },
+        topic_updates,
         request.state.db
     )
-
     posts.update_by_topic(
         beatmapset.topic_id,
-        {
-            'hidden': False,
-            'forum_id': 10
-        },
+        post_updates,
         request.state.db
     )
 
@@ -306,3 +314,14 @@ def delete_beatmapset(
 
     request.state.db.refresh(beatmapset)
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
+
+def can_automove_topic(beatmapset: DBBeatmapset, request: Request):
+    topic = topics.fetch_one(
+        beatmapset.topic_id,
+        session=request.state.db
+    )
+    return (
+        topic is not None
+        and beatmapset.server == 1
+        and topic.forum_id in (8, 9, 10, 12)
+    )

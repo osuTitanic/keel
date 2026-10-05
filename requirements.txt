@@ -6,7 +6,7 @@ rosu-pp-py==4.0.2
 sendgrid==6.12.5
 boto3<2
 psycopg[binary]==3.3.6
-fastapi==0.141.1
+fastapi==0.142.2
 uvicorn==0.54.0
 bcrypt==5.0.0
 python-multipart==0.0.32

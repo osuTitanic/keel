@@ -5,7 +5,7 @@ geoip2==5.3.0
 rosu-pp-py==4.0.2
 sendgrid==6.12.5
 boto3<2
-psycopg[binary]==3.3.6
+psycopg2-binary==2.9.13
 fastapi==0.142.2
 uvicorn==0.54.0
 bcrypt==5.0.0

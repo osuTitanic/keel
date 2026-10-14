@@ -269,12 +269,6 @@ def reset_kudosu(request: Request, set_id: int, post_id: int):
     post = fetch_kudosu_post(request, beatmapset, post_id)
     ensure_not_silenced(request)
 
-    if post.user_id == request.user.id:
-        raise HTTPException(
-            status_code=400,
-            detail="You cannot reset kudosu on your own post"
-        )
-
     if post.user_id == beatmapset.creator_id:
         raise HTTPException(
             status_code=400,

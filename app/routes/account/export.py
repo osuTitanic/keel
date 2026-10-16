@@ -399,6 +399,7 @@ def data_export(request: Request, data: DataExportRequest) -> dict:
                 {
                     "time": login.time,
                     "ip": login.ip,
+                    "country": login.country,
                     "version": login.version
                 }
                 for login in user_logins

@@ -47,7 +47,8 @@ class StampUpdateRequest(BaseModel):
 class LoginModel(BaseModel):
     user_id: int
     time: datetime
-    ip: str
+    ip: str | None
+    country: str
     version: str
 
 class UserMetadataModel(BaseModel):

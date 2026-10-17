@@ -8,9 +8,12 @@ from typing import List
 class BeatmapsetModelCompact(BaseModel):
     id: int
     title: str | None
+    title_unicode: str | None
     artist: str | None
+    artist_unicode: str | None
     creator: str | None
     source: str | None
+    source_unicode: str | None
     tags: str | None
     creator_id: int | None
     topic_id: int | None

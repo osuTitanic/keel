@@ -1,6 +1,6 @@
 
 from fastapi import HTTPException, APIRouter, Request, Body
-from app.models import BeatmapUpdateRequest, BeatmapsetModel, ErrorResponse
+from app.models import BeatmapsetUpdateRequest, BeatmapsetModel, ErrorResponse
 from app.common.constants import BeatmapGenre, BeatmapLanguage
 from app.common.database import beatmapsets
 from app.common.helpers import permissions
@@ -33,7 +33,7 @@ def get_beatmapset(request: Request, set_id: int) -> BeatmapsetModel:
 def update_beatmapset_metadata(
     request: Request,
     set_id: int,
-    update: BeatmapUpdateRequest = Body(...)
+    update: BeatmapsetUpdateRequest = Body(...)
 ) -> BeatmapsetModel:
     if not (beatmapset := beatmapsets.fetch_one(set_id, request.state.db)):
         raise HTTPException(
@@ -80,6 +80,12 @@ def update_beatmapset_metadata(
 
     if full_permission:
         updates.update({
+            "title": update.title,
+            "title_unicode": update.title_unicode,
+            "artist": update.artist,
+            "artist_unicode": update.artist_unicode,
+            "source": update.source,
+            "source_unicode": update.source_unicode,
             "offset": update.offset,
             "enhanced": update.enhanced,
             "explicit": update.explicit,
@@ -104,5 +110,7 @@ def update_beatmapset_metadata(
     request.state.logger.info(
         f'{request.user.name} updated beatmap metadata for "{beatmapset.full_name}".'
     )
+
+    # TODO: Individual diff updates
 
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)

@@ -2,7 +2,7 @@
 from fastapi import HTTPException, APIRouter, Request, Body
 from app.models import BeatmapsetUpdateRequest, BeatmapsetModel, ErrorResponse
 from app.common.constants import BeatmapGenre, BeatmapLanguage
-from app.common.database import beatmapsets
+from app.common.database import beatmapsets, beatmaps
 from app.common.helpers import permissions
 from app.security import require_login
 from app.utils import requires
@@ -81,11 +81,11 @@ def update_beatmapset_metadata(
     if full_permission:
         updates.update({
             "title": update.title,
-            "title_unicode": update.title_unicode,
+            "title_unicode": update.title_unicode or None,
             "artist": update.artist,
-            "artist_unicode": update.artist_unicode,
+            "artist_unicode": update.artist_unicode or None,
             "source": update.source,
-            "source_unicode": update.source_unicode,
+            "source_unicode": update.source_unicode or None,
             "offset": update.offset,
             "enhanced": update.enhanced,
             "explicit": update.explicit,
@@ -111,6 +111,34 @@ def update_beatmapset_metadata(
         f'{request.user.name} updated beatmap metadata for "{beatmapset.full_name}".'
     )
 
-    # TODO: Individual diff updates
+    for beatmap_update in update.beatmap_updates:
+        if not full_permission:
+            break
+
+        if not (beatmap := beatmaps.fetch_by_id(beatmap_update.id, request.state.db)):
+            raise HTTPException(
+                status_code=404,
+                detail=f"One of the requested beatmaps could not be found"
+            )
+
+        if beatmap.set_id != beatmapset.id:
+            raise HTTPException(
+                status_code=400,
+                detail=f"One of the requested beatmaps does not belong to this beatmapset"
+            )
+
+        updates = {
+            "md5": beatmap_update.md5 or beatmap.md5,
+            "version": beatmap_update.version or beatmap.version,
+            "filename": beatmap_update.filename or beatmap.filename,
+        }
+
+        beatmaps.update(
+            beatmap.id,
+            updates,
+            request.state.db
+        )
+        request.state.db.commit()
+        request.state.db.refresh(beatmap)
 
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)

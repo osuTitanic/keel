@@ -1,7 +1,7 @@
 
 from .helpers import validate_beatmap_for_upload
 
-from fastapi import HTTPException, APIRouter, Request, UploadFile, File
+from fastapi import HTTPException, APIRouter, Request, UploadFile, File, Query
 from fastapi.responses import PlainTextResponse, Response
 from datetime import datetime
 from hashlib import md5
@@ -34,10 +34,31 @@ def get_internal_beatmap(request: Request, filename: str):
 def upload_internal_beatmap(
     request: Request,
     beatmap_id: int,
-    osu: UploadFile = File(...)
+    osu: UploadFile = File(...),
+    update_filename: bool = Query(False)
 ) -> Response:
     beatmap = validate_beatmap_for_upload(beatmap_id, request.user.id, request.state.db)
     beatmap_data = osu.file.read()
+
+    updates = {
+        "md5": md5(beatmap_data).hexdigest(),
+        "last_update": datetime.now()
+    }
+
+    if update_filename:
+        if not osu.filename:
+            raise HTTPException(
+                status_code=400,
+                detail="Filename must be provided when updating the filename"
+            )
+
+        if not osu.filename.endswith(".osu"):
+            raise HTTPException(
+                status_code=400,
+                detail="Filename must end with .osu"
+            )
+
+        updates["filename"] = osu.filename
 
     request.state.storage.upload_beatmap_file(
         beatmap.id,
@@ -45,10 +66,7 @@ def upload_internal_beatmap(
     )
     beatmaps.update(
         beatmap.id,
-        {
-            "md5": md5(beatmap_data).hexdigest(),
-            "last_update": datetime.now()
-        },
+        updates,
         request.state.db
     )
 

@@ -89,6 +89,7 @@ def update_beatmapset_metadata(
             "offset": update.offset,
             "enhanced": update.enhanced,
             "explicit": update.explicit,
+            "available": update.available,
             "download_server": (
                 update.download_server
                 if update.download_server is not None

@@ -1,9 +1,8 @@
-
 from fastapi import APIRouter
 
-from . import events
-from . import match
+from . import events, management, match
 
-router = APIRouter()
+router = APIRouter(prefix="/matches")
+router.include_router(management.router)
 router.include_router(events.router)
 router.include_router(match.router)

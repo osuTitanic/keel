@@ -8,10 +8,10 @@ class TitanicReleaseModel(BaseModel):
     description: str
     category: str
     known_bugs: str | None
-    supported: bool
     preview: bool
-    downloads: List[str]
-    screenshots: List[str]
+    download_url: str | None
+    checksums: List[str]
+    screenshot: str | None
     created_at: datetime
 
 class ModdedReleaseModel(BaseModel):
@@ -21,6 +21,7 @@ class ModdedReleaseModel(BaseModel):
     topic_id: int | None
     client_version: int
     client_extension: str
+    screenshot: str | None
     created_at: datetime
 
 class ModdedReleaseEntryModel(BaseModel):

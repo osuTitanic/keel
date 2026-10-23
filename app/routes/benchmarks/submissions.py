@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Query
-from app.common.database.objects import DBBenchmark
+from app.common.database import benchmarks
 from app.models import BenchmarkModel
 from typing import List
 
@@ -9,11 +9,16 @@ router = APIRouter()
 def get_benchmark_submissions(
     request: Request,
     limit: int = Query(100, ge=1, le=100),
-    before_id: int | None = Query(None, ge=1)
+    offset: int = Query(0, ge=0)
 ) -> List[BenchmarkModel]:
-    query = request.state.db.query(DBBenchmark)
-    if before_id is not None:
-        query = query.filter(DBBenchmark.id < before_id)
-
-    benchmarks = query.order_by(DBBenchmark.id.desc()).limit(limit).all()
-    return [BenchmarkModel.model_validate(benchmark, from_attributes=True) for benchmark in benchmarks]
+    return [
+        BenchmarkModel.model_validate(
+            benchmark,
+            from_attributes=True
+        )
+        for benchmark in benchmarks.fetch_range(
+            offset,
+            limit,
+            request.state.db
+        )
+    ]

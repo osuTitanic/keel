@@ -13,7 +13,10 @@ def get_benchmark_leaderboard(
     limit: int = Query(50, ge=0, le=50)
 ) -> List[BenchmarkModel]:
     return [
-        BenchmarkModel.model_validate(benchmark, from_attributes=True).model_dump()
+        BenchmarkModel.model_validate(
+            benchmark,
+            from_attributes=True
+        )
         for benchmark in benchmarks.fetch_leaderboard(
             limit=limit,
             offset=(page - 1) * limit,

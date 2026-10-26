@@ -4,6 +4,7 @@ from fastapi.responses import StreamingResponse, Response
 from .helpers import validate_beatmapset_for_upload
 
 from app.common.helpers.streaming import NoVideoZipIterator
+from app.common.database import beatmapsets
 from app.security import require_login
 from app.utils import requires
 from typing import Iterable
@@ -59,7 +60,15 @@ def upload_internal_osz(
         require_unranked=True,
     )
 
-    request.state.storage.upload_osz(beatmapset.id, osz.file.read())
+    request.state.storage.upload_osz(
+        beatmapset.id,
+        osz.file.read()
+    )
+    beatmapsets.update(
+        beatmapset.id,
+        {"osz_filesize": osz.size},
+        request.state.db
+    )
 
     return Response(
         status_code=204,

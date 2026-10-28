@@ -1,12 +1,9 @@
 
 from fastapi import HTTPException, APIRouter, Request, Query
-from collections import defaultdict
-from sqlalchemy.orm import Session
-from typing import Iterable, List
+from typing import List
 
-from app.common.database import messages, channels, names, groups, users
-from app.models import MessageModel, ChannelModel, ErrorResponse
-from app.common.database.objects import DBUser, DBMessage
+from app.models import MessageModel, ChannelModel, ErrorResponse, UserModelCompact
+from app.common.database import messages, channels, groups
 from app.security import require_login
 from app.utils import requires
 
@@ -25,7 +22,7 @@ def channel_selection(
     if has_participated:
         return [
             ChannelModel.model_validate(channel, from_attributes=True)
-            for channel in channels.fetch_channel_entries(request.user.name, request.state.db)
+            for channel in channels.fetch_channel_entries(request.user.id, request.state.db)
         ]
 
     permissions = groups.fetch_bancho_permissions(
@@ -79,53 +76,16 @@ def channel_message_history(
     if user_permissions < channel.read_permissions:
         raise HTTPException(403, 'Insufficient permissions')
 
-    channel_messages = messages.fetch_recent(
-        target, limit, offset,
-        request.state.db
-    )
-
-    return resolve_message_users(
-        channel_messages,
-        request
-    )
-
-def resolve_message_users(messages: List[DBMessage], request: Request) -> Iterable[MessageModel]:
-    sender_cache = defaultdict(lambda: None)
-
-    for message in messages:
-        response = MessageModel(
+    return [
+        MessageModel(
             id=message.id,
-            sender=None,
+            sender=UserModelCompact.model_validate(message.user, from_attributes=True),
             sender_name=message.sender,
             message=message.message,
             time=message.time,
         )
-
-        if message.sender in sender_cache:
-            response.sender = sender_cache[message.sender]
-            yield response
-            continue
-
-        sender = resolve_user(
-            message.sender,
+        for message in messages.fetch_recent(
+            target, limit, offset,
             request.state.db
         )
-
-        if not sender:
-            sender_cache[message.sender] = None
-            response.sender = None
-            yield response
-            continue
-
-        sender_cache[message.sender] = sender
-        response.sender = sender
-        yield response
-
-def resolve_user(username: str, session: Session) -> DBUser | None:
-    safe_name = username.lower().replace(' ', '_')
-
-    if user := users.fetch_by_safe_name(safe_name, session):
-        return user
-
-    if name_change := names.fetch_by_name_extended(username, session):
-        return name_change.user
+    ]

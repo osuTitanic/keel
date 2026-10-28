@@ -1,10 +1,9 @@
 
 
 from fastapi import HTTPException, APIRouter, Request, Body
-from datetime import datetime, timedelta
-from sqlalchemy.orm import Session
+from datetime import datetime
 
-from app.models import MessagePostRequest, PrivateMessageModel, MessageModel, ErrorResponse
+from app.models import MessagePostRequest, PrivateMessageModel, MessageModel, ErrorResponse, UserModelCompact
 from app.common.database import channels, groups, messages, users, relationships
 from app.common.database.objects import DBUser
 from app.security import require_login
@@ -78,7 +77,7 @@ def post_message(
 
     return MessageModel(
         id=message.id,
-        sender=request.user,
+        sender=UserModelCompact.model_validate(request.user, from_attributes=True),
         sender_name=request.user.name,
         message=message.message,
         time=message.time

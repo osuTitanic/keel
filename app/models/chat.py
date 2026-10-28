@@ -9,7 +9,7 @@ class ChannelModel(BaseModel):
 
 class MessageModel(BaseModel):
     id: int
-    sender: UserModelCompact | None
+    sender: UserModelCompact
     sender_name: str
     message: str
     time: datetime

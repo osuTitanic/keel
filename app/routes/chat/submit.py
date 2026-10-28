@@ -59,13 +59,12 @@ def post_message(
     # TODO: Check for message spamming
 
     message = messages.create(
+        request.user.id,
         request.user.name,
         channel.name,
         data.message,
         request.state.db
     )
-    message.sender = request.user
-
     request.state.events.submit(
         'external_message',
         sender_id=request.user.id,

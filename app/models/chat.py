@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, computed_field, field_validator
 from datetime import datetime
 from .user import UserModelCompact
 
@@ -10,9 +10,13 @@ class ChannelModel(BaseModel):
 class MessageModel(BaseModel):
     id: int
     sender: UserModelCompact
-    sender_name: str
     message: str
     time: datetime
+
+    @computed_field
+    @property
+    def sender_name(self) -> str:
+        return self.sender.name
 
 class PrivateMessageModel(BaseModel):
     id: int

@@ -80,7 +80,6 @@ def channel_message_history(
         MessageModel(
             id=message.id,
             sender=UserModelCompact.model_validate(message.user, from_attributes=True),
-            sender_name=message.sender,
             message=message.message,
             time=message.time,
         )

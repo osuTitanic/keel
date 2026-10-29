@@ -59,7 +59,6 @@ def post_message(
 
     message = messages.create(
         request.user.id,
-        request.user.name,
         channel.name,
         data.message,
         request.state.db
@@ -78,7 +77,6 @@ def post_message(
     return MessageModel(
         id=message.id,
         sender=UserModelCompact.model_validate(request.user, from_attributes=True),
-        sender_name=request.user.name,
         message=message.message,
         time=message.time
     )

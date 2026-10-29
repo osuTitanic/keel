@@ -211,16 +211,11 @@ def update_beatmapset_description(
         f'{request.user.name} updated description for "{beatmapset.full_name}".'
     )
 
-    beatmap_topic = topics.fetch_one(
-        beatmapset.topic_id,
-        session=request.state.db
-    )
-
-    if not beatmap_topic:
+    if beatmapset.post_id is None:
         return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
-    initial_post = posts.fetch_initial_post(
-        beatmap_topic.id,
+    initial_post = posts.fetch_one(
+        beatmapset.post_id,
         session=request.state.db
     )
 

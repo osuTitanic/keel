@@ -17,6 +17,7 @@ class BeatmapsetModelCompact(BaseModel):
     tags: str | None
     creator_id: int | None
     topic_id: int | None
+    post_id: int | None
     status: int
     has_video: bool
     has_storyboard: bool

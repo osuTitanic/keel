@@ -9,6 +9,7 @@ class TitanicReleaseModel(BaseModel):
     category: str
     known_bugs: str | None
     preview: bool
+    recommended: bool
     download_url: str | None
     checksums: List[str]
     screenshot: str | None

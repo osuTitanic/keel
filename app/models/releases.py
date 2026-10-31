@@ -5,15 +5,16 @@ from typing import List
 
 class TitanicReleaseModel(BaseModel):
     name: str
+    version: int
     description: str
     category: str
+    created_at: datetime
     known_bugs: str | None
     preview: bool
     recommended: bool
     download_url: str | None
-    checksums: List[str]
     screenshot: str | None
-    created_at: datetime
+    checksums: List[str]
 
 class ModdedReleaseModel(BaseModel):
     name: str

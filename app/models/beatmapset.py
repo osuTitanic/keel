@@ -64,12 +64,12 @@ class BeatmapUpdateRequest(BaseModel):
     filename: str | None
 
 class BeatmapsetUpdateRequest(BaseModel):
-    title: str | None
-    title_unicode: str | None
-    artist: str | None
-    artist_unicode: str | None
-    source: str | None
-    source_unicode: str | None
+    title: str | None = None
+    title_unicode: str | None = None
+    artist: str | None = None
+    artist_unicode: str | None = None
+    source: str | None = None
+    source_unicode: str | None = None
     offset: int = 0
     tags: str = ""
     language: BeatmapLanguage = BeatmapLanguage.Unspecified

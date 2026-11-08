@@ -101,16 +101,26 @@ def update_beatmapset_metadata(
             )
         })
 
-    beatmapsets.update(
-        beatmapset.id,
-        updates,
-        request.state.db
-    )
-    request.state.db.commit()
-    request.state.db.refresh(beatmapset)
-    request.state.logger.info(
-        f'{request.user.name} updated beatmap metadata for "{beatmapset.full_name}".'
-    )
+    field_names = {
+        "genre_id": "genre",
+        "language_id": "language"
+    }
+    updates = {
+        key: value for key, value in updates.items()
+        if field_names.get(key, key) in update.model_fields_set
+    }
+
+    if updates:
+        beatmapsets.update(
+            beatmapset.id,
+            updates,
+            request.state.db
+        )
+        request.state.db.commit()
+        request.state.db.refresh(beatmapset)
+        request.state.logger.info(
+            f'{request.user.name} updated beatmap metadata for "{beatmapset.full_name}".'
+        )
 
     for beatmap_update in update.beatmap_updates:
         if not full_permission:

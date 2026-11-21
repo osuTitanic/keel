@@ -59,10 +59,18 @@ ENV API_WORKERS=${API_WORKERS}
 ARG API_THREADS_RUNTIME=2
 ENV API_THREADS_RUNTIME=${API_THREADS_RUNTIME}
 
+RUN addgroup -g 10001 -S sailor && \
+    adduser -u 10001 -S -D -G sailor -h /home/sailor sailor
+
 WORKDIR /keel
 COPY . .
 
 RUN python -m compileall -q /usr/local/lib/python3.14/site-packages app
+
+RUN mkdir -p /keel/.data && \
+    chown sailor:sailor /keel/.data
+
+USER sailor:sailor
 
 STOPSIGNAL SIGINT
 ENTRYPOINT ["/sbin/tini", "--"]

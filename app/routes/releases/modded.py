@@ -77,7 +77,7 @@ def upload_modded_release(
     if not release_object:
         raise HTTPException(status_code=404, detail="The requested release was not found")
 
-    if request.user.id != release_object.creator_id:
+    if request.user.id != release_object.creator_id and not request.user.is_admin:
         raise HTTPException(status_code=403, detail="You do not have permission to upload entries for this release")
 
     release_object = releases.create_modded_entry(
@@ -110,7 +110,7 @@ def delete_modded_release(
     if not release_object:
         raise HTTPException(status_code=404, detail="The requested release was not found")
 
-    if request.user.id != release_object.creator_id:
+    if request.user.id != release_object.creator_id and not request.user.is_admin:
         raise HTTPException(status_code=403, detail="You do not have permission to delete entries for this release")
 
     entry = releases.fetch_modded_entry_by_id(
@@ -172,7 +172,7 @@ def update_modded_release_entry(
     if not release_object:
         raise HTTPException(status_code=404, detail="The requested release was not found")
 
-    if request.user.id != release_object.creator_id:
+    if request.user.id != release_object.creator_id and not request.user.is_admin:
         raise HTTPException(status_code=403, detail="You do not have permission to upload entries for this release")
 
     entry_object = releases.fetch_modded_entry_by_id(

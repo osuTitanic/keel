@@ -430,25 +430,47 @@ def handle_loved_status(beatmapset: DBBeatmapset, request: Request) -> Beatmapse
 
     return BeatmapsetModel.model_validate(beatmapset, from_attributes=True)
 
-def required_nominations(beatmapset: DBBeatmapset) -> bool:
-    beatmap_modes = len(
-        set(
-            beatmap.mode
-            for beatmap in beatmapset.beatmaps
-        )
+def required_nominations(beatmapset: DBBeatmapset) -> dict[int, int]:
+    beatmap_modes = set(beatmap.mode for beatmap in beatmapset.beatmaps)
+
+    # The main mode is the mode that appears the most frqeuently in the set
+    main_mode = max(
+        beatmap_modes,
+        key=lambda mode: sum(1 for b in beatmapset.beatmaps if b.mode == mode)
     )
 
-    # NOTE: Beatmap requires 2 approvals + 1 for each other mode
-    additional_modes = beatmap_modes - 1
-    return 2 + additional_modes
+    return {
+        # 2 approvals for the main mode
+        main_mode: 2,
+        # 1 approval for each additional mode
+        **{mode: 1 for mode in beatmap_modes if mode != main_mode}
+    }
 
 def has_enough_nominations(beatmapset: DBBeatmapset, session: Session) -> bool:
-    count = nominations.count(
+    noms = nominations.fetch_by_beatmapset(
         beatmapset.id,
         session=session
     )
 
-    return count >= required_nominations(beatmapset)
+    if not noms:
+        return False
+
+    required = required_nominations(beatmapset)
+    counts = {mode: 0 for mode in required.keys()}
+
+    for nomination in noms:
+        mode_eligibility = {
+            0: permissions.has_permission("beatmaps.moderation.nominate_standard", nomination.user_id),
+            1: permissions.has_permission("beatmaps.moderation.nominate_taiko", nomination.user_id),
+            2: permissions.has_permission("beatmaps.moderation.nominate_ctb", nomination.user_id),
+            3: permissions.has_permission("beatmaps.moderation.nominate_mania", nomination.user_id)
+        }
+
+        for mode in required.keys():
+            if mode_eligibility.get(mode):
+                counts[mode] += 1
+
+    return all(counts[mode] >= required[mode] for mode in required.keys())
 
 def move_beatmap_topic(beatmapset: DBBeatmapset, status: BeatmapStatus, session: Session):
     if not beatmapset.topic_id:

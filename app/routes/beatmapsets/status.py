@@ -447,6 +447,9 @@ def required_nominations(beatmapset: DBBeatmapset) -> dict[int, int]:
     }
 
 def has_enough_nominations(beatmapset: DBBeatmapset, session: Session) -> bool:
+    if len(beatmapset.beatmaps) <= 0:
+        return False
+
     noms = nominations.fetch_by_beatmapset(
         beatmapset.id,
         session=session
